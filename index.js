@@ -8,7 +8,7 @@ app
     res.json({
       message:"Hello RPMTW World",
       code: 200
-    })
+    }).status(200);
   });
 
 app.listen(3000, () => {
