@@ -6,6 +6,7 @@ const router = require('./routes');
 const authRouter = require('./routes/auth');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 const storageRouter = require('./routes/storage');
+const { VerifyToken } = require('./function/auth/Users');
 require('dotenv').config();
 
 const rateLimiter = new RateLimiterMemory({ points: 3, duration: 1, blockDuration: 60 });
@@ -19,7 +20,7 @@ const sequelize = new Sequelize({
     dialect: 'postgres',
     logging: (...msg) => {
         //紀錄SQL日誌
-        console.log(msg);
+        // console.log(msg);
     },
 });
 
@@ -51,17 +52,16 @@ async function run() {
                 console.log(`new user: ${req.ip}`)
                 next();
             }).catch(() => {
-                return res.json({
+                return res.status(429).json({
                     message: 'Too Many Requests',
-                }).status(429);
+                });
             });
         };
 
-        app.use(cors()).use(init)
+        app.use(cors()).use(init).use(VerifyToken)
             .use("/", router)
             .use("/auth", authRouter(sequelize))
             .use("/storage", storageRouter(sequelize))
-            .use(init)
             .use(function (req, res, next) {
                 res.json({
                     message: "Not Found"

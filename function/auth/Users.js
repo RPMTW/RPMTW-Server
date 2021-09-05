@@ -98,6 +98,23 @@ function GenerateToken(UserName, UUID) {
     return token;
 }
 
-module.exports = {
-    CreateUser, GetUser
+const VerifyToken = function (req, res, next) {
+    try {
+        let data = jwt.verify(GetTokenHeader(req), process.env['tokenPrivateKey']);
+    } catch (error) {
+        if (error instanceof jwt.JsonWebTokenError) {
+            return res.status(401).json({
+                message: 'Unauthorized'
+            });
+        } else {
+            throw error;
+        }
+    }
+    return next();
+};
+
+function GetTokenHeader(req) {
+    return req.header('Authorization').replace('Bearer ', '');
 }
+
+module.exports = { CreateUser, GetUser, VerifyToken };
