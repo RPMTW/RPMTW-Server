@@ -9,7 +9,6 @@ module.exports = {
             redirect_uri: tokes.discord.redirect_uri,
             client_id: tokes.discord.client_id,
             grant_type: "authorization_code",
-            scope: "identify",
             code: code,
         }));
         fetch("https://discord.com/api/oauth2/token", {
