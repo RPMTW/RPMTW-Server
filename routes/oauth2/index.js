@@ -1,7 +1,7 @@
 /* 根路徑 /oauth2 */
 const router = require('express').Router();
 const oauth2 = require('../../core/oauth2')
-const tokes = require('../env');
+const tokes = require('../../env');
 
 // router = router + ((app.js).expansion)
 function init(expansion) {
