@@ -6,4 +6,10 @@ router.get('/', (req, res) => {
     }).status(200);
 })
 
+router.get("/ip", function (req, res) {
+    res.json({
+        ip: req.ip.replace("::ffff:", "") || req.socket.remoteAddress,
+    }).status(200)
+})
+
 module.exports = router;

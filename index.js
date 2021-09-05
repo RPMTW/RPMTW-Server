@@ -4,8 +4,10 @@ const app = express();
 const { Sequelize } = require('sequelize');
 const router = require('./routes');
 const authRouter = require('./routes/auth');
+const { RateLimiterMemory } = require('rate-limiter-flexible');
 require('dotenv').config();
 
+const rateLimiter = new RateLimiterMemory({ points: 3, duration: 1, blockDuration: 60 });
 
 const sequelize = new Sequelize({
     host: process.env['dataBaseHost'],
@@ -26,15 +28,20 @@ async function run() {
     try {
         await sequelize.authenticate();
         console.log('連接資料庫成功');
-
     } catch (error) {
         console.error('連接資料庫失敗：', error);
     }
 
     try {
         var init = function (req, res, next) {
-            console.log(`new user: ${req.ip}`)
-            next();
+            rateLimiter.consume(req.ip).then(() => {
+                console.log(`new user: ${req.ip}`)
+                next();
+            }).catch(() => {
+                return res.json({
+                    message: 'Too Many Requests',
+                }).status(429);
+            });
         };
 
         app.use(cors()).use(init)
