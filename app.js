@@ -12,16 +12,18 @@ const app = express();
 let expansion = {
   db: new db,
   error: {
-    Parameter: e => e.json({
+    Parameter: res => res.json({
       message: "Parameter Error"
     }).status(400),
-    NotFoundString: e => e.json({
-      message: e.json("Not Found")
+    NotFoundString: res => res.json({
+      message: "Not Found"
     }).status(404),
     test: "a"
   }
 };
-expansion.expansion = expansion;
+expansion = Object.assign(expansion, {
+  expansion: expansion
+})
 
 app
   .use(function (req, res, next) {
@@ -55,6 +57,7 @@ app
     res.locals.error = req.app.get("env") === "development" ? err : {};
 
     res.status(err.status || 500);
+    console.log(err.status || 500);
     res.render("error");
   })
 

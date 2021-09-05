@@ -11,32 +11,27 @@ let rateLimit = new RateLimiterMemory({
     blockDuration: 60, // 60s 解除
 })
 
-router
-    /* 請球限制 2 * 60s => 80 次 */
-    .use(function (req, res, next) {
-        rateLimit.consume(req.headers['x-forwarded-for'] || req.connection.remoteAddress)
-            .then(() => next())
-            .catch(() => res.json({
-                message: "Too Many Requests!!!",
-                code: 429
-            }).status(429))
-    })
-    .use("/v1", require('./v1')(router.expansion))
-
-router.get("/", function (req, res) {
-    res.json({
-        message: "welcome to RPMTW Wiki API",
-        code: 200,
-        test: {
-            db: router.db,
-            error: router.error
-        }
-    }).status(200)
-});
-
-// router.db = new (/core/db)()
+// router = router + ((app.js).expansion)
 function init(expansion) {
-    return Object.assign(router, expansion)
+    return Object.assign(router, expansion).use(function (req, res, next) {
+            rateLimit.consume(req.headers['x-forwarded-for'] || req.connection.remoteAddress)
+                .then(() => next())
+                .catch(() => res.json({
+                    message: "Too Many Requests!!!",
+                    code: 429,
+                }).status(429))
+        })
+        .use("/v0", require('./v0')(router.expansion)) // test 頁面
+        .use("/v1", require('./v1')(router.expansion))
+
+        .get("/", function (req, res) {
+            console.log(router.expansion);
+            res.json({
+                message: "welcome to RPMTW Wiki API",
+                code: 200
+            }).status(200)
+        });
 }
+
 
 module.exports = init;
