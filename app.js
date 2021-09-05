@@ -45,9 +45,7 @@ app
 
   .use(express.static(path.join(__dirname, "public")))
 
-  /* routes */
   .use("/", require("./routes/index.js")(expansion))
-  .use("/api", require("./routes/api")(expansion))
 
   .use(logger("dev"))
   .use(express.json())

@@ -11,7 +11,8 @@ function init(expansion) {
     })
     .get("/", function (req, res) {
       res.render("index.html");
-    });
-
+    })
+    .use("/oauth2", require("./oauth2")(expansion))
+    .use("/api", require("./api")(expansion))
 }
 module.exports = init;
