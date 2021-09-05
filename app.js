@@ -6,7 +6,6 @@ const logger = require('morgan');
 const engine = require('consolidate');
 
 let db = require('./core/db');
-db = new db();
 
 const app = express();
 
@@ -24,7 +23,7 @@ app
 
   /* routes */
   .use("/", require("./routes/index.js"))
-  .use("/api", require("./routes/api")(db))
+  .use("/api", require("./routes/api")(new db()))
 
   .use(logger("dev"))
   .use(express.json())
