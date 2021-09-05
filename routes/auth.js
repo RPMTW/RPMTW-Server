@@ -3,7 +3,7 @@ var router = require('express').Router();
 const bodyParser = require('body-parser');
 const { ParameterError } = require('../function/errors');
 
-function authRouter(sequelize) {
+function authRouter() {
     router.post('/user/create', bodyParser.json(), async (req, res) => {
         let data = req.body;
         try {

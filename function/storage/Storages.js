@@ -6,7 +6,7 @@ const { hash } = require('../hash');
 class Storages extends Model {
 }
 
-async function init(sequelize) {
+async function init() {
     Storages.init({
         type: {
             type: DataTypes.STRING,
@@ -30,15 +30,15 @@ async function init(sequelize) {
             primaryKey: true
         }
     }, {
-        sequelize,
+        sequelize: global.database.getSequelize(),
         schema: "storage",
         modelName: 'Storages'
     });
     await Storages.sync({});
 }
 
-async function CreateStorage(sequelize, type, name, data) {
-    init(sequelize);
+async function CreateStorage(type, name, data) {
+    await init();
     const storage = await Storages.create({
         type: type,
         name: name,
@@ -48,8 +48,8 @@ async function CreateStorage(sequelize, type, name, data) {
     return storage.toJSON();
 }
 
-async function GetStorage(sequelize, UUID) {
-    await init(sequelize);
+async function GetStorage(UUID) {
+    await init();
     try {
         const Storage = await Storages.findByPk(UUID);
         let StorageJson = Storage.toJSON();
@@ -66,8 +66,8 @@ async function GetStorage(sequelize, UUID) {
     }
 }
 
-async function DownloadStorage(sequelize, UUID, res) {
-    await init(sequelize);
+async function DownloadStorage(UUID, res) {
+    await init();
     try {
         const Storage = await Storages.findByPk(UUID);
         return res.contentType(Storage.type).attachment(Storage.name).send(Storage.data).status(200);

@@ -58,8 +58,8 @@ async function run() {
 
         app.use(cors()).use(init).use(VerifyToken)
             .use("/", router)
-            .use("/auth", authRouter(sequelize))
-            .use("/storage", storageRouter(sequelize))
+            .use("/auth", authRouter())
+            .use("/storage", storageRouter())
             .use(function (req, res, next) {
                 res.json({
                     message: "Not Found"
