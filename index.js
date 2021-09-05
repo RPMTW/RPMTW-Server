@@ -7,6 +7,7 @@ const authRouter = require('./routes/auth');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 const storageRouter = require('./routes/storage');
 const { VerifyToken } = require('./function/auth/Users');
+const DataBase = require('./core/dataBase');
 require('dotenv').config();
 
 const rateLimiter = new RateLimiterMemory({ points: 3, duration: 1, blockDuration: 60 });
@@ -24,14 +25,12 @@ const sequelize = new Sequelize({
     },
 });
 
-
-
 run();
 
 async function run() {
     try {
         await sequelize.authenticate();
-
+        global.database = new DataBase(sequelize);
         await sequelize.showAllSchemas().then(Schemas => {
             if (!Schemas.every(Schema => Schema === 'auth')) {
                 sequelize.createSchema('auth');
@@ -40,7 +39,6 @@ async function run() {
                 sequelize.createSchema('storage');
             }
         });
-
         console.log('連接資料庫成功');
     } catch (error) {
         console.error('連接資料庫失敗：', error);
@@ -84,4 +82,6 @@ async function run() {
 
 }
 
-exports.sequelize = sequelize;
+module.exports = {
+    sequelize
+};

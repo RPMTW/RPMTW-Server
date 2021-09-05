@@ -4,57 +4,51 @@ const { NotFoundString } = require('../errors');
 const { hash } = require('../hash');
 
 class User extends Model {
-
-}
-
-
-async function init(sequelize) {
-    User.init({
-        UserName: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        Email: {
-            type: DataTypes.STRING,
-            allowNull: false
-        },
-        Password: {
-            type: DataTypes.STRING,
-            allowNull: false,
-            set(value) {
-                this.setDataValue('Password', hash(this.UserName + value));
-            }
-        },
-        UUID: {
-            type: DataTypes.UUID,
-            defaultValue: Sequelize.UUIDV4,
-            primaryKey: true,
-        },
-        AvatarStorageUUID: {
-            type: DataTypes.STRING,
-            allowNull: false,
-        },
-        AvatarUrl: {
-            type: DataTypes.VIRTUAL,
-            get() {
-                return `https://${process.env['dataBaseHost']}:${process.env['apiPort']}/storage/download/${this.AvatarStorageUUID}`;
+    static async Init() {
+        super.init({
+            UserName: {
+                type: DataTypes.STRING,
+                allowNull: false
             },
-            set(value) {
-                throw new Error('不要嘗試設定 `AvatarUrl` 的值!');
+            Email: {
+                type: DataTypes.STRING,
+                allowNull: false
+            },
+            Password: {
+                type: DataTypes.STRING,
+                allowNull: false,
+                set(value) {
+                    this.setDataValue('Password', hash(this.UserName + value));
+                }
+            },
+            UUID: {
+                type: DataTypes.UUID,
+                defaultValue: Sequelize.UUIDV4,
+                primaryKey: true,
+            },
+            AvatarStorageUUID: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
+            AvatarUrl: {
+                type: DataTypes.VIRTUAL,
+                get() {
+                    return `https://${process.env['dataBaseHost']}:${process.env['apiPort']}/storage/download/${this.AvatarStorageUUID}`;
+                },
+                set(value) {
+                    throw new Error('不要嘗試設定 `AvatarUrl` 的值!');
+                }
             }
-        }
-    }, {
-        sequelize,
-        schema: "auth",
-        modelName: 'User'
-    });
-    await User.sync({});
+        }, {
+            sequelize: global.database.getSequelize(),
+            schema: "auth",
+            modelName: 'User'
+        });
+        await this.sync({});
+    }
 }
 
-
-async function CreateUser(sequelize, UserName, Email, Password, AvatarStorageUUID) {
-    await init(sequelize);
-
+async function CreateUser(UserName, Email, Password, AvatarStorageUUID) {
     const user = await User.create({
         UserName: UserName,
         Email: Email,
@@ -66,15 +60,14 @@ async function CreateUser(sequelize, UserName, Email, Password, AvatarStorageUUI
     delete userJson.Password;
 
     return {
-        token: GenerateToken(UserName, Email),
+        token: GenerateToken(UserName, user.UUID),
         user: userJson
     };
 }
 
-async function GetUser(sequelize, UUID) {
-    await init(sequelize);
+async function GetUser(req) {
     try {
-        const user = await User.findByPk(UUID);
+        const user = req.user;
         let userJson = user.toJSON();
         delete userJson.Password;
         return userJson;
@@ -98,9 +91,12 @@ function GenerateToken(UserName, UUID) {
     return token;
 }
 
-const VerifyToken = function (req, res, next) {
+const VerifyToken = async function (req, res, next) {
     try {
+        await User.Init();
         let data = jwt.verify(GetTokenHeader(req), process.env['tokenPrivateKey']);
+        req.user = await User.findByPk(data.UUID);
+        return next();
     } catch (error) {
         if (error instanceof jwt.JsonWebTokenError) {
             return res.status(401).json({
@@ -110,7 +106,6 @@ const VerifyToken = function (req, res, next) {
             throw error;
         }
     }
-    return next();
 };
 
 function GetTokenHeader(req) {
