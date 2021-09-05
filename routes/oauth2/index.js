@@ -30,7 +30,10 @@ function init(expansion) {
             redirect_uri: tokes.discord.redirect_uri,
             code: req.query.code,
           })
-        }).then(d => d.json()).then(json => {
+        }).then(d => {
+          console.log(d);
+          return d.json()
+        }).then(json => {
           res.json(json)
         }).catch(error => console.log(error))
       else res.json({
