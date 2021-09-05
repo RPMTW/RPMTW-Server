@@ -14,7 +14,7 @@ let rateLimit = new RateLimiterMemory({
 router
     /* 請球限制 2 * 60s => 80 次 */
     .use(function (req, res, next) {
-        rateLimit.consume(req.ip)
+        rateLimit.consume(req.headers['x-forwarded-for'] || req.connection.remoteAddress)
             .then(() => next())
             .catch(() => res.json({
                 message: "Too Many Requests!!!",

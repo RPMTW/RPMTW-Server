@@ -9,7 +9,7 @@ let app = express();
 
 app
   .use(function (req, res, next) {
-    console.log(req.method, req.ip);
+    console.log(req.method, req.headers['x-forwarded-for'] || req.connection.remoteAddress);
     next();
   })
   .use(require("cors")())
