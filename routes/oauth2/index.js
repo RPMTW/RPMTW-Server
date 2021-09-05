@@ -2,7 +2,7 @@
 const router = require('express').Router();
 const oauth2 = require('../../core/oauth2')
 const tokes = require('../../env');
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
 
 // router = router + ((app.js).expansion)
 function init(expansion) {
@@ -19,7 +19,7 @@ function init(expansion) {
       if (req.query.code) {
         console.log(req.query.code);
 
-        return await fetch(`https://discord.com/api/oauth2/token`, {
+        await fetch(`https://discord.com/api/oauth2/token`, {
           method: "GET",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
