@@ -2,6 +2,7 @@
 const router = require('express').Router();
 const oauth2 = require('../../core/oauth2')
 const tokes = require('../../env');
+const fetch = require('node-fetch')
 
 // router = router + ((app.js).expansion)
 function init(expansion) {
@@ -13,11 +14,12 @@ function init(expansion) {
         code: 200
       }).status(200)
     })
-    .get("/discord/callback", function (req, res) {
+    .get("/discord/callback", async (req, res) => {
       /* discord oauth2 callback */
-      console.log(req.query.code);
-      if (req.query.code)
-        fetch(`https://rear-end.a102009102009.repl.co/discord/oauth/auth?code=${req.query.code}`, {
+      if (req.query.code) {
+        console.log(req.query.code);
+
+        return await fetch(`https://rear-end.a102009102009.repl.co/discord/oauth/auth?code=${req.query.code}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
@@ -28,7 +30,7 @@ function init(expansion) {
         }).then(json => {
           res.json(json)
         }).catch(error => console.log(error))
-      else res.json({
+      } else res.json({
         error: "",
         code: 404
       }).status(404)
