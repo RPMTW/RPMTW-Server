@@ -9,14 +9,13 @@ function authRouter(sequelize) {
         try {
             return res.json(await CreateUser(data.UserName, data.Email, data.Password, data.AvatarStorageUUID));
         } catch (error) {
-            console.log(error);
             return ParameterError(res);
         }
     });
     router.get('/user/:uuid', async (req, res) => {
         let UUID = req.params.uuid;
         try {
-            return res.json(await GetUserByUUID(UUID));
+            return await GetUserByUUID(res, UUID);
         } catch (error) {
             return ParameterError(res);
         }

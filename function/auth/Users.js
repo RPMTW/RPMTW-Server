@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { Sequelize, DataTypes, Model, DatabaseError } = require('sequelize');
-const { NotFoundString } = require('../errors');
+const { NotFoundString, NotFoundError } = require('../errors');
 const { hash } = require('../hash');
 
 class User extends Model {
@@ -82,18 +82,17 @@ async function GetUser(req) {
     }
 }
 
-async function GetUserByUUID(UUID) {
+async function GetUserByUUID(res, UUID) {
     try {
         await User.Init();
         const user = await User.findOne({ where: { UUID: UUID } });
         let userJson = user.toJSON();
         delete userJson.Password;
-        return userJson;
+        return res.json(userJson);
     } catch (error) {
+        console.log(error);
         if (error instanceof DatabaseError) {
-            return {
-                message: NotFoundString
-            };
+            return NotFoundError(res);
         } else {
             throw error;
         }

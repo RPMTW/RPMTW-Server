@@ -8,9 +8,9 @@ function ParameterError(res) {
 
 
 function NotFoundError(res) {
-    return res.status(400).json({
+    return res.status(404).json({
         message: NotFoundString
     });
 }
 
-module.exports = { ParameterError, NotFound: NotFoundError, NotFoundString };
+module.exports = { ParameterError, NotFoundError, NotFoundString };

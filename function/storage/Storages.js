@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { Sequelize, DataTypes, Model, DatabaseError } = require('sequelize');
-const { NotFoundString, NotFound } = require('../errors');
+const { NotFoundString, NotFoundError: NotFound } = require('../errors');
 const { hash } = require('../hash');
 
 class Storages extends Model {
