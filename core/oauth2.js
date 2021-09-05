@@ -17,7 +17,7 @@ let getDiscordToken = (code, res) => {
         })
     }).then(d => d.json()).then(json => {
         res.json(json)
-    })
+    }).catch(error => console.log(error))
 }
 module.exports = {
     getDiscordToken
