@@ -7,7 +7,7 @@ router.get("/", function (req, res) {
 
 router.get("/ip", function (req, res) {
   res.json({
-    ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+    ip: req.ip,
     code: 200
   }).status(200)
 })

@@ -8,6 +8,10 @@ const engine = require('consolidate');
 let app = express();
 
 app
+  .use(function (req, res, next) {
+    console.log(req.method, req.ip);
+    next();
+  })
   .use(require("cors")())
   .engine('html', engine.swig)
   .set("views", path.join(__dirname, "views"))

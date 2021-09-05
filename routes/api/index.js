@@ -1,15 +1,26 @@
 /* 根路徑 /api */
 const router = require('express').Router();
-const rateLimit = require('express-rate-limit')
+const {
+    RateLimiterMemory
+} = require('rate-limiter-flexible')
+
+/* 429 */
+let rateLimit = new RateLimiterMemory({
+    duration: 60, // 每 60s
+    points: 80, // 80次請求
+    blockDuration: 60, // 60s 解除
+})
 
 router
     /* 請球限制 2 * 60s => 80 次 */
-    .use(rateLimit({
-        message: "請求過多，請稍後在試",
-        windowMs: 2 * 60 * 1e3,
-        max: 80,
-        statusCode: 429,
-    }))
+    .use(function (req, res, next) {
+        rateLimit.consume(req.ip)
+            .then(() => next())
+            .catch(() => res.json({
+                message: "Too Many Requests!!!",
+                code: 429
+            }).status(429))
+    })
     .use("/v1", require('./v1'))
 
 router.get("/", function (req, res) {
