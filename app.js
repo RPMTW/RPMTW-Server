@@ -5,9 +5,23 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const engine = require('consolidate');
 
-let db = require('./core/db');
+const db = require('./core/db');
 
 const app = express();
+
+let expansion = {
+  db: new db,
+  error: {
+    Parameter: e => e.json({
+      message: "Parameter Error"
+    }).status(400),
+    NotFoundString: e => e.json({
+      message: e.json("Not Found")
+    }).status(404),
+    test: "a"
+  }
+};
+expansion.expansion = expansion;
 
 app
   .use(function (req, res, next) {
@@ -22,8 +36,8 @@ app
   .use(express.static(path.join(__dirname, "public")))
 
   /* routes */
-  .use("/", require("./routes/index.js"))
-  .use("/api", require("./routes/api")(new db()))
+  .use("/", require("./routes/index.js")(expansion))
+  .use("/api", require("./routes/api")(expansion))
 
   .use(logger("dev"))
   .use(express.json())

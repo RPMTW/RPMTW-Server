@@ -13,4 +13,8 @@ router.get("/ip", function (req, res) {
   }).status(200)
 })
 
-module.exports = router;
+
+function init(expansion) {
+  return Object.assign(router, expansion)
+}
+module.exports = init;

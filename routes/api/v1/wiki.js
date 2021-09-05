@@ -8,8 +8,7 @@ router.get("/", function (req, res) {
     }).status(200)
 });
 
-function init(db) {
-    router.db = db
-    return router
+function init(expansion) {
+    return Object.assign(router, expansion)
 }
 module.exports = init;

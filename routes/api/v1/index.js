@@ -6,11 +6,10 @@ router
         version: "v1",
         code: 200
     }))
-    .use("/auth", require('./auth')(router.db))
-    .use("/wiki", require('./wiki')(router.db))
+    .use("/auth", require('./auth')(router.expansion))
+    .use("/wiki", require('./wiki')(router.expansion))
 
-function init(db) {
-    router.db = db
-    return router
+function init(expansion) {
+    return Object.assign(router, expansion)
 }
 module.exports = init;

@@ -23,8 +23,7 @@ router.get("/user/@me", function (req, res) {
     })
 })
 
-function init(db) {
-    router.db = db
-    return router
+function init(expansion) {
+    return Object.assign(router, expansion)
 }
 module.exports = init;

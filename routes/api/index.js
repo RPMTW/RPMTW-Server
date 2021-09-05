@@ -21,18 +21,22 @@ router
                 code: 429
             }).status(429))
     })
-    .use("/v1", require('./v1')(router.db))
+    .use("/v1", require('./v1')(router.expansion))
 
 router.get("/", function (req, res) {
     res.json({
         message: "welcome to RPMTW Wiki API",
-        code: 200
+        code: 200,
+        test: {
+            db: router.db,
+            error: router.error
+        }
     }).status(200)
 });
 
-function init(db) {
-    router.db = db
-    return router
+// router.db = new (/core/db)()
+function init(expansion) {
+    return Object.assign(router, expansion)
 }
 
 module.exports = init;
