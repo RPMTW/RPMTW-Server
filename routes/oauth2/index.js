@@ -1,6 +1,7 @@
 /* 根路徑 /oauth2 */
 const router = require('express').Router();
 const oauth2 = require('../../core/oauth2')
+const tokes = require('../env');
 
 // router = router + ((app.js).expansion)
 function init(expansion) {
@@ -16,7 +17,7 @@ function init(expansion) {
       /* discord oauth2 callback */
       console.log(req.query.code);
       if (req.query.code)
-        fetch(`${sets.discord.API}/oauth2/token`, {
+        fetch(`https://discord.com/api/oauth2/token`, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
