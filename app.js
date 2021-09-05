@@ -4,14 +4,31 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const engine = require('consolidate');
+const {
+  Sequelize
+} = require('sequelize');
 
 const db = require('./core/db');
 
 const app = express();
 
 let expansion = {
-  db: new db,
+  // 沒辦法測試的我 >_<
+  /* new db(new Sequelize({
+    host: process.env['dataBaseHost'] || "127.0.0.1",
+    port: process.env['dataBasePort'] || 3306,
+    username: 'postgres',
+    password: process.env['dataBasePassword'],
+    database: 'data',
+    dialect: 'postgres',
+    logging: (...msg) => {
+      //紀錄SQL日誌
+      console.log(msg);
+    },
+  })) */
+  db: db,
 };
+
 expansion = Object.assign(expansion, {
   expansion: expansion
 })

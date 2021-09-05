@@ -13,7 +13,9 @@ const {
     hash
 } = require('../hash');
 
-class Storages extends Model {}
+class Storages extends Model {
+
+}
 
 async function init(sequelize) {
     Storages.init({
