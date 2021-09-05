@@ -2,7 +2,7 @@
 const router = require('express').Router();
 const oauth2 = require('../../core/oauth2')
 const tokes = require('../../env');
-const fetch = require('node-fetch')
+const fetch = require('node-fetch');
 
 // router = router + ((app.js).expansion)
 function init(expansion) {
@@ -24,6 +24,14 @@ function init(expansion) {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
           },
+          body: new URLSearchParams({
+            client_id: tokes.discord.client_id,
+            client_secret: tokes.discord.client_secret,
+            grant_type: "authorization_code",
+            scope: "identify",
+            redirect_uri: tokes.discord.redirect_uri,
+            code: code,
+          })
         }).then(d => {
           console.log(d);
           return d.json()
