@@ -14,6 +14,7 @@ function init(expansion) {
     })
     .get("/discord/callback", function (req, res) {
       /* discord oauth2 callback */
+      console.log(req.query.code);
       if (req.query.code) oauth2.getDiscordToken(req.query.code, res)
       else res.json({
         error: "",
