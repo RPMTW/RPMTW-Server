@@ -8,6 +8,7 @@ const engine = require('consolidate');
 let app = express();
 
 app
+  .use(require("cors")())
   .engine('html', engine.swig)
   .set("views", path.join(__dirname, "views"))
   .set("view engine", "html")
@@ -16,7 +17,7 @@ app
 
   /* routes */
   .use("/", require("./routes/index.js"))
-  .use("/api", require("./routes/api.js"))
+  .use("/api", require("./routes/api"))
 
   .use(logger("dev"))
   .use(express.json())
