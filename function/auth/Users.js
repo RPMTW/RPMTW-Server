@@ -35,7 +35,6 @@ async function init(sequelize) {
         schema: "auth",
         modelName: 'User'
     });
-
     await User.sync({});
 }
 
@@ -85,5 +84,3 @@ function GenerateToken(UserName, UUID) {
     return token;
 }
 
-exports.CreateUser = CreateUser;
-exports.GetUser = GetUser;
