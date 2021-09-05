@@ -16,7 +16,7 @@ app
 
   /* routes */
   .use("/", require("./routes/index.js"))
-  .use("/users", require("./routes/users.js"))
+  .use("/api", require("./routes/api.js"))
 
   .use(logger("dev"))
   .use(express.json())
