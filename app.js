@@ -11,15 +11,6 @@ const app = express();
 
 let expansion = {
   db: new db,
-  error: {
-    Parameter: res => res.json({
-      message: "Parameter Error"
-    }).status(400),
-    NotFoundString: res => res.json({
-      message: "Not Found"
-    }).status(404),
-    test: "a"
-  }
 };
 expansion = Object.assign(expansion, {
   expansion: expansion
