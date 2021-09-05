@@ -70,7 +70,7 @@ async function DownloadStorage(UUID, res) {
     await init();
     try {
         const Storage = await Storages.findByPk(UUID);
-        return res.contentType(Storage.type).attachment(Storage.name).send(Storage.data).status(200);
+        return res.contentType(Storage.type).attachment(Storage.name).send(Storage.data);
     } catch (error) {
         if (error instanceof DatabaseError) {
             return NotFound(res);

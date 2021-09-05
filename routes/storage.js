@@ -2,7 +2,7 @@ var router = require('express').Router();
 const { ParameterError } = require('../function/errors');
 const multer = require('multer');
 const { CreateStorage, GetStorage, DownloadStorage } = require('../function/storage/Storages');
-const upload = multer({});
+const upload = multer({ limits: { fileSize: 10000000 } }); //限制最大檔案大小為10MB
 
 function storageRouter() {
     router.post('/create', upload.single('file'), async (req, res) => {
