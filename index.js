@@ -23,6 +23,8 @@ const sequelize = new Sequelize({
     },
 });
 
+
+
 run();
 
 async function run() {
@@ -71,7 +73,7 @@ async function run() {
                 }).status(500);
             });;
 
-        app.listen(3000, () => {
+        app.listen(process.env['apiPort'], () => {
             console.log('RPMWiki Server Started');
         });
 

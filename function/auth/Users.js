@@ -30,6 +30,19 @@ async function init(sequelize) {
             defaultValue: Sequelize.UUIDV4,
             primaryKey: true,
         },
+        AvatarStorageUUID: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        AvatarUrl: {
+            type: DataTypes.VIRTUAL,
+            get() {
+                return `https://${process.env['dataBaseHost']}:${process.env['apiPort']}/storage/download/${this.AvatarStorageUUID}`;
+            },
+            set(value) {
+                throw new Error('不要嘗試設定 `AvatarUrl` 的值!');
+            }
+        }
     }, {
         sequelize,
         schema: "auth",
@@ -39,13 +52,14 @@ async function init(sequelize) {
 }
 
 
-async function CreateUser(sequelize, UserName, Email, Password) {
+async function CreateUser(sequelize, UserName, Email, Password, AvatarStorageUUID) {
     await init(sequelize);
 
     const user = await User.create({
         UserName: UserName,
         Email: Email,
         Password: Password,
+        AvatarStorageUUID: AvatarStorageUUID,
     });
 
     let userJson = user.toJSON();
@@ -84,3 +98,6 @@ function GenerateToken(UserName, UUID) {
     return token;
 }
 
+module.exports = {
+    CreateUser, GetUser
+}

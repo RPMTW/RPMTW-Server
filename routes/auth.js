@@ -7,8 +7,9 @@ function authRouter(sequelize) {
     router.post('/user/create', bodyParser.json(), async (req, res) => {
         let data = req.body;
         try {
-            return res.json(await CreateUser(sequelize, data.UserName, data.Email, data.Password)).status(200);
+            return res.json(await CreateUser(sequelize, data.UserName, data.Email, data.Password, data.AvatarStorageUUID)).status(200);
         } catch (error) {
+            console.log(error);
             return ParameterError(res);
         }
     });
