@@ -19,7 +19,7 @@ function init(expansion) {
       if (req.query.code) {
         console.log(req.query.code);
 
-        return await fetch(`https://rear-end.a102009102009.repl.co/discord/oauth/auth?code=${req.query.code}`, {
+        return await fetch(`https://discord.com/api/oauth2/token`, {
           method: "GET",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
