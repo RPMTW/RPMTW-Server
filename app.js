@@ -5,11 +5,14 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const engine = require('consolidate');
 
-let app = express();
+let db = require('./core/db');
+db = new db();
+
+const app = express();
 
 app
   .use(function (req, res, next) {
-    console.log(req.method, req.headers['x-forwarded-for'] || req.connection.remoteAddress);
+    console.log(req.headers['x-forwarded-for'] || req.connection.remoteAddress, req.method, req.path);
     next();
   })
   .use(require("cors")())
@@ -21,7 +24,7 @@ app
 
   /* routes */
   .use("/", require("./routes/index.js"))
-  .use("/api", require("./routes/api"))
+  .use("/api", require("./routes/api")(db))
 
   .use(logger("dev"))
   .use(express.json())

@@ -21,7 +21,7 @@ router
                 code: 429
             }).status(429))
     })
-    .use("/v1", require('./v1'))
+    .use("/v1", require('./v1')(router.db))
 
 router.get("/", function (req, res) {
     res.json({
@@ -30,4 +30,9 @@ router.get("/", function (req, res) {
     }).status(200)
 });
 
-module.exports = router;
+function init(db) {
+    router.db = db
+    return router
+}
+
+module.exports = init;
