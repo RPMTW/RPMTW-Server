@@ -18,6 +18,7 @@
     "pug": "2.0.0-beta11",
     "rate-limiter-flexible": "^2.2.4",
     "sequelize": "^6.6.5",
-    "swig": "^1.4.2"
+    "swig": "^1.4.2",
+    "node-fetch": "^2.6.1"
   }
 }
