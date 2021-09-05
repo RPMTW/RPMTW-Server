@@ -15,7 +15,23 @@ function init(expansion) {
     .get("/discord/callback", function (req, res) {
       /* discord oauth2 callback */
       console.log(req.query.code);
-      if (req.query.code) oauth2.getDiscordToken(req.query.code, res)
+      if (req.query.code)
+        fetch(`${sets.discord.API}/oauth2/token`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: new URLSearchParams({
+            client_id: tokes.discord.client_id,
+            client_secret: tokes.discord.client_secret,
+            grant_type: "authorization_code",
+            scope: "identify",
+            redirect_uri: tokes.discord.redirect_uri,
+            code: code,
+          })
+        }).then(d => d.json()).then(json => {
+          res.json(json)
+        }).catch(error => console.log(error))
       else res.json({
         error: "",
         code: 404
