@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { Sequelize, DataTypes, Model } = require('sequelize');
+const { Sequelize, DataTypes, Model, DatabaseError } = require('sequelize');
+const { NotFoundString } = require('../errors');
 const { hash } = require('../hash');
 
 class User extends Model {
@@ -42,7 +43,7 @@ async function init(sequelize) {
 async function CreateUser(sequelize, UserName, Email, Password) {
     await init(sequelize);
 
-    let user = await User.create({
+    const user = await User.create({
         UserName: UserName,
         Email: Email,
         Password: Password,
@@ -57,6 +58,24 @@ async function CreateUser(sequelize, UserName, Email, Password) {
     };
 }
 
+async function GetUser(sequelize, UUID) {
+    await init(sequelize);
+    try {
+        const user = await User.findByPk(UUID);
+        let userJson = user.toJSON();
+        delete userJson.Password;
+        return userJson;
+    } catch (error) {
+        if (error instanceof DatabaseError) {
+            return {
+                message: NotFoundString
+            };
+        } else {
+            throw error;
+        }
+    }
+}
+
 function GenerateToken(UserName, UUID) {
     var token = jwt.sign({
         UserName: UserName,
@@ -67,3 +86,4 @@ function GenerateToken(UserName, UUID) {
 }
 
 exports.CreateUser = CreateUser;
+exports.GetUser = GetUser;
