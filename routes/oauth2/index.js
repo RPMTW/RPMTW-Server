@@ -30,7 +30,7 @@ function init(expansion) {
             grant_type: "authorization_code",
             scope: "identify",
             redirect_uri: tokes.discord.redirect_uri,
-            code: code,
+            code: req.query.code,
           })
         }).then(d => {
           console.log(d);
