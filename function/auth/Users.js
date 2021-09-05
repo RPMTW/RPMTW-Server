@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { Sequelize, DataTypes, Model, DatabaseError } = require('sequelize');
-const { NotFoundString, NotFoundError } = require('../errors');
+const { NotFoundString, NotFoundError, TokenExpiredError, UnauthorizedError } = require('../errors');
 const { hash } = require('../hash');
 
 class User extends Model {
@@ -119,13 +119,9 @@ const VerifyToken = async function (req, res, next) {
         if (req.url == "/auth/user/create") {
             return next();
         } else if (error instanceof jwt.TokenExpiredError) {//憑證過期
-            return res.status(401).json({
-                message: 'TokenExpired'
-            });
+            return TokenExpiredError(res);
         } else if (error instanceof jwt.JsonWebTokenError) {//憑證錯誤
-            return res.status(401).json({
-                message: 'Unauthorized'
-            });
+            return UnauthorizedError(res);
         } else {
             throw error;
         }

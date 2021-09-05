@@ -6,6 +6,17 @@ function ParameterError(res) {
     });
 }
 
+function TokenExpiredError(res) {
+    return res.status(403.17).json({
+        message: 'TokenExpired'
+    });
+}
+
+function UnauthorizedError(res) {
+    return res.status(401).json({
+        message: 'Unauthorized'
+    });
+}
 
 function NotFoundError(res) {
     return res.status(404).json({
@@ -13,4 +24,4 @@ function NotFoundError(res) {
     });
 }
 
-module.exports = { ParameterError, NotFoundError, NotFoundString };
+module.exports = { ParameterError, NotFoundError, NotFoundString, TokenExpiredError, UnauthorizedError };
