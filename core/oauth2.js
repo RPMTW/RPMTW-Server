@@ -1,6 +1,6 @@
 const tokes = require('../env')
 module.exports = {
-    getDiscordToken = (code, res) => {
+    getDiscordToken: (code, res) => {
         /* 抓取 discord Token */
         fetch("https://discord.com/api/oauth2/token", {
             method: "POST",
