@@ -1,16 +1,16 @@
 const NotFoundString = "Not Found";
 
 function ParameterError(res) {
-    return res.json({
+    return res.status(400).json({
         message: "Parameter Error"
-    }).status(400);
+    });
 }
 
 
 function NotFoundError(res) {
-    return res.json({
+    return res.status(400).json({
         message: NotFoundString
-    }).status(404);
+    });
 }
 
 module.exports = { ParameterError, NotFound: NotFoundError, NotFoundString };

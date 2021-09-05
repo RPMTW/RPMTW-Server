@@ -82,6 +82,25 @@ async function GetUser(req) {
     }
 }
 
+async function GetUserByUUID(UUID) {
+    try {
+        await User.Init();
+        const user = await User.findOne({ where: { UUID: UUID } });
+        let userJson = user.toJSON();
+        delete userJson.Password;
+        return userJson;
+    } catch (error) {
+        if (error instanceof DatabaseError) {
+            return {
+                message: NotFoundString
+            };
+        } else {
+            throw error;
+        }
+    }
+}
+
+
 function GenerateToken(UserName, UUID) {
     var token = jwt.sign({
         UserName: UserName,
@@ -98,7 +117,13 @@ const VerifyToken = async function (req, res, next) {
         req.user = await User.findByPk(data.UUID);
         return next();
     } catch (error) {
-        if (error instanceof jwt.JsonWebTokenError) {
+        if (req.url == "/auth/user/create") {
+            return next();
+        } else if (error instanceof jwt.TokenExpiredError) {//憑證過期
+            return res.status(401).json({
+                message: 'TokenExpired'
+            });
+        } else if (error instanceof jwt.JsonWebTokenError) {//憑證錯誤
             return res.status(401).json({
                 message: 'Unauthorized'
             });
@@ -109,7 +134,7 @@ const VerifyToken = async function (req, res, next) {
 };
 
 function GetTokenHeader(req) {
-    return req.header('Authorization').replace('Bearer ', '');
+    return String(req.header('Authorization')).replace('Bearer ', '');
 }
 
-module.exports = { CreateUser, GetUser, VerifyToken };
+module.exports = { CreateUser, GetUser, GetUserByUUID, VerifyToken };
