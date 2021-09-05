@@ -1,4 +1,6 @@
-const tokes = require('../env')
+const tokes = require('../env');
+const fetch = require("node-fetch");
+
 module.exports = {
     getDiscordToken: (code, res) => {
         /* 抓取 discord Token */
