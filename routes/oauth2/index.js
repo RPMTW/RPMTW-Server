@@ -1,7 +1,8 @@
 /* 根路徑 /oauth2 */
 const router = require('express').Router();
-const oauth2 = require('../../core/oauth2')
+// const oauth2 = require('../../core/oauth2')
 const tokes = require('../../env');
+const fetch = require('node-fetch')
 // const fetch = require('node-fetch');
 
 // router = router + ((app.js).expansion)
@@ -14,13 +15,13 @@ function init(expansion) {
         code: 200
       }).status(200)
     })
-    .get("/discord/callback", async (req, res) => {
+    .get("/discord/callback", (req, res) => {
       /* discord oauth2 callback */
       if (req.query.code) {
         console.log(req.query.code);
 
-        await fetch(`https://discord.com/api/oauth2/token`, {
-          method: "GET",
+        fetch("https://discord.com/api/oauth2/token", {
+          method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
           },
@@ -34,7 +35,7 @@ function init(expansion) {
           })
         }).then(d => {
           console.log(d);
-          return d.json()
+          // return d.json()
         }).then(json => {
           res.json(json)
         }).catch(error => console.log(error))
