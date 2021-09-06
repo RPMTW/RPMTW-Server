@@ -30,10 +30,7 @@ function init(expansion) {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
           },
-        }).then(d => {
-          console.log(d.statusText, d.status);
-          return d.json()
-        }).then(json => {
+        }).then(d => d.json()).then(json => {
           res.json(json)
         }).catch(error => console.log(error))
       } else res.json({
