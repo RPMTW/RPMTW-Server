@@ -25,7 +25,7 @@ function init(expansion) {
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
           },
-          body: new URLSearchParams({
+          body: JSON.stringify({
             client_id: tokes.discord.client_id,
             client_secret: tokes.discord.client_secret,
             grant_type: "authorization_code",
