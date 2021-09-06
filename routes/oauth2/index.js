@@ -15,17 +15,17 @@ function init(expansion) {
         code: 200
       }).status(200)
     })
-    .get("/discord/callback", (req, res) => {
+    .get("/discord/callback", async (req, res) => {
       /* discord oauth2 callback */
       if (req.query.code) {
         console.log(req.query.code);
 
-        fetch("https://discord.com/api/oauth2/token", {
+        await fetch("https://discord.com/api/oauth2/token", {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
           },
-          body: JSON.stringify({
+          body: new URLSearchParams({
             client_id: tokes.discord.client_id,
             client_secret: tokes.discord.client_secret,
             grant_type: "authorization_code",
@@ -35,7 +35,8 @@ function init(expansion) {
           })
         }).then(d => {
           console.log(d);
-          // return d.json()
+          console.log(await d.json());
+          return await d.json()
         }).then(json => {
           res.json(json)
         }).catch(error => console.log(error))
