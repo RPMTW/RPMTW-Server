@@ -6,6 +6,7 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "axios": "^0.21.3",
     "consolidate": "^0.16.0",
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
@@ -18,7 +19,6 @@
     "pug": "2.0.0-beta11",
     "rate-limiter-flexible": "^2.2.4",
     "sequelize": "^6.6.5",
-    "swig": "^1.4.2",
-    "node-fetch": "^2.6.1"
+    "swig": "^1.4.2"
   }
 }

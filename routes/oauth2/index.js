@@ -2,7 +2,8 @@
 const router = require('express').Router();
 // const oauth2 = require('../../core/oauth2')
 const tokes = require('../../env');
-const fetch = require('node-fetch')
+const axios = require('axios')
+
 // const fetch = require('node-fetch');
 
 // router = router + ((app.js).expansion)
@@ -18,24 +19,22 @@ function init(expansion) {
     .get("/discord/callback", (req, res) => {
       /* discord oauth2 callback */
       if (req.query.code) {
-        console.log(req.query.code);
-
-        fetch("https://discord.com/api/oauth2/token", {
+        axios({
+          url: "https://discord.com/api/oauth2/token",
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
           },
-          body: new URLSearchParams({
+          data: {
             client_id: tokes.discord.client_id,
             client_secret: tokes.discord.client_secret,
             grant_type: "authorization_code",
             scope: "identify",
             redirect_uri: tokes.discord.redirect_uri,
             code: req.query.code,
-          })
+          }
         }).then(d => {
-          console.log(d);
-          console.log(d.json());
+          console.log(d.statusText, d.status);
           return d.json()
         }).then(json => {
           res.json(json)
