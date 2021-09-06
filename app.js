@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const engine = require('consolidate');
+require('dotenv').config();
 const {
   Sequelize
 } = require('sequelize');
