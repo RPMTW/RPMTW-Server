@@ -15,12 +15,12 @@ function init(expansion) {
         code: 200
       }).status(200)
     })
-    .get("/discord/callback", async (req, res) => {
+    .get("/discord/callback", (req, res) => {
       /* discord oauth2 callback */
       if (req.query.code) {
         console.log(req.query.code);
 
-        await fetch("https://discord.com/api/oauth2/token", {
+        fetch("https://discord.com/api/oauth2/token", {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
@@ -33,10 +33,10 @@ function init(expansion) {
             redirect_uri: tokes.discord.redirect_uri,
             code: req.query.code,
           })
-        }).then(async d => {
+        }).then(d => {
           console.log(d);
-          console.log(await d.json());
-          return await d.json()
+          console.log(d.json());
+          return d.json()
         }).then(json => {
           res.json(json)
         }).catch(error => console.log(error))
