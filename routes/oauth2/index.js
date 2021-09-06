@@ -33,7 +33,7 @@ function init(expansion) {
             redirect_uri: tokes.discord.redirect_uri,
             code: req.query.code,
           })
-        }).then(d => {
+        }).then(async d => {
           console.log(d);
           console.log(await d.json());
           return await d.json()
