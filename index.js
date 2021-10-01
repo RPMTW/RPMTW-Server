@@ -32,6 +32,7 @@ async function run() {
         await sequelize.authenticate();
         global.database = new DataBase(sequelize);
         await sequelize.showAllSchemas().then(Schemas => {
+            console.log(Schemas);
             if (!Schemas.every(Schema => Schema === 'auth')) {
                 sequelize.createSchema('auth');
             }
