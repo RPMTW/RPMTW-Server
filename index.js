@@ -17,7 +17,7 @@ const sequelize = new Sequelize({
     port: process.env['dataBasePort'],
     username: 'postgres',
     password: process.env['dataBasePassword'],
-    database: 'data',
+    database: 'rpmtwdb',
     dialect: 'postgres',
     logging: (...msg) => {
         //紀錄SQL日誌
@@ -32,17 +32,19 @@ async function run() {
         await sequelize.authenticate();
         global.database = new DataBase(sequelize);
         await sequelize.showAllSchemas().then(Schemas => {
-            console.log(Schemas);
-            if (!Schemas.every(Schema => Schema === 'auth')) {
-                sequelize.createSchema('auth');
+            function checkSchema(name) {
+                if (Schemas.length || !Schemas.every(Schema => Schema === name)) {
+                    sequelize.createSchema(name);
+                }
             }
-            if (!Schemas.every(Schema => Schema === 'storage')) {
-                sequelize.createSchema('storage');
-            }
+
+            checkSchema('auth');
+            checkSchema('storage');
+
         });
         console.log('連接資料庫成功');
     } catch (error) {
-        console.error('連接資料庫失敗：', error);
+        console.error('連接資料庫失敗:', error);
     }
 
     try {

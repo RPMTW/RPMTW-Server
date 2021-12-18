@@ -4,14 +4,14 @@
     // 如需詳細資訊，請瀏覽: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {
-            "type": "pwa-node",
-            "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
-            "program": "${workspaceFolder}\\index.js"
-        }
+      {
+          "name": "Launch Program",
+          "program": "${workspaceFolder}/index.js",
+          "request": "launch",
+          "skipFiles": [
+              "<node_internals>/**"
+          ],
+          "type": "pwa-node"
+      }
     ]
 }
