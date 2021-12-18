@@ -22,7 +22,7 @@ class User extends Model {
         },
       },
       UUID: {
-        type: DataTypes.UUIDV4,
+        type: DataTypes.UUID,
         defaultValue: UUIDV4,
         primaryKey: true,
       },
@@ -112,13 +112,15 @@ function generateToken(userName, UUID) {
 const verifyToken = async function(req, res, next) {
   try {
     await User.Init();
+    if (req.url == '/auth/user/create') {
+      return next();
+    }
     const data = jwt.verify(getTokenHeader(req), process.env['tokenPrivateKey']);
     req.user = await User.findByPk(data.UUID);
     return next();
   } catch (error) {
-    if (req.url == '/auth/user/create') {
-      return next();
-    } else if (error instanceof jwt.TokenExpiredError) {// 憑證過期
+    console.log(error);
+    if (error instanceof jwt.TokenExpiredError) {// 憑證過期
       return TokenExpiredError(res);
     } else if (error instanceof jwt.JsonWebTokenError) {// 憑證錯誤
       return UnauthorizedError(res);
