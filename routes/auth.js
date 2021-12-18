@@ -9,6 +9,7 @@ function authRouter() {
     try {
       return res.json(await createUser(data.userName, data.email, data.password, data.avatarStorageUUID));
     } catch (error) {
+      console.log(error);
       return ParameterError(res);
     }
   });
