@@ -1,11 +1,11 @@
 class DataBase {
-    constructor(sequelize) {
-        this.sequelize = sequelize;
-    }
+  constructor(sequelize) {
+    this.sequelize = sequelize;
+  }
 
-    getSequelize() {
-        return this.sequelize;
-    }
+  getSequelize() {
+    return this.sequelize;
+  }
 }
 
-module.exports = DataBase
+module.exports = DataBase;
