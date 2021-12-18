@@ -6,7 +6,7 @@ const router = require('./routes');
 const authRouter = require('./routes/auth');
 const {RateLimiterMemory} = require('rate-limiter-flexible');
 const storageRouter = require('./routes/storage');
-const {VerifyToken: verifyToken} = require('./function/auth/Users');
+const {verifyToken} = require('./function/auth/Users');
 const DataBase = require('./core/dataBase');
 require('dotenv').config();
 
@@ -63,14 +63,14 @@ async function run() {
         .use('/auth', authRouter())
         .use('/storage', storageRouter())
         .use(function(req, res, next) {
-          res.json({
+          res.status(404).json({
             message: 'Not Found',
-          }).status(404);
+          });
         }).use(function(err, req, res, next) {
           console.error(err);
-          res.json({
+          res.status(500).json({
             message: 'Internal Server Error',
-          }).status(500);
+          });
         }); ;
 
     app.listen(process.env['apiPort'], () => {

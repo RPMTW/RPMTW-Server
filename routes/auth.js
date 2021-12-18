@@ -1,4 +1,4 @@
-const {createUser, GetUser, GetUserByUUID} = require('../function/auth/Users');
+const {createUser, getUser, getUserByUUID} = require('../function/auth/Users');
 const router = require('express').Router();
 const bodyParser = require('body-parser');
 const {ParameterError} = require('../function/errors');
@@ -15,14 +15,14 @@ function authRouter() {
   router.get('/user/:uuid', async (req, res) => {
     const UUID = req.params.uuid;
     try {
-      return await GetUserByUUID(res, UUID);
+      return await getUserByUUID(res, UUID);
     } catch (error) {
       return ParameterError(res);
     }
   });
   router.get('/user', async (req, res) => {
     try {
-      return res.json(await GetUser(req));
+      return res.json(await getUser(req));
     } catch (error) {
       return ParameterError(res);
     }

@@ -109,13 +109,13 @@ function generateToken(UserName, UUID) {
   return token;
 }
 
-const VerifyToken = async function(req, res, next) {
+const verifyToken = async function(req, res, next) {
   try {
     if (req.url == '/auth/user/create') {
       return next();
     }
     await User.Init();
-    const data = jwt.verify(GetTokenHeader(req), process.env['tokenPrivateKey']);
+    const data = jwt.verify(getTokenHeader(req), process.env['tokenPrivateKey']);
     req.user = await User.findByPk(data.UUID);
     return next();
   } catch (error) {
@@ -129,8 +129,8 @@ const VerifyToken = async function(req, res, next) {
   }
 };
 
-function GetTokenHeader(req) {
+function getTokenHeader(req) {
   return String(req.header('Authorization')).replace('Bearer ', '');
 }
 
-module.exports = {createUser, GetUser: getUser, GetUserByUUID: getUserByUUID, VerifyToken};
+module.exports = {createUser, getUser, getUserByUUID, verifyToken};
