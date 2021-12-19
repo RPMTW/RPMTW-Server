@@ -1,16 +1,20 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:vm_service/utils.dart';
+import 'package:vm_service/vm_service.dart' as vm_service;
+import 'package:vm_service/vm_service_io.dart';
+import 'package:watcher/watcher.dart';
 
-// Configure routes.
 final _router = Router()
   ..get('/', _rootHandler)
   ..get('/echo/<message>', _echoHandler);
 
 Response _rootHandler(Request req) {
-  return Response.ok('Hello, World!\n');
+  return Response.ok('Hello RPMTW World!');
 }
 
 Response _echoHandler(Request request) {
@@ -19,14 +23,27 @@ Response _echoHandler(Request request) {
 }
 
 void main(List<String> args) async {
-  // Use any available host or container IP (usually `0.0.0.0`).
-  final ip = InternetAddress.anyIPv4;
+  final InternetAddress ip = InternetAddress.anyIPv4;
 
-  // Configure a pipeline that logs requests.
-  final _handler = Pipeline().addMiddleware(logRequests()).addHandler(_router);
+  final Handler _handler =
+      Pipeline().addMiddleware(logRequests()).addHandler(_router);
 
-  // For running in containers, we respect the PORT environment variable.
-  final port = int.parse(Platform.environment['PORT'] ?? '8080');
-  final server = await serve(_handler, ip, port);
-  print('Server listening on port ${server.port}');
+  final int port = int.parse(Platform.environment['PORT'] ?? '8080');
+  final HttpServer server = await serve(_handler, ip, port);
+  print('Server listening on port http://${ip.address}:${server.port}');
+
+  Uri? observatoryUri = (await Service.getInfo()).serverUri;
+  if (observatoryUri != null) {
+    vm_service.VmService serviceClient = await vmServiceConnectUri(
+      convertToWebSocketUrl(serviceProtocolUrl: observatoryUri).toString(),
+    );
+    vm_service.VM vm = await serviceClient.getVM();
+    vm_service.IsolateRef? mainIsolate = vm.isolates?.first;
+    if (mainIsolate != null && mainIsolate.id != null) {
+      Watcher(Directory.current.path).events.listen((_) async {
+        await serviceClient.reloadSources(mainIsolate.id!);
+        log('App restarted ${DateTime.now()}');
+      });
+    }
+  }
 }
