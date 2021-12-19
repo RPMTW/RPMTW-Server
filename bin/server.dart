@@ -1,13 +1,12 @@
-import 'dart:developer';
 import 'dart:io';
 
+import 'package:dotenv/dotenv.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:vm_service/utils.dart';
-import 'package:vm_service/vm_service.dart' as vm_service;
-import 'package:vm_service/vm_service_io.dart';
-import 'package:watcher/watcher.dart';
+
+import 'Utility/utility.dart';
+import 'database/database.dart';
 
 final _router = Router()
   ..get('/', _rootHandler)
@@ -23,27 +22,16 @@ Response _echoHandler(Request request) {
 }
 
 void main(List<String> args) async {
+  load();
   final InternetAddress ip = InternetAddress.anyIPv4;
 
   final Handler _handler =
       Pipeline().addMiddleware(logRequests()).addHandler(_router);
 
-  final int port = int.parse(Platform.environment['PORT'] ?? '8080');
+  final int port = int.parse(env['API_PORT'] ?? '8080');
   final HttpServer server = await serve(_handler, ip, port);
-  print('Server listening on port http://${ip.address}:${server.port}');
+  print('Server listening on port http://${ip.host}:${server.port}');
 
-  Uri? observatoryUri = (await Service.getInfo()).serverUri;
-  if (observatoryUri != null) {
-    vm_service.VmService serviceClient = await vmServiceConnectUri(
-      convertToWebSocketUrl(serviceProtocolUrl: observatoryUri).toString(),
-    );
-    vm_service.VM vm = await serviceClient.getVM();
-    vm_service.IsolateRef? mainIsolate = vm.isolates?.first;
-    if (mainIsolate != null && mainIsolate.id != null) {
-      Watcher(Directory.current.path).events.listen((_) async {
-        await serviceClient.reloadSources(mainIsolate.id!);
-        log('App restarted ${DateTime.now()}');
-      });
-    }
-  }
+  Utility.hotReload();
+  await DataBase.init();
 }

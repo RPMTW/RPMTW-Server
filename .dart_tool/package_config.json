@@ -26,8 +26,26 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "basic_utils",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/basic_utils-3.9.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "boolean_selector",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/boolean_selector-2.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "bson",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/bson-1.0.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "buffer",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/buffer-1.1.1",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -68,8 +86,20 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "dotenv",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/dotenv-3.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "file",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/file-6.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "fixnum",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/fixnum-1.0.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -122,6 +152,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "json_annotation",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/json_annotation-4.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "lints",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/lints-1.0.1",
       "packageUri": "lib/",
@@ -152,6 +188,18 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "mongo_dart",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/mongo_dart-0.7.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "mongo_dart_query",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/mongo_dart_query-1.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "node_preamble",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/node_preamble-2.0.1",
       "packageUri": "lib/",
@@ -170,6 +218,18 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "pedantic",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/pedantic-1.11.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "pointycastle",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/pointycastle-3.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "pool",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/pool-1.5.0",
       "packageUri": "lib/",
@@ -178,6 +238,24 @@
     {
       "name": "pub_semver",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/pub_semver-2.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "rational",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/rational-1.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "sasl_scram",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/sasl_scram-0.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "saslprep",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/saslprep-1.0.2",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -284,8 +362,26 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "unorm_dart",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/unorm_dart-0.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "uuid",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/uuid-3.0.5",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "vm_service",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/vm_service-7.5.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "vy_string_utils",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/vy_string_utils-0.4.3",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -320,7 +416,7 @@
       "languageVersion": "2.16"
     }
   ],
-  "generated": "2021-12-19T08:49:36.332200Z",
+  "generated": "2021-12-19T09:17:05.095778Z",
   "generator": "pub",
   "generatorVersion": "2.16.0-80.1.beta"
 }
