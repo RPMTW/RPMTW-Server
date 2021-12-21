@@ -9,6 +9,7 @@ environment:
 
 dependencies:
   args: ^2.0.0
+  crypto: ^3.0.1
   dotenv: ^3.0.0
   mongo_dart: ^0.7.4
   shelf: ^1.1.0
