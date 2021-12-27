@@ -10,10 +10,12 @@ class DataBase {
   Db get db => _mongoDB;
 
   final DbCollection _usersCollection;
+  final DbCollection _storagesCollection;
 
   DbCollection get usersCollection => _usersCollection;
+  DbCollection get storagesCollection => _storagesCollection;
 
-  DataBase(this._usersCollection);
+  DataBase(this._usersCollection, this._storagesCollection);
 
   static Future<DataBase> _open() async {
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -27,8 +29,10 @@ class DataBase {
     }
 
     await checkCollection('users');
+    await checkCollection('storages');
 
-    return DataBase(_mongoDB.collection('users'));
+    return DataBase(
+        _mongoDB.collection('users'), _mongoDB.collection('storages'));
   }
 
   static Future<void> init() async {

@@ -1,20 +1,43 @@
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/src/router.dart';
 
+import '../database/database.dart';
+import '../database/models/storage/storage.dart';
+import '../utilities/data.dart';
 import '../utilities/extension.dart';
 import 'base_route.dart';
+import 'root_route.dart';
 
 class StorageRoute implements BaseRoute {
   @override
   Router get router {
     final Router router = Router();
 
-    // TODO: implement temp storage
-    router.get("/create", (Request req) async {
+    router.post("/create", (Request req) async {
       try {
-         
+        Map<String, dynamic> data = await req.data;
+        Storage storage = Storage.fromMap(data);
+        storage = storage.copyWith(uuid: Uuid().v4(), type: StorageType.temp);
+        DataBase.instance.storagesCollection.insert(storage.toMap());
         return ResponseExtension.success(data: {});
       } catch (e) {
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.get("/<uuid>", (Request req) async {
+      try {
+        String uuid = req.params['uuid']!;
+        Map<String, dynamic>? data = await DataBase.instance.storagesCollection
+            .findOne(where.eq('uuid', uuid));
+        if (data == null) {
+          return ResponseExtension.notFound();
+        }
+        Storage storage = Storage.fromMap(data);
+        return ResponseExtension.success(data: storage.outputMap());
+      } catch (e) {
+        logger.e(e);
         return ResponseExtension.badRequest();
       }
     });

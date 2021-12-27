@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:dotenv/dotenv.dart';
@@ -11,6 +9,7 @@ import '../database/models/auth/user.dart';
 import '../utilities//extension.dart';
 import '../utilities/data.dart';
 import 'base_route.dart';
+import 'root_route.dart';
 
 class AuthRoute implements BaseRoute {
   SecretKey key = SecretKey(env['DATA_BASE_SecretKey']!);
@@ -21,7 +20,7 @@ class AuthRoute implements BaseRoute {
 
     router.post('/user/create', (Request req) async {
       try {
-        Map<String, dynamic> data = json.decode(await req.readAsString());
+        Map<String, dynamic> data = await req.data;
         DBCrypt dbCrypt = DBCrypt();
         String salt = dbCrypt.gensaltWithRounds(10); // 生成鹽，加密次數為10次
         String hash =
@@ -99,14 +98,4 @@ class AuthRoute implements BaseRoute {
           });
         };
       };
-}
-
-extension RequestUserExtension on Request {
-  User? get user {
-    try {
-      return context['user'] as User;
-    } catch (e) {
-      return null;
-    }
-  }
 }
