@@ -31,4 +31,11 @@ class ResponseExtension {
           'message': 'Unauthorized',
         }),
       );
+  static Response notFound() => Response(
+        HttpStatus.notFound,
+        body: json.encode({
+          'status': HttpStatus.notFound,
+          'message': 'Not Found',
+        }),
+      );
 }

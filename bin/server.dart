@@ -19,7 +19,7 @@ final Router _router = Router()
 
 void main(List<String> args) async {
   Data.init();
-  print("connecting to database");
+  loggerNoStack.i("connecting to database");
   await DataBase.init();
   final InternetAddress ip = InternetAddress.anyIPv4;
 
@@ -30,7 +30,7 @@ void main(List<String> args) async {
 
   final int port = int.parse(env['API_PORT'] ?? '8080');
   final HttpServer server = await serve(_handler, ip, port);
-  print('Server listening on port http://${ip.host}:${server.port}');
+  loggerNoStack.i('Server listening on port http://${ip.host}:${server.port}');
 
-  await Utility.hotReload();
+  // await Utility.hotReload();
 }

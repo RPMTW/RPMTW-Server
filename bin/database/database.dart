@@ -1,6 +1,8 @@
 import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
+import '../utilities/data.dart';
+
 class DataBase {
   static late Db _mongoDB;
   static late DataBase _instance;
@@ -30,24 +32,11 @@ class DataBase {
   }
 
   static Future<void> init() async {
-    // InternetAddress ip = InternetAddress.anyIPv4;
-
-    String username = env['DATA_BASE_USERNAME']!;
-    String password = env['DATA_BASE_PASSWORD']!;
-    String host = env['DATA_BASE_HOST']!;
-    String port = env['DATA_BASE_PORT']!;
-    String name = env['DATA_BASE_NAME']!;
-
-    String? testUrl = env['DATA_BASE_TEST_URL'];
-
-    String url =
-        testUrl ?? "mongodb+srv://$username:$password@$host:$port/$name";
-
-    //   print(url);
+    String url = env['DATA_BASE_URL']!;
 
     _mongoDB = await Db.create(url);
     await _mongoDB.open();
     _instance = await DataBase._open();
-    print("Successfully connected to the database");
+    loggerNoStack.i("Successfully connected to the database");
   }
 }

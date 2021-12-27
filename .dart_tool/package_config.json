@@ -27,7 +27,7 @@
     },
     {
       "name": "basic_utils",
-      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/basic_utils-3.9.3",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/basic_utils-3.9.4",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
@@ -351,7 +351,7 @@
     },
     {
       "name": "test",
-      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/test-1.20.0",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/test-1.20.1",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
@@ -363,7 +363,7 @@
     },
     {
       "name": "test_core",
-      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/test_core-0.4.10",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/test_core-0.4.11",
       "packageUri": "lib/",
       "languageVersion": "2.14"
     },
@@ -434,7 +434,7 @@
       "languageVersion": "2.16"
     }
   ],
-  "generated": "2021-12-27T10:42:10.219094Z",
+  "generated": "2021-12-27T13:25:24.651489Z",
   "generator": "pub",
   "generatorVersion": "2.16.0-80.1.beta"
 }

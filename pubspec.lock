@@ -35,7 +35,7 @@ packages:
       name: basic_utils
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.9.3"
+    version: "3.9.4"
   boolean_selector:
     dependency: transitive
     description:
@@ -413,7 +413,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.20.0"
+    version: "1.20.1"
   test_api:
     dependency: transitive
     description:
@@ -427,7 +427,7 @@ packages:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.10"
+    version: "0.4.11"
   test_process:
     dependency: "direct dev"
     description:

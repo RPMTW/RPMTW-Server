@@ -42,6 +42,22 @@ class AuthRoute implements BaseRoute {
       }
     });
 
+    router.get("/user/<uuid>", (Request req) async {
+      try {
+        String uuid = req.params['uuid']!;
+        Map<String, dynamic>? data = await DataBase.instance.usersCollection
+            .findOne(where.eq('uuid', uuid));
+        if (data == null) {
+          return ResponseExtension.notFound();
+        }
+        User user = User.fromMap(data);
+        return ResponseExtension.success(data: user.outputMap());
+      } catch (e) {
+        logger.e(e);
+        return ResponseExtension.badRequest();
+      }
+    });
+
     return router;
   }
 
@@ -49,8 +65,8 @@ class AuthRoute implements BaseRoute {
         return (request) {
           return Future.sync(() async {
             String path = request.url.path;
-            List<String> ignorePaths = ["", "auth/user/create"];
-            if (!ignorePaths.contains(path)) {
+            List<String> ignorePaths = ["", "auth/user/create", "auth/user/"];
+            if (!ignorePaths.any((_path) => path.startsWith(_path))) {
               String? token = request.headers['Authorization']
                   ?.toString()
                   .replaceAll('Bearer ', '');
@@ -67,7 +83,6 @@ class AuthRoute implements BaseRoute {
                 if (data == null) {
                   return ResponseExtension.unauthorized();
                 }
-                print(data);
                 User user = User.fromMap(data);
                 request.change(context: {"user": user});
               } on JWTError catch (e) {
@@ -84,4 +99,14 @@ class AuthRoute implements BaseRoute {
           });
         };
       };
+}
+
+extension RequestUserExtension on Request {
+  User? get user {
+    try {
+      return context['user'] as User;
+    } catch (e) {
+      return null;
+    }
+  }
 }
