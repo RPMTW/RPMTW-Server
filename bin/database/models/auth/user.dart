@@ -1,20 +1,19 @@
 import 'dart:convert';
 
-class User {
+import '../base_models.dart';
+
+class User implements BaseModels {
   final String uuid;
   final String username;
   final String email;
   final String passwordHash;
-  final String salt;
-  final String avatarStorageUUID;
-  
+  final String? avatarStorageUUID;
   User({
     required this.uuid,
     required this.username,
     required this.email,
     required this.passwordHash,
-    required this.salt,
-    required this.avatarStorageUUID,
+    this.avatarStorageUUID,
   });
 
   User copyWith({
@@ -22,7 +21,6 @@ class User {
     String? username,
     String? email,
     String? passwordHash,
-    String? salt,
     String? avatarStorageUUID,
   }) {
     return User(
@@ -30,7 +28,6 @@ class User {
       username: username ?? this.username,
       email: email ?? this.email,
       passwordHash: passwordHash ?? this.passwordHash,
-      salt: salt ?? this.salt,
       avatarStorageUUID: avatarStorageUUID ?? this.avatarStorageUUID,
     );
   }
@@ -41,7 +38,16 @@ class User {
       'username': username,
       'email': email,
       'passwordHash': passwordHash,
-      'salt': salt,
+      'avatarStorageUUID': avatarStorageUUID,
+    };
+  }
+
+  @override
+  Map<String, dynamic> outputMap() {
+    return {
+      'uuid': uuid,
+      'username': username,
+      'email': email,
       'avatarStorageUUID': avatarStorageUUID,
     };
   }
@@ -49,11 +55,10 @@ class User {
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       uuid: map['uuid'] ?? '',
-      username: map['username'] ?? '',
-      email: map['email'] ?? '',
+      username: map['username'],
+      email: map['email'],
       passwordHash: map['passwordHash'] ?? '',
-      salt: map['salt'] ?? '',
-      avatarStorageUUID: map['avatarStorageUUID'] ?? '',
+      avatarStorageUUID: map['avatarStorageUUID'],
     );
   }
 
@@ -63,7 +68,7 @@ class User {
 
   @override
   String toString() {
-    return 'User(uuid: $uuid, username: $username, email: $email, passwordHash: $passwordHash, salt: $salt, avatarStorageUUID: $avatarStorageUUID)';
+    return 'User(uuid: $uuid, username: $username, email: $email, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID)';
   }
 
   @override
@@ -75,7 +80,6 @@ class User {
         other.username == username &&
         other.email == email &&
         other.passwordHash == passwordHash &&
-        other.salt == salt &&
         other.avatarStorageUUID == avatarStorageUUID;
   }
 
@@ -85,7 +89,6 @@ class User {
         username.hashCode ^
         email.hashCode ^
         passwordHash.hashCode ^
-        salt.hashCode ^
         avatarStorageUUID.hashCode;
   }
 }

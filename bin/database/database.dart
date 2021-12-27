@@ -2,7 +2,29 @@ import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 class DataBase {
-  static late Db _db;
+  static late Db _mongoDB;
+  static late DataBase _instance;
+  static DataBase get instance => _instance;
+  Db get db => _mongoDB;
+
+  final DbCollection _usersCollection;
+
+  DbCollection get usersCollection => _usersCollection;
+
+  DataBase(this._usersCollection);
+
+  static Future<DataBase> _open() async {
+    List<String?> collections = await _mongoDB.getCollectionNames();
+    Future<void> checkCollection(String name) async {
+      if (!collections.contains(name)) {
+        await _mongoDB.createCollection(name);
+      }
+    }
+
+    await checkCollection('users');
+
+    return DataBase(_mongoDB.collection('users'));
+  }
 
   static Future<void> init() async {
     // InternetAddress ip = InternetAddress.anyIPv4;
@@ -20,10 +42,9 @@ class DataBase {
 
     //   print(url);
 
-    _db = await Db.create(url);
-    await _db.open();
+    _mongoDB = await Db.create(url);
+    await _mongoDB.open();
+    _instance = await DataBase._open();
     print("Successfully connected to the database");
   }
-
-  static Db get instance => _db;
 }

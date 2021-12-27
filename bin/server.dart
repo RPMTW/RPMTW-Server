@@ -6,25 +6,18 @@ import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import 'routes/auth_route.dart';
+import 'routes/root_route.dart';
+import 'utilities/data.dart';
 import 'utilities/utility.dart';
 import 'database/database.dart';
 
-final _router = Router()
-  ..get('/', _rootHandler)
-  ..get('/echo/<message>', _echoHandler)
+final Router _router = Router()
+  ..mount('/', RootRoute().router)
   ..mount('/auth/', AuthRoute().router);
 
-Response _rootHandler(Request req) {
-  return Response.ok('Hello RPMTW World!');
-}
-
-Response _echoHandler(Request request) {
-  final message = request.params['message'];
-  return Response.ok('$message\n');
-}
-
 void main(List<String> args) async {
-  load();
+  Data.init();
+  print("connecting to database");
   await DataBase.init();
   final InternetAddress ip = InternetAddress.anyIPv4;
 
@@ -35,5 +28,5 @@ void main(List<String> args) async {
   final HttpServer server = await serve(_handler, ip, port);
   print('Server listening on port http://${ip.host}:${server.port}');
 
-  Utility.hotReload();
+  await Utility.hotReload();
 }

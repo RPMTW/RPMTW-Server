@@ -86,6 +86,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "dbcrypt",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/dbcrypt-2.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "dotenv",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/dotenv-3.0.0",
       "packageUri": "lib/",
@@ -160,6 +166,12 @@
     {
       "name": "lints",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/lints-1.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "logger",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/logger-1.1.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -416,7 +428,7 @@
       "languageVersion": "2.16"
     }
   ],
-  "generated": "2021-12-21T14:30:41.094570Z",
+  "generated": "2021-12-27T09:52:19.762331Z",
   "generator": "pub",
   "generatorVersion": "2.16.0-80.1.beta"
 }
