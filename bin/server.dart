@@ -25,6 +25,7 @@ void main(List<String> args) async {
 
   final Handler _handler = Pipeline()
       .addMiddleware(logRequests())
+      .addMiddleware(AuthRoute().authorizationToken())
       .addHandler(_router);
 
   final int port = int.parse(env['API_PORT'] ?? '8080');

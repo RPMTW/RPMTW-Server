@@ -13,6 +13,8 @@ import '../utilities/data.dart';
 import 'base_route.dart';
 
 class AuthRoute implements BaseRoute {
+  SecretKey key = SecretKey(env['DATA_BASE_SecretKey']!);
+
   @override
   Router get router {
     final Router router = Router();
@@ -31,8 +33,8 @@ class AuthRoute implements BaseRoute {
             .insertOne(user.toMap()); // 儲存至資料庫
 
         Map output = user.outputMap();
-        JWT jwt = JWT({});
-        output['token'] = jwt.sign(SecretKey(env['DATA_BASE_SecretKey']!));
+        JWT jwt = JWT({'uuid': user.uuid});
+        output['token'] = jwt.sign(key);
         return ResponseExtension.success(data: output);
       } catch (e) {
         logger.e(e);
@@ -42,4 +44,44 @@ class AuthRoute implements BaseRoute {
 
     return router;
   }
+
+  Middleware authorizationToken() => (innerHandler) {
+        return (request) {
+          return Future.sync(() async {
+            String path = request.url.path;
+            List<String> ignorePaths = ["", "auth/user/create"];
+            if (!ignorePaths.contains(path)) {
+              String? token = request.headers['Authorization']
+                  ?.toString()
+                  .replaceAll('Bearer ', '');
+              if (token == null) {
+                return ResponseExtension.unauthorized();
+              }
+              try {
+                JWT jwt = JWT.verify(token, key);
+                Map<String, dynamic> payload = jwt.payload;
+                String uuid = payload['uuid'];
+                Map<String, dynamic>? data = await DataBase
+                    .instance.usersCollection
+                    .findOne(where.eq('uuid', uuid));
+                if (data == null) {
+                  return ResponseExtension.unauthorized();
+                }
+                print(data);
+                User user = User.fromMap(data);
+                request.change(context: {"user": user});
+              } on JWTError catch (e) {
+                logger.e(e.message, null, e.stackTrace);
+                return ResponseExtension.unauthorized();
+              } catch (e, stack) {
+                logger.e(e, null, stack);
+                return ResponseExtension.internalServerError();
+              }
+            }
+            return await innerHandler(request);
+          }).then((response) {
+            return response;
+          });
+        };
+      };
 }

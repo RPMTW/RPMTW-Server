@@ -23,4 +23,12 @@ class ResponseExtension {
             'message': 'Internal Server Error',
           }),
           headers: {'content-type': 'application/json'});
+
+  static Response unauthorized() => Response(
+        HttpStatus.unauthorized,
+        body: json.encode({
+          'status': HttpStatus.unauthorized,
+          'message': 'Unauthorized',
+        }),
+      );
 }
