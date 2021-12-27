@@ -16,6 +16,7 @@ dependencies:
   logger: ^1.1.0
   mongo_dart: ^0.7.4
   shelf: ^1.1.0
+  shelf_rate_limiter: ^1.0.1
   shelf_router: ^1.0.0
   vm_service: ^7.5.0
   watcher: ^1.0.1

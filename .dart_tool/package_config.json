@@ -290,6 +290,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "shelf_rate_limiter",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/shelf_rate_limiter-1.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "shelf_router",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/shelf_router-1.1.2",
       "packageUri": "lib/",
@@ -434,7 +440,7 @@
       "languageVersion": "2.16"
     }
   ],
-  "generated": "2021-12-27T13:25:24.651489Z",
+  "generated": "2021-12-27T13:55:53.243375Z",
   "generator": "pub",
   "generatorVersion": "2.16.0-80.1.beta"
 }

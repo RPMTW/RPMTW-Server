@@ -11,7 +11,12 @@ class StorageRoute implements BaseRoute {
 
     // TODO: implement temp storage
     router.get("/create", (Request req) async {
-      return ResponseExtension.success(data: {});
+      try {
+         
+        return ResponseExtension.success(data: {});
+      } catch (e) {
+        return ResponseExtension.badRequest();
+      }
     });
 
     return router;
