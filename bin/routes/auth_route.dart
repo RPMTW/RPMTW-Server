@@ -6,6 +6,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../database/database.dart';
 import '../database/models/auth/user.dart';
+import '../database/models/storage/storage.dart';
 import '../utilities//extension.dart';
 import '../utilities/data.dart';
 import 'base_route.dart';
@@ -27,6 +28,15 @@ class AuthRoute implements BaseRoute {
             dbCrypt.hashpw(data['password'], salt); //使用加鹽算法將明文密碼生成為雜湊值
         User user = User.fromMap(data);
         user = user.copyWith(passwordHash: hash, uuid: Uuid().v4());
+
+        String? avatarStorageUUID = user.avatarStorageUUID;
+        if (avatarStorageUUID != null) {
+          Storage? storage =
+              await DataBase.instance.getStorageFromUUID(avatarStorageUUID);
+          if (storage == null) {
+            return ResponseExtension.notFound('Avatar Storage not found');
+          }
+        }
 
         await DataBase.instance.usersCollection
             .insertOne(user.toMap()); // 儲存至資料庫

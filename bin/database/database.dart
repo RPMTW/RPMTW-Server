@@ -2,6 +2,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 import '../utilities/data.dart';
+import 'models/storage/storage.dart';
 
 class DataBase {
   static late Db _mongoDB;
@@ -42,5 +43,12 @@ class DataBase {
     await _mongoDB.open();
     _instance = await DataBase._open();
     loggerNoStack.i("Successfully connected to the database");
+  }
+
+  Future<Storage?> getStorageFromUUID(String uuid) async {
+    Map<String, dynamic>? data =
+        await _storagesCollection.findOne(where.eq('uuid', uuid));
+    if (data == null) return null;
+    return Storage.fromMap(data);
   }
 }

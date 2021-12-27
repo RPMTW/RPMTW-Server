@@ -31,11 +31,11 @@ class ResponseExtension {
           'message': 'Unauthorized',
         }),
       );
-  static Response notFound() => Response(
+  static Response notFound([String message = 'Not Found']) => Response(
         HttpStatus.notFound,
         body: json.encode({
           'status': HttpStatus.notFound,
-          'message': 'Not Found',
+          'message': message,
         }),
       );
 }

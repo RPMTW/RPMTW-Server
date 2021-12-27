@@ -24,9 +24,12 @@ void main(List<String> args) async {
   final InternetAddress ip = InternetAddress.anyIPv4;
 
   final memoryStorage = MemStorage();
+
   /// 一分鐘內最多請求100次
   final rateLimiter = ShelfRateLimiter(
-      storage: memoryStorage, duration: Duration(seconds: 60), maxRequests: 100);
+      storage: memoryStorage,
+      duration: Duration(seconds: 60),
+      maxRequests: 100);
 
   final Handler _handler = Pipeline()
       .addMiddleware(logRequests())

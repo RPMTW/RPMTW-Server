@@ -29,12 +29,10 @@ class StorageRoute implements BaseRoute {
     router.get("/<uuid>", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
-        Map<String, dynamic>? data = await DataBase.instance.storagesCollection
-            .findOne(where.eq('uuid', uuid));
-        if (data == null) {
+        Storage? storage = await DataBase.instance.getStorageFromUUID(uuid);
+        if (storage == null) {
           return ResponseExtension.notFound();
         }
-        Storage storage = Storage.fromMap(data);
         return ResponseExtension.success(data: storage.outputMap());
       } catch (e) {
         logger.e(e);
