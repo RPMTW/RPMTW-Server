@@ -18,6 +18,9 @@ class DataBase {
     Future<void> checkCollection(String name) async {
       if (!collections.contains(name)) {
         await _mongoDB.createCollection(name);
+      } else {
+        await _mongoDB.createIndex(name,
+            key: "uuid", name: 'uuid', unique: true);
       }
     }
 

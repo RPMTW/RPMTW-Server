@@ -23,8 +23,9 @@ void main(List<String> args) async {
   await DataBase.init();
   final InternetAddress ip = InternetAddress.anyIPv4;
 
-  final Handler _handler =
-      Pipeline().addMiddleware(logRequests()).addHandler(_router);
+  final Handler _handler = Pipeline()
+      .addMiddleware(logRequests())
+      .addHandler(_router);
 
   final int port = int.parse(env['API_PORT'] ?? '8080');
   final HttpServer server = await serve(_handler, ip, port);
