@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dbcrypt/dbcrypt.dart';
+import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -8,8 +10,10 @@ import '../database/database.dart';
 import '../database/models/auth/user.dart';
 import '../utilities//extension.dart';
 import '../utilities/data.dart';
+import 'base_route.dart';
 
-class AuthRoute {
+class AuthRoute implements BaseRoute {
+  @override
   Router get router {
     final Router router = Router();
 
@@ -26,7 +30,10 @@ class AuthRoute {
         await DataBase.instance.usersCollection
             .insertOne(user.toMap()); // 儲存至資料庫
 
-        return ResponseExtension.success(data: user.outputMap());
+        Map output = user.outputMap();
+        JWT jwt = JWT({});
+        output['token'] = jwt.sign(SecretKey(env['DATA_BASE_SecretKey']!));
+        return ResponseExtension.success(data: output);
       } catch (e) {
         logger.e(e);
         return ResponseExtension.badRequest();

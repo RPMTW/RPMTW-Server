@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import '../utilities/data.dart';
 import '../utilities/extension.dart';
+import 'base_route.dart';
 
-class RootRoute {
+class RootRoute implements BaseRoute {
+  @override
   Router get router {
     final Router router = Router();
 
@@ -20,6 +23,7 @@ class RootRoute {
         String ip = connectionInfo.remoteAddress.address;
         return Response.ok(ip);
       } catch (e) {
+        logger.e(e);
         return ResponseExtension.internalServerError();
       }
     });

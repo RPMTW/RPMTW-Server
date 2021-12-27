@@ -86,6 +86,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "dart_jsonwebtoken",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/dart_jsonwebtoken-2.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "dbcrypt",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/dbcrypt-2.0.0",
       "packageUri": "lib/",
@@ -428,7 +434,7 @@
       "languageVersion": "2.16"
     }
   ],
-  "generated": "2021-12-27T09:52:19.762331Z",
+  "generated": "2021-12-27T10:42:10.219094Z",
   "generator": "pub",
   "generatorVersion": "2.16.0-80.1.beta"
 }

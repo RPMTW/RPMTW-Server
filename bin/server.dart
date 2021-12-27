@@ -7,13 +7,15 @@ import 'package:shelf_router/shelf_router.dart';
 
 import 'routes/auth_route.dart';
 import 'routes/root_route.dart';
+import 'routes/storage_route.dart';
 import 'utilities/data.dart';
 import 'utilities/utility.dart';
 import 'database/database.dart';
 
 final Router _router = Router()
   ..mount('/', RootRoute().router)
-  ..mount('/auth/', AuthRoute().router);
+  ..mount('/auth/', AuthRoute().router)
+  ..mount('/storage/', StorageRoute().router);
 
 void main(List<String> args) async {
   Data.init();
