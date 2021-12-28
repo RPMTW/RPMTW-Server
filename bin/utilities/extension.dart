@@ -4,12 +4,13 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 
 class ResponseExtension {
-  static Response badRequest() => Response(HttpStatus.badRequest,
-      body: json.encode({
-        'status': HttpStatus.badRequest,
-        'message': 'Bad Request',
-      }),
-      headers: {'content-type': 'application/json'});
+  static Response badRequest({String message = "Bad Request"}) =>
+      Response(HttpStatus.badRequest,
+          body: json.encode({
+            'status': HttpStatus.badRequest,
+            'message': message,
+          }),
+          headers: {'content-type': 'application/json'});
 
   static Response success({required Map data}) => Response(HttpStatus.ok,
       body: json.encode(
