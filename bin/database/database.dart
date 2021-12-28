@@ -2,6 +2,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 import '../utilities/data.dart';
+import 'models/base_models.dart';
 import 'models/storage/storage.dart';
 
 class DataBase {
@@ -10,13 +11,9 @@ class DataBase {
   static DataBase get instance => _instance;
   Db get db => _mongoDB;
 
-  final DbCollection _usersCollection;
-  final DbCollection _storagesCollection;
+  DataBase();
 
-  DbCollection get usersCollection => _usersCollection;
-  DbCollection get storagesCollection => _storagesCollection;
-
-  DataBase(this._usersCollection, this._storagesCollection);
+  static final List<String> collectionList = ["users", "storages"];
 
   static Future<DataBase> _open() async {
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -32,8 +29,7 @@ class DataBase {
     await checkCollection('users');
     await checkCollection('storages');
 
-    return DataBase(
-        _mongoDB.collection('users'), _mongoDB.collection('storages'));
+    return DataBase();
   }
 
   static Future<void> init() async {
@@ -45,10 +41,41 @@ class DataBase {
     loggerNoStack.i("Successfully connected to the database");
   }
 
-  Future<Storage?> getStorageFromUUID(String uuid) async {
-    Map<String, dynamic>? data =
-        await _storagesCollection.findOne(where.eq('uuid', uuid));
-    if (data == null) return null;
-    return Storage.fromMap(data);
+  String getCollectionName<T extends BaseModels>() {
+    Map<String, String> modelTypeMap = {
+      "User": 'users',
+      "Storage": 'storages',
+    };
+    String collectionName = modelTypeMap[T.toString()]!;
+    return collectionName;
+  }
+
+  Future<T?> getModelFromUUID<T extends BaseModels>(String uuid) async {
+    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
+    Map<String, dynamic>? map =
+        await collection.findOne(where.eq('uuid', uuid));
+
+    if (map == null) return null;
+
+    return T.noSuchMethod(Invocation.method(Symbol("fromMap"), [map]));
+  }
+
+  Future<WriteResult> insertOneModel<T extends BaseModels>(T model,
+      {WriteConcern? writeConcern, bool? bypassDocumentValidation}) async {
+    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
+    Map<String, dynamic> map = model.toMap();
+    return await collection.insertOne(map,
+        writeConcern: writeConcern,
+        bypassDocumentValidation: bypassDocumentValidation);
+  }
+
+  Future<T?> findOneModelByUUID<T extends BaseModels>(String uuid) async {
+    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
+    Map<String, dynamic>? map =
+        await collection.findOne(where.eq('uuid', uuid));
+
+    if (map == null) return null;
+
+    return T.noSuchMethod(Invocation.method(Symbol("fromMap"), [map]));
   }
 }

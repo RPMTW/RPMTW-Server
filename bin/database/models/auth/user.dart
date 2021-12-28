@@ -32,6 +32,7 @@ class User implements BaseModels {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       'uuid': uuid,
@@ -62,6 +63,7 @@ class User implements BaseModels {
     );
   }
 
+  @override
   String toJson() => json.encode(toMap());
 
   factory User.fromJson(String source) => User.fromMap(json.decode(source));

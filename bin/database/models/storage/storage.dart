@@ -19,6 +19,7 @@ class Storage implements BaseModels {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {'uuid': uuid, 'bytes': bytes, 'type': type.name};
   }
@@ -29,7 +30,7 @@ class Storage implements BaseModels {
         bytes: List<int>.from(map['bytes']),
         type: StorageType.values.byName(map['type'] ?? 'temp'));
   }
-
+  @override
   String toJson() => json.encode(toMap());
 
   factory Storage.fromJson(String source) =>

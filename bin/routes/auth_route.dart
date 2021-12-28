@@ -31,22 +31,21 @@ class AuthRoute implements BaseRoute {
 
         String? avatarStorageUUID = user.avatarStorageUUID;
         if (avatarStorageUUID != null) {
-          Storage? storage =
-              await DataBase.instance.getStorageFromUUID(avatarStorageUUID);
+          Storage? storage = await DataBase.instance
+              .getModelFromUUID<Storage>(avatarStorageUUID);
           if (storage == null) {
             return ResponseExtension.notFound('Avatar Storage not found');
           }
         }
 
-        await DataBase.instance.usersCollection
-            .insertOne(user.toMap()); // 儲存至資料庫
+        await DataBase.instance.insertOneModel<User>(user); // 儲存至資料庫
 
         Map output = user.outputMap();
         JWT jwt = JWT({'uuid': user.uuid});
         output['token'] = jwt.sign(key);
         return ResponseExtension.success(data: output);
-      } catch (e) {
-        logger.e(e);
+      } catch (e, stack) {
+        logger.e(e, null, stack);
         return ResponseExtension.badRequest();
       }
     });
@@ -54,12 +53,10 @@ class AuthRoute implements BaseRoute {
     router.get("/user/<uuid>", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
-        Map<String, dynamic>? data = await DataBase.instance.usersCollection
-            .findOne(where.eq('uuid', uuid));
-        if (data == null) {
+        User? user = await DataBase.instance.findOneModelByUUID<User>(uuid);
+        if (user == null) {
           return ResponseExtension.notFound();
         }
-        User user = User.fromMap(data);
         return ResponseExtension.success(data: user.outputMap());
       } catch (e) {
         logger.e(e);
@@ -86,13 +83,11 @@ class AuthRoute implements BaseRoute {
                 JWT jwt = JWT.verify(token, key);
                 Map<String, dynamic> payload = jwt.payload;
                 String uuid = payload['uuid'];
-                Map<String, dynamic>? data = await DataBase
-                    .instance.usersCollection
-                    .findOne(where.eq('uuid', uuid));
-                if (data == null) {
+                User? user =
+                    await DataBase.instance.findOneModelByUUID<User>(uuid);
+                if (user == null) {
                   return ResponseExtension.unauthorized();
                 }
-                User user = User.fromMap(data);
                 request.change(context: {"user": user});
               } on JWTError catch (e) {
                 logger.e(e.message, null, e.stackTrace);
