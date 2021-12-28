@@ -23,8 +23,8 @@ class StorageRoute implements BaseRoute {
         Uint8List bytes =
             Uint8List.fromList((data['bytes'] as List).cast<int>());
         ByteSize size = ByteSize.FromBytes(bytes.lengthInBytes);
-        if (size.MegaBytes >= 50) {
-          // 限制最大檔案大小為 50 MB
+        if (size.MegaBytes > 8) {
+          // 限制最大檔案大小為 8 MB
           return ResponseExtension.badRequest(
               message: "File size is too large");
         }
