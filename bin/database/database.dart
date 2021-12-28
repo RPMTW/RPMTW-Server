@@ -11,6 +11,7 @@ class DataBase {
   static late DataBase _instance;
   static DataBase get instance => _instance;
   Db get db => _mongoDB;
+  GridFS get gridFS => GridFS(DataBase.instance.db);
 
   DataBase();
 
@@ -27,8 +28,9 @@ class DataBase {
       }
     }
 
-    await checkCollection('users');
-    await checkCollection('storages');
+    for (String name in collectionList) {
+      await checkCollection(name);
+    }
 
     return DataBase();
   }
@@ -74,19 +76,8 @@ class DataBase {
   Future<WriteResult> insertOneModel<T extends BaseModels>(T model,
       {WriteConcern? writeConcern, bool? bypassDocumentValidation}) async {
     DbCollection collection = _mongoDB.collection(getCollectionName<T>());
-    Map<String, dynamic> map = model.toMap();
-    return await collection.insertOne(map,
+    return await collection.insertOne(model.toMap(),
         writeConcern: writeConcern,
         bypassDocumentValidation: bypassDocumentValidation);
-  }
-
-  Future<T?> findOneModelByUUID<T extends BaseModels>(String uuid) async {
-    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
-    Map<String, dynamic>? map =
-        await collection.findOne(where.eq('uuid', uuid));
-
-    if (map == null) return null;
-
-    return T.noSuchMethod(Invocation.method(Symbol("fromMap"), [map]));
   }
 }

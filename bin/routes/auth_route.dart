@@ -53,7 +53,7 @@ class AuthRoute implements BaseRoute {
     router.get("/user/<uuid>", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
-        User? user = await DataBase.instance.findOneModelByUUID<User>(uuid);
+        User? user = await DataBase.instance.getModelFromUUID<User>(uuid);
         if (user == null) {
           return ResponseExtension.notFound();
         }
@@ -84,7 +84,7 @@ class AuthRoute implements BaseRoute {
                 Map<String, dynamic> payload = jwt.payload;
                 String uuid = payload['uuid'];
                 User? user =
-                    await DataBase.instance.findOneModelByUUID<User>(uuid);
+                    await DataBase.instance.getModelFromUUID<User>(uuid);
                 if (user == null) {
                   return ResponseExtension.unauthorized();
                 }
