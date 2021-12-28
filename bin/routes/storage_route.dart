@@ -20,7 +20,9 @@ class StorageRoute implements BaseRoute {
         Storage storage = Storage.fromMap(data);
         storage = storage.copyWith(uuid: Uuid().v4(), type: StorageType.temp);
         DataBase.instance.insertOneModel<Storage>(storage);
-        return ResponseExtension.success(data: {});
+        return ResponseExtension.success(data: {
+          'uuid': storage.uuid,
+        });
       } catch (e) {
         return ResponseExtension.badRequest();
       }
@@ -29,7 +31,8 @@ class StorageRoute implements BaseRoute {
     router.get("/<uuid>", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
-        Storage? storage = await DataBase.instance.getModelFromUUID<Storage>(uuid);
+        Storage? storage =
+            await DataBase.instance.getModelFromUUID<Storage>(uuid);
         if (storage == null) {
           return ResponseExtension.notFound();
         }

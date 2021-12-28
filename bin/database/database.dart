@@ -2,6 +2,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
 import '../utilities/data.dart';
+import 'models/auth/user.dart';
 import 'models/base_models.dart';
 import 'models/storage/storage.dart';
 
@@ -46,8 +47,18 @@ class DataBase {
       "User": 'users',
       "Storage": 'storages',
     };
-    String collectionName = modelTypeMap[T.toString()]!;
-    return collectionName;
+
+    return modelTypeMap[T.toString()]!;
+  }
+
+  T getModelFromMap<T extends BaseModels>(Map<String, dynamic> map) {
+    Map<String, T Function(Map<String, dynamic>)> modelTypeMap = {
+      "User": User.fromMap,
+      "Storage": Storage.fromMap,
+    }.cast<String, T Function(Map<String, dynamic>)>();
+
+    T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;
+    return factory(map);
   }
 
   Future<T?> getModelFromUUID<T extends BaseModels>(String uuid) async {
@@ -57,7 +68,7 @@ class DataBase {
 
     if (map == null) return null;
 
-    return T.noSuchMethod(Invocation.method(Symbol("fromMap"), [map]));
+    return getModelFromMap<T>(map);
   }
 
   Future<WriteResult> insertOneModel<T extends BaseModels>(T model,
