@@ -6,6 +6,7 @@ import 'package:shelf/shelf_io.dart';
 import 'package:shelf_rate_limiter/shelf_rate_limiter.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import 'handler/auth_handler.dart';
 import 'routes/auth_route.dart';
 import 'routes/root_route.dart';
 import 'routes/storage_route.dart';
@@ -34,7 +35,7 @@ void main(List<String> args) async {
   final Handler _handler = Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(rateLimiter.rateLimiter())
-      .addMiddleware(AuthRoute().authorizationToken())
+      .addMiddleware(AuthHandler.authorizationToken())
       .addHandler(_router);
 
   final int port = int.parse(env['API_PORT'] ?? '8080');

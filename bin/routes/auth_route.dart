@@ -1,20 +1,18 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dbcrypt/dbcrypt.dart';
-import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import '../database/database.dart';
 import '../database/models/auth/user.dart';
 import '../database/models/storage/storage.dart';
+import '../handler/auth_handler.dart';
 import '../utilities//extension.dart';
 import '../utilities/data.dart';
 import 'base_route.dart';
 import 'root_route.dart';
 
 class AuthRoute implements BaseRoute {
-  SecretKey key = SecretKey(env['DATA_BASE_SecretKey']!);
-
   @override
   Router get router {
     final Router router = Router();
@@ -41,8 +39,7 @@ class AuthRoute implements BaseRoute {
         await DataBase.instance.insertOneModel<User>(user); // 儲存至資料庫
 
         Map output = user.outputMap();
-        JWT jwt = JWT({'uuid': user.uuid});
-        output['token'] = jwt.sign(key);
+        output['token'] = AuthHandler.generateAuthToken(user.uuid);
         return ResponseExtension.success(data: output);
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -69,43 +66,41 @@ class AuthRoute implements BaseRoute {
       }
     });
 
+    /*
+    取得 Token
+    所需參數:
+    [uuid] 使用者 UUID
+    [password] 使用者密碼
+    e.g.
+    {
+      "uuid": "e5634ad4-529d-42d4-9a56-045c5f5888cd",
+      "password": "test"
+    } 
+    */
+    router.post("/get-token", (Request req) async {
+      try {
+        Map<String, dynamic> data = await req.data;
+
+        String uuid = data['uuid'];
+        String password = data['password'];
+        User? user = await DataBase.instance.getModelFromUUID<User>(uuid);
+        if (user == null) {
+          return ResponseExtension.notFound("User not found");
+        }
+        DBCrypt dbCrypt = DBCrypt();
+        bool checkPassword = dbCrypt.checkpw(password, user.passwordHash);
+        if (!checkPassword) {
+          return ResponseExtension.badRequest(message: "Password is incorrect");
+        }
+        Map output = user.outputMap();
+        output['token'] = AuthHandler.generateAuthToken(user.uuid);
+        return ResponseExtension.success(data: output);
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
     return router;
   }
-
-  Middleware authorizationToken() => (innerHandler) {
-        return (request) {
-          return Future.sync(() async {
-            String path = request.url.path;
-            List<String> needAuthorizationPaths = ["auth/user/me"];
-            if (needAuthorizationPaths.contains(path)) {
-              String? token = request.headers['Authorization']
-                  ?.toString()
-                  .replaceAll('Bearer ', '');
-              if (token == null) {
-                return ResponseExtension.unauthorized();
-              }
-              try {
-                JWT jwt = JWT.verify(token, key);
-                Map<String, dynamic> payload = jwt.payload;
-                String uuid = payload['uuid'];
-                User? user =
-                    await DataBase.instance.getModelFromUUID<User>(uuid);
-                if (user == null) {
-                  return ResponseExtension.unauthorized();
-                }
-                request = request.change(context: {"user": user});
-              } on JWTError catch (e) {
-                logger.e(e.message, null, e.stackTrace);
-                return ResponseExtension.unauthorized();
-              } catch (e, stack) {
-                logger.e(e, null, stack);
-                return ResponseExtension.internalServerError();
-              }
-            }
-            return await innerHandler(request);
-          }).then((response) {
-            return response;
-          });
-        };
-      };
 }
