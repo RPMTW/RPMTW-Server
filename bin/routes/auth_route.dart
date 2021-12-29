@@ -53,13 +53,18 @@ class AuthRoute implements BaseRoute {
     router.get("/user/<uuid>", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
-        User? user = await DataBase.instance.getModelFromUUID<User>(uuid);
+        User? user;
+        if (uuid == "me") {
+          user = req.user;
+        } else {
+          user = await DataBase.instance.getModelFromUUID<User>(uuid);
+        }
         if (user == null) {
-          return ResponseExtension.notFound();
+          return ResponseExtension.notFound("User not found");
         }
         return ResponseExtension.success(data: user.outputMap());
-      } catch (e) {
-        logger.e(e);
+      } catch (e, stack) {
+        logger.e(e, null, stack);
         return ResponseExtension.badRequest();
       }
     });
@@ -71,8 +76,8 @@ class AuthRoute implements BaseRoute {
         return (request) {
           return Future.sync(() async {
             String path = request.url.path;
-            List<String> ignorePaths = ["", "auth/user/create", "auth/user/"];
-            if (!ignorePaths.any((_path) => path.startsWith(_path))) {
+            List<String> needAuthorizationPaths = ["auth/user/me"];
+            if (needAuthorizationPaths.contains(path)) {
               String? token = request.headers['Authorization']
                   ?.toString()
                   .replaceAll('Bearer ', '');
@@ -88,7 +93,7 @@ class AuthRoute implements BaseRoute {
                 if (user == null) {
                   return ResponseExtension.unauthorized();
                 }
-                request.change(context: {"user": user});
+                request = request.change(context: {"user": user});
               } on JWTError catch (e) {
                 logger.e(e.message, null, e.stackTrace);
                 return ResponseExtension.unauthorized();

@@ -37,9 +37,7 @@ class StorageRoute implements BaseRoute {
         await gridIn.save();
         await DataBase.instance.insertOneModel<Storage>(storage);
 
-        return ResponseExtension.success(data: {
-          'uuid': storage.uuid,
-        });
+        return ResponseExtension.success(data: storage.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();
