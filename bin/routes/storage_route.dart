@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:byte_size/byte_size.dart';
-import 'package:http/http.dart' as http;
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/src/router.dart';
@@ -19,8 +18,14 @@ class StorageRoute implements BaseRoute {
     router.post("/create", (Request req) async {
       try {
         Stream<List<int>> stream = req.read();
+        String contentType = req.headers["content-type"] ??
+            req.headers["Content-Type"] ??
+            "application/octet-stream";
 
-        Storage storage = Storage(type: StorageType.temp, uuid: Uuid().v4());
+        Storage storage = Storage(
+            type: StorageType.temp,
+            contentType: contentType,
+            uuid: Uuid().v4());
         GridIn gridIn =
             DataBase.instance.gridFS.createFile(stream, storage.uuid);
         ByteSize size = ByteSize.FromBytes(req.contentLength!);
@@ -30,6 +35,7 @@ class StorageRoute implements BaseRoute {
               message: "File size is too large");
         }
         await gridIn.save();
+        await DataBase.instance.insertOneModel<Storage>(storage);
 
         return ResponseExtension.success(data: {
           'uuid': storage.uuid,
@@ -41,16 +47,14 @@ class StorageRoute implements BaseRoute {
     });
 
     router.get("/<uuid>", (Request req) async {
-      // TODO: GridFS
       try {
-        // String uuid = req.params['uuid']!;
-        // Storage? storage =
-        //     await DataBase.instance.getModelFromUUID<Storage>(uuid);
-        // if (storage == null) {
-        //   return ResponseExtension.notFound();
-        // }
-        // return ResponseExtension.success(data: storage.outputMap());
-        return ResponseExtension.success(data: {});
+        String uuid = req.params['uuid']!;
+        Storage? storage =
+            await DataBase.instance.getModelFromUUID<Storage>(uuid);
+        if (storage == null) {
+          return ResponseExtension.notFound();
+        }
+        return ResponseExtension.success(data: storage.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();
@@ -65,23 +69,14 @@ class StorageRoute implements BaseRoute {
         if (storage == null) {
           return ResponseExtension.notFound();
         }
-        GridFS fs = DataBase.instance.gridFS;
-        GridOut? gridOut = await fs.getFile(storage.uuid);
-        if (gridOut == null) {
-          return ResponseExtension.notFound();
-        }
-        List<Map<String, dynamic>> chunks = await (fs.chunks
-            .find(where.eq('files_id', gridOut.id).sortBy('n'))
-            .toList());
-        List<List<int>> bytes = [];
 
-        for (Map<String, dynamic> chunk in chunks) {
-          final data = chunk['data'] as BsonBinary;
-          bytes.add(data.byteList);
+        Uint8List? bytes = await storage.readAsBytes();
+        if (bytes == null) {
+          return ResponseExtension.notFound();
         }
 
         return Response.ok(bytes, headers: {
-          'Content-Type': 'binary/octet-stream',
+          'Content-Type': storage.contentType,
         });
       } catch (e, stack) {
         logger.e(e, null, stack);
