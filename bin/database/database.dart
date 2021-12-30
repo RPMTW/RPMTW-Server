@@ -76,8 +76,30 @@ class DataBase {
   Future<WriteResult> insertOneModel<T extends BaseModels>(T model,
       {WriteConcern? writeConcern, bool? bypassDocumentValidation}) async {
     DbCollection collection = _mongoDB.collection(getCollectionName<T>());
-    return await collection.insertOne(model.toMap(),
+    WriteResult result = await collection.insertOne(model.toMap(),
         writeConcern: writeConcern,
         bypassDocumentValidation: bypassDocumentValidation);
+
+    if (!result.success) {
+      throw InsertModelException(
+          T.toString(),
+          result.writeError?.errmsg ??
+              result.writeConcernError?.errmsg ??
+              result.errmsg);
+    }
+
+    return result;
+  }
+}
+
+class InsertModelException implements Exception {
+  final String modelName;
+  final String? errorMessage;
+
+  InsertModelException(this.modelName, [this.errorMessage]);
+
+  @override
+  String toString() {
+    return "InsertModelException: Failed to insert $modelName model.\n$errorMessage";
   }
 }

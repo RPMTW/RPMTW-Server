@@ -1,4 +1,3 @@
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:shelf/shelf.dart';
@@ -20,10 +19,16 @@ class AuthRoute implements BaseRoute {
     router.post('/user/create', (Request req) async {
       try {
         Map<String, dynamic> data = await req.data;
+        String password = data['password'];
+        final validatedResult = AuthHandler.validatePassword(password);
+        if (!validatedResult.isValid) {
+          // 密碼驗證失敗
+          return ResponseExtension.badRequest(message: validatedResult.message);
+        }
+
         DBCrypt dbCrypt = DBCrypt();
         String salt = dbCrypt.gensaltWithRounds(10); // 生成鹽，加密次數為10次
-        String hash =
-            dbCrypt.hashpw(data['password'], salt); //使用加鹽算法將明文密碼生成為雜湊值
+        String hash = dbCrypt.hashpw(password, salt); //使用加鹽算法將明文密碼生成為雜湊值
         User user = User.fromMap(data);
         user = user.copyWith(passwordHash: hash, uuid: Uuid().v4());
 
@@ -95,6 +100,18 @@ class AuthRoute implements BaseRoute {
         Map output = user.outputMap();
         output['token'] = AuthHandler.generateAuthToken(user.uuid);
         return ResponseExtension.success(data: output);
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.get("/valid-password", (Request req) async {
+      try {
+        Map<String, dynamic> queryParameters = req.requestedUri.queryParameters;
+        String password = queryParameters['password']!;
+        final validatedResult = AuthHandler.validatePassword(password);
+        return ResponseExtension.success(data: validatedResult.toMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

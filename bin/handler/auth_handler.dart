@@ -51,4 +51,42 @@ class AuthHandler {
           });
         };
       };
+
+  static _PasswordValidatedResult validatePassword(String password) {
+    if (password.length < 6) {
+      //密碼至少需要6個字元
+      return _PasswordValidatedResult(
+          false, 1, "Password must be at least 6 characters long");
+    } else if (password.length > 30) {
+      // 密碼最多30個字元
+      return _PasswordValidatedResult(
+          false, 2, "Password must be less than 30 characters long");
+    } else if (!password.contains(RegExp(r'[A-Za-z]'))) {
+      // 密碼必須至少包含一個英文字母
+      return _PasswordValidatedResult(
+          false, 3, "Password must contain at least one letter of English.");
+    } else if (!password.contains(RegExp(r'[0-9]'))) {
+      // 密碼必須至少包含一個數字
+      return _PasswordValidatedResult(
+          false, 4, "Password must contain at least one number");
+    } else {
+      return _PasswordValidatedResult(true, 0, "no issue");
+    }
+  }
+}
+
+class _PasswordValidatedResult {
+  /// 是否驗證成功
+  bool isValid;
+
+  /// 驗證結果代碼
+  int code;
+
+  /// 驗證結果訊息
+  String message;
+  _PasswordValidatedResult(this.isValid, this.code, this.message);
+
+  Map toMap() {
+    return {"isValid": isValid, "code": code, "message": message};
+  }
 }
