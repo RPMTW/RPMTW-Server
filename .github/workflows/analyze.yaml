@@ -1,0 +1,35 @@
+name: Analyze
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  Analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache flutter
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/dart-sdk
+          key: ${{ runner.os }}-dart-2.16.0-80.1.beta
+      # https://dart.dev/get-dart/archive
+      - uses: dart-lang/setup-dart@v1.3
+        with:
+          sdk: 2.16.0-80.1.beta
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Dart Analyze
+        uses: zgosalvez/github-actions-analyze-dart@524d7c3e24b8bd8feab6c5513871a6bc87b2d97b
+      - name: Generate Coverage
+        run: |
+          dart test --coverage
+        shell: bash
+        continue-on-error: true
+      - name: Update to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: ./coverage/lcov.info

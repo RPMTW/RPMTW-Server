@@ -21,7 +21,7 @@ void main() {
   test('Root', () async {
     final response = await get(Uri.parse(host + '/'));
     expect(response.statusCode, 200);
-    expect(response.body, 'Hello RPMTW World!\n');
+    expect(response.body, 'Hello RPMTW World!');
   });
 
   test('404', () async {
