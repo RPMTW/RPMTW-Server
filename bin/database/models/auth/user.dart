@@ -2,19 +2,19 @@ import 'dart:convert';
 
 import '../base_models.dart';
 
-class User implements BaseModels {
-  final String uuid;
+class User extends BaseModels {
   final String username;
   final String email;
   final String passwordHash;
   final String? avatarStorageUUID;
-  User({
-    required this.uuid,
+
+  const User({
+    required String uuid,
     required this.username,
     required this.email,
     required this.passwordHash,
     this.avatarStorageUUID,
-  });
+  }) : super(uuid: uuid);
 
   User copyWith({
     String? uuid,

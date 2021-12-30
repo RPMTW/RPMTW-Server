@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Cache flutter
+      - name: Cache Dart
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/dart-sdk
@@ -33,7 +33,7 @@ jobs:
           format_coverage --lcov --in=coverage --out=coverage.lcov --packages=.packages
         shell: bash
         continue-on-error: true
-      - name: Update to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          file: ./coverage.lcov
+      # - name: Update to Codecov
+      #   uses: codecov/codecov-action@v2
+      #   with:
+      #     file: ./coverage.lcov

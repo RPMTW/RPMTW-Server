@@ -1,6 +1,10 @@
 import 'dart:convert';
 
 abstract class BaseModels {
+  final String uuid;
+
+  const BaseModels({required this.uuid});
+
   Map<String, dynamic> toMap() {
     throw UnimplementedError();
   }

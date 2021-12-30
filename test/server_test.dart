@@ -1,21 +1,19 @@
-import 'dart:io';
+@TestOn("vm")
 
 import 'package:http/http.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
-import 'package:test_process/test_process.dart';
+import "../bin/server.dart" as server;
 
 void main() {
   final port = '8080';
   final host = 'http://0.0.0.0:$port';
 
   setUp(() async {
-    await TestProcess.start(
-      'dart',
-      ['run', join(Directory.current.path, "bin", "server.dart")],
-      environment: {'PORT': port},
-      workingDirectory: Directory.current.path,
-    );
+    await server.run();
+  });
+
+  tearDown(() async {
+    await server.server.close(force: true);
   });
 
   test('Root', () async {

@@ -7,15 +7,20 @@ import 'package:mongo_dart/mongo_dart.dart';
 import '../../database.dart';
 import '../base_models.dart';
 
-class Storage implements BaseModels {
-  String uuid;
-  String contentType;
-  StorageType type;
+class Storage extends BaseModels {
+  final String contentType;
+  final StorageType type;
+  final int lastUpdated;
 
-  Storage(
-      {required this.uuid,
+  DateTime get lastUpdatedDateTime =>
+      DateTime.fromMillisecondsSinceEpoch(lastUpdated);
+
+  const Storage(
+      {required String uuid,
       this.contentType = "binary/octet-stream",
-      required this.type});
+      required this.type,
+      required this.lastUpdated})
+      : super(uuid: uuid);
 
   Future<Uint8List?> readAsBytes() async {
     GridFS fs = DataBase.instance.gridFS;
@@ -35,24 +40,36 @@ class Storage implements BaseModels {
     return Uint8List.fromList(await byteStream.toBytes());
   }
 
-  Storage copyWith({String? uuid, String? contentType, StorageType? type}) {
+  Storage copyWith(
+      {String? uuid,
+      String? contentType,
+      StorageType? type,
+      int? lastUpdated}) {
     return Storage(
       uuid: uuid ?? this.uuid,
       contentType: contentType ?? this.contentType,
-      type: this.type,
+      type: type ?? this.type,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
-    return {'uuid': uuid, 'contentType': contentType, 'type': type.name};
+    return {
+      'uuid': uuid,
+      'contentType': contentType,
+      'type': type.name,
+      'lastUpdated': lastUpdated
+    };
   }
 
   factory Storage.fromMap(Map<String, dynamic> map) {
     return Storage(
         uuid: map['uuid'] ?? '',
         contentType: map['contentType'],
-        type: StorageType.values.byName(map['type'] ?? 'temp'));
+        type: StorageType.values.byName(map['type'] ?? 'temp'),
+        lastUpdated:
+            map['lastUpdated'] ?? DateTime.now().millisecondsSinceEpoch);
   }
   @override
   String toJson() => json.encode(toMap());
@@ -62,7 +79,7 @@ class Storage implements BaseModels {
 
   @override
   String toString() =>
-      'Storage(uuid: $uuid,contentType: $contentType, type: $type)';
+      'Storage(uuid: $uuid,contentType: $contentType, type: $type, lastUpdated: $lastUpdated)';
 
   @override
   bool operator ==(Object other) {
@@ -71,11 +88,16 @@ class Storage implements BaseModels {
     return other is Storage &&
         other.uuid == uuid &&
         other.contentType == contentType &&
-        other.type == type;
+        other.type == type &&
+        other.lastUpdated == lastUpdated;
   }
 
   @override
-  int get hashCode => uuid.hashCode ^ contentType.hashCode ^ type.hashCode;
+  int get hashCode =>
+      uuid.hashCode ^
+      contentType.hashCode ^
+      type.hashCode ^
+      lastUpdated.hashCode;
 
   @override
   Map<String, dynamic> outputMap() => toMap();

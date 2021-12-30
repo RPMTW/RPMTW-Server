@@ -22,7 +22,6 @@ class DataBase {
     Future<void> checkCollection(String name) async {
       if (!collections.contains(name)) {
         await _mongoDB.createCollection(name);
-      } else {
         await _mongoDB.createIndex(name,
             key: "uuid", name: 'uuid', unique: true);
       }
@@ -80,13 +79,27 @@ class DataBase {
         writeConcern: writeConcern,
         bypassDocumentValidation: bypassDocumentValidation);
 
-    if (!result.success) {
-      throw InsertModelException(
-          T.toString(),
-          result.writeError?.errmsg ??
-              result.writeConcernError?.errmsg ??
-              result.errmsg);
-    }
+    result.exceptionHandler(model);
+
+    return result;
+  }
+
+  Future<WriteResult> replaceOneModel<T extends BaseModels>(T model,
+      {WriteConcern? writeConcern,
+      CollationOptions? collation,
+      String? hint,
+      Map<String, Object>? hintDocument}) async {
+    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
+    WriteResult result = await collection.replaceOne(
+      where.eq('uuid', model.uuid),
+      model.toMap(),
+      writeConcern: writeConcern,
+      collation: collation,
+      hint: hint,
+      hintDocument: hintDocument,
+    );
+
+    result.exceptionHandler(model);
 
     return result;
   }
@@ -101,5 +114,14 @@ class InsertModelException implements Exception {
   @override
   String toString() {
     return "InsertModelException: Failed to insert $modelName model.\n$errorMessage";
+  }
+}
+
+extension WriteResultExtension on WriteResult {
+  void exceptionHandler<T extends BaseModels>(T model) {
+    if (!success) {
+      throw InsertModelException(T.toString(),
+          writeError?.errmsg ?? writeConcernError?.errmsg ?? errmsg);
+    }
   }
 }

@@ -13,12 +13,16 @@ import 'routes/storage_route.dart';
 import 'utilities/data.dart';
 import 'database/database.dart';
 
+late HttpServer server;
+
 final Router _router = Router()
   ..mount('/', RootRoute().router)
   ..mount('/auth/', AuthRoute().router)
   ..mount('/storage/', StorageRoute().router);
 
-void main(List<String> args) async {
+void main(List<String> args) => run();
+
+Future<void> run() async {
   Data.init();
   loggerNoStack.i("connecting to database");
   await DataBase.init();
@@ -39,7 +43,7 @@ void main(List<String> args) async {
       .addHandler(_router);
 
   final int port = int.parse(env['API_PORT'] ?? '8080');
-  final HttpServer server = await serve(_handler, ip, port);
+  server = await serve(_handler, ip, port);
   loggerNoStack.i('Server listening on port http://${ip.host}:${server.port}');
 
   // await Utility.hotReload();

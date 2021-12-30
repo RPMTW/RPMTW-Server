@@ -14,6 +14,6 @@ If you have [Docker Desktop](https://www.docker.com/get-started) installed, you
 can build and run with the `docker` command:
 
 ```
-$ docker build . -t myserver
-$ docker run -it -p 8080:8080 myserver
+$ docker build . -t rpmtw_server
+$ docker run -it -p 8080:8080 rpmtw_server
 ```
