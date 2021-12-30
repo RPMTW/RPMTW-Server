@@ -10,16 +10,16 @@ import '../base_models.dart';
 class Storage extends BaseModels {
   final String contentType;
   final StorageType type;
-  final int lastUpdated;
+  final int createAt;
 
-  DateTime get lastUpdatedDateTime =>
-      DateTime.fromMillisecondsSinceEpoch(lastUpdated);
+  DateTime get createAtDateTime =>
+      DateTime.fromMillisecondsSinceEpoch(createAt);
 
   const Storage(
       {required String uuid,
       this.contentType = "binary/octet-stream",
       required this.type,
-      required this.lastUpdated})
+      required this.createAt})
       : super(uuid: uuid);
 
   Future<Uint8List?> readAsBytes() async {
@@ -41,15 +41,12 @@ class Storage extends BaseModels {
   }
 
   Storage copyWith(
-      {String? uuid,
-      String? contentType,
-      StorageType? type,
-      int? lastUpdated}) {
+      {String? uuid, String? contentType, StorageType? type, int? createAt}) {
     return Storage(
       uuid: uuid ?? this.uuid,
       contentType: contentType ?? this.contentType,
       type: type ?? this.type,
-      lastUpdated: lastUpdated ?? this.lastUpdated,
+      createAt: createAt ?? this.createAt,
     );
   }
 
@@ -59,7 +56,7 @@ class Storage extends BaseModels {
       'uuid': uuid,
       'contentType': contentType,
       'type': type.name,
-      'lastUpdated': lastUpdated
+      'createAt': createAt
     };
   }
 
@@ -68,8 +65,7 @@ class Storage extends BaseModels {
         uuid: map['uuid'] ?? '',
         contentType: map['contentType'],
         type: StorageType.values.byName(map['type'] ?? 'temp'),
-        lastUpdated:
-            map['lastUpdated'] ?? DateTime.now().millisecondsSinceEpoch);
+        createAt: map['createAt'] ?? DateTime.now().millisecondsSinceEpoch);
   }
   @override
   String toJson() => json.encode(toMap());
@@ -79,7 +75,7 @@ class Storage extends BaseModels {
 
   @override
   String toString() =>
-      'Storage(uuid: $uuid,contentType: $contentType, type: $type, lastUpdated: $lastUpdated)';
+      'Storage(uuid: $uuid,contentType: $contentType, type: $type, createAt: $createAt)';
 
   @override
   bool operator ==(Object other) {
@@ -89,15 +85,12 @@ class Storage extends BaseModels {
         other.uuid == uuid &&
         other.contentType == contentType &&
         other.type == type &&
-        other.lastUpdated == lastUpdated;
+        other.createAt == createAt;
   }
 
   @override
   int get hashCode =>
-      uuid.hashCode ^
-      contentType.hashCode ^
-      type.hashCode ^
-      lastUpdated.hashCode;
+      uuid.hashCode ^ contentType.hashCode ^ type.hashCode ^ createAt.hashCode;
 
   @override
   Map<String, dynamic> outputMap() => toMap();

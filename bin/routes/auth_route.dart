@@ -39,8 +39,11 @@ class AuthRoute implements BaseRoute {
           if (storage == null) {
             return ResponseExtension.notFound('Avatar Storage not found');
           }
-          storage = storage.copyWith(type: StorageType.general);
-          await DataBase.instance.replaceOneModel<Storage>(storage);
+          if (storage.type == StorageType.temp) {
+            //將暫存檔案改為一般檔案
+            storage = storage.copyWith(type: StorageType.general);
+            await DataBase.instance.replaceOneModel<Storage>(storage);
+          }
         }
 
         await DataBase.instance.insertOneModel<User>(user); // 儲存至資料庫

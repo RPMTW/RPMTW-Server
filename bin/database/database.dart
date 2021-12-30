@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 
@@ -13,11 +15,15 @@ class DataBase {
   Db get db => _mongoDB;
   GridFS get gridFS => GridFS(DataBase.instance.db);
 
-  DataBase();
+  DataBase() {
+    startStorageTimer();
+  }
 
-  static final List<String> collectionList = ["users", "storages"];
+  static late final List<DbCollection> collectionList;
 
   static Future<DataBase> _open() async {
+    collectionList = [];
+    List<String> collectionNameList = ["users", "storages"];
     List<String?> collections = await _mongoDB.getCollectionNames();
     Future<void> checkCollection(String name) async {
       if (!collections.contains(name)) {
@@ -27,8 +33,9 @@ class DataBase {
       }
     }
 
-    for (String name in collectionList) {
+    for (String name in collectionNameList) {
       await checkCollection(name);
+      collectionList.add(_mongoDB.collection(name));
     }
 
     return DataBase();
@@ -43,10 +50,10 @@ class DataBase {
     loggerNoStack.i("Successfully connected to the database");
   }
 
-  String getCollectionName<T extends BaseModels>() {
-    Map<String, String> modelTypeMap = {
-      "User": 'users',
-      "Storage": 'storages',
+  DbCollection getCollection<T extends BaseModels>() {
+    Map<String, DbCollection> modelTypeMap = {
+      "User": collectionList[0],
+      "Storage": collectionList[1],
     };
 
     return modelTypeMap[T.toString()]!;
@@ -63,9 +70,8 @@ class DataBase {
   }
 
   Future<T?> getModelFromUUID<T extends BaseModels>(String uuid) async {
-    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
     Map<String, dynamic>? map =
-        await collection.findOne(where.eq('uuid', uuid));
+        await getCollection<T>().findOne(where.eq('uuid', uuid));
 
     if (map == null) return null;
 
@@ -74,8 +80,7 @@ class DataBase {
 
   Future<WriteResult> insertOneModel<T extends BaseModels>(T model,
       {WriteConcern? writeConcern, bool? bypassDocumentValidation}) async {
-    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
-    WriteResult result = await collection.insertOne(model.toMap(),
+    WriteResult result = await getCollection<T>().insertOne(model.toMap(),
         writeConcern: writeConcern,
         bypassDocumentValidation: bypassDocumentValidation);
 
@@ -89,8 +94,7 @@ class DataBase {
       CollationOptions? collation,
       String? hint,
       Map<String, Object>? hintDocument}) async {
-    DbCollection collection = _mongoDB.collection(getCollectionName<T>());
-    WriteResult result = await collection.replaceOne(
+    WriteResult result = await getCollection<T>().replaceOne(
       where.eq('uuid', model.uuid),
       model.toMap(),
       writeConcern: writeConcern,
@@ -102,6 +106,46 @@ class DataBase {
     result.exceptionHandler(model);
 
     return result;
+  }
+
+  Future<WriteResult> deleteOneModel<T extends BaseModels>(T model,
+      {WriteConcern? writeConcern,
+      CollationOptions? collation,
+      String? hint,
+      Map<String, Object>? hintDocument}) async {
+    WriteResult result = await getCollection<T>().deleteOne(
+      where.eq('uuid', model.uuid),
+      writeConcern: writeConcern,
+      collation: collation,
+      hint: hint,
+      hintDocument: hintDocument,
+    );
+
+    result.exceptionHandler(model);
+
+    return result;
+  }
+
+  Timer startStorageTimer() {
+    /// 暫存檔案超過指定時間後將刪除
+    Timer timer = Timer.periodic(Duration(hours: 1), (timer) async {
+      DateTime time = DateTime.now();
+
+      /// 檔案最多暫存一天
+      SelectorBuilder selector = where
+          .eq("type", StorageType.temp.name) // 檔案類型為暫存檔案
+          .and(where.lte('createdAt', time.subtract(Duration(days: 1))));
+      // 檔案建立時間為一天前
+      List<Storage> storageList = await getCollection<Storage>()
+          .find(selector)
+          .map((map) => Storage.fromMap(map))
+          .toList();
+
+      for (Storage storage in storageList) {
+        await deleteOneModel<Storage>(storage);
+      }
+    });
+    return timer;
   }
 }
 

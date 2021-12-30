@@ -26,7 +26,7 @@ class StorageRoute implements BaseRoute {
             type: StorageType.temp,
             contentType: contentType,
             uuid: Uuid().v4(),
-            lastUpdated: DateTime.now().millisecondsSinceEpoch);
+            createAt: DateTime.now().millisecondsSinceEpoch);
         GridIn gridIn =
             DataBase.instance.gridFS.createFile(stream, storage.uuid);
         ByteSize size = ByteSize.FromBytes(req.contentLength!);
