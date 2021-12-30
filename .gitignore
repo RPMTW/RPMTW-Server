@@ -1,2 +1,4 @@
 .env
 .dart_tool
+coverage.lcov
+coverage/test/server_test.dart.vm.json
