@@ -20,17 +20,28 @@ class AuthRoute implements BaseRoute {
       try {
         Map<String, dynamic> data = await req.data;
         String password = data['password'];
-        final validatedResult = AuthHandler.validatePassword(password);
-        if (!validatedResult.isValid) {
+        final passwordValidatedResult = AuthHandler.validatePassword(password);
+        if (!passwordValidatedResult.isValid) {
           // 密碼驗證失敗
-          return ResponseExtension.badRequest(message: validatedResult.message);
+          return ResponseExtension.badRequest(
+              message: passwordValidatedResult.message);
         }
-
+        String email = data['email'];
+        // 驗證電子郵件格式
+        final emailValidatedResult = AuthHandler.validateEmail(email);
+        if (!emailValidatedResult.isValid) {
+          return ResponseExtension.badRequest(
+              message: emailValidatedResult.message);
+        }
         DBCrypt dbCrypt = DBCrypt();
         String salt = dbCrypt.gensaltWithRounds(10); // 生成鹽，加密次數為10次
         String hash = dbCrypt.hashpw(password, salt); //使用加鹽算法將明文密碼生成為雜湊值
-        User user = User.fromMap(data);
-        user = user.copyWith(passwordHash: hash, uuid: Uuid().v4());
+
+        User user = User(
+            username: data['username'],
+            email: email,
+            passwordHash: hash,
+            uuid: Uuid().v4());
 
         String? avatarStorageUUID = user.avatarStorageUUID;
         if (avatarStorageUUID != null) {

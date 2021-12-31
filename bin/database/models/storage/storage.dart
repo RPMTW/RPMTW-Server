@@ -13,7 +13,7 @@ class Storage extends BaseModels {
   final int createAt;
 
   DateTime get createAtDateTime =>
-      DateTime.fromMillisecondsSinceEpoch(createAt);
+      DateTime.fromMillisecondsSinceEpoch(createAt).toUtc();
 
   const Storage(
       {required String uuid,
@@ -65,7 +65,8 @@ class Storage extends BaseModels {
         uuid: map['uuid'] ?? '',
         contentType: map['contentType'],
         type: StorageType.values.byName(map['type'] ?? 'temp'),
-        createAt: map['createAt'] ?? DateTime.now().millisecondsSinceEpoch);
+        createAt:
+            map['createAt'] ?? DateTime.now().toUtc().millisecondsSinceEpoch);
   }
   @override
   String toJson() => json.encode(toMap());

@@ -16,7 +16,11 @@ class DataBase {
   GridFS get gridFS => GridFS(DataBase.instance.db);
 
   DataBase() {
-    startStorageTimer();
+    try {
+      startStorageTimer();
+    } catch (e, stack) {
+      logger.e(e, null, stack);
+    }
   }
 
   static late final List<DbCollection> collectionList;
@@ -42,12 +46,14 @@ class DataBase {
   }
 
   static Future<void> init() async {
-    String url = env['DATA_BASE_URL']!;
+    String url = env['DATA_BASE_URL'] ?? "mongodb://127.0.0.1:27017/rpmtw_data";
 
     _mongoDB = await Db.create(url);
     await _mongoDB.open();
     _instance = await DataBase._open();
     loggerNoStack.i("Successfully connected to the database");
+    // await AuthHandler.initGoogleApis();
+    // loggerNoStack.i("Successfully connected to Google APIs");
   }
 
   DbCollection getCollection<T extends BaseModels>() {
@@ -129,7 +135,7 @@ class DataBase {
   Timer startStorageTimer() {
     /// 暫存檔案超過指定時間後將刪除
     Timer timer = Timer.periodic(Duration(hours: 1), (timer) async {
-      DateTime time = DateTime.now();
+      DateTime time = DateTime.now().toUtc();
 
       /// 檔案最多暫存一天
       SelectorBuilder selector = where

@@ -12,6 +12,7 @@ import 'routes/root_route.dart';
 import 'routes/storage_route.dart';
 import 'utilities/data.dart';
 import 'database/database.dart';
+import 'utilities/utility.dart';
 
 late HttpServer server;
 
@@ -23,6 +24,7 @@ final Router _router = Router()
 void main(List<String> args) => run();
 
 Future<void> run() async {
+  await Utility.hotReload();
   Data.init();
   loggerNoStack.i("connecting to database");
   await DataBase.init();
@@ -45,6 +47,4 @@ Future<void> run() async {
   final int port = int.parse(env['API_PORT'] ?? '8080');
   server = await serve(_handler, ip, port);
   loggerNoStack.i('Server listening on port http://${ip.host}:${server.port}');
-
-  // await Utility.hotReload();
 }
