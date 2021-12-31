@@ -1,18 +1,17 @@
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
+import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/handler/auth_handler.dart';
+import 'package:rpmtw_server/routes/auth_route.dart';
+import 'package:rpmtw_server/routes/root_route.dart';
+import 'package:rpmtw_server/routes/storage_route.dart';
+import 'package:rpmtw_server/utilities/data.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_rate_limiter/shelf_rate_limiter.dart';
 import 'package:shelf_router/shelf_router.dart';
-
-import 'handler/auth_handler.dart';
-import 'routes/auth_route.dart';
-import 'routes/root_route.dart';
-import 'routes/storage_route.dart';
-import 'utilities/data.dart';
-import 'database/database.dart';
-import 'utilities/utility.dart';
 
 late HttpServer server;
 
