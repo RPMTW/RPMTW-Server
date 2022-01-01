@@ -1,4 +1,5 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:dbcrypt/dbcrypt.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:googleapis/gmail/v1.dart' as googleapi;
 import 'package:googleapis_auth/auth_io.dart';
@@ -14,6 +15,7 @@ import '../utilities/extension.dart';
 class AuthHandler {
   static SecretKey get secretKey => SecretKey(env['DATA_BASE_SecretKey']!);
   static late googleapi.GmailApi gmailApi;
+  static final int saltRounds = 10;
 
   // TODO: google api
   static Future<void> initGoogleApis() async {
@@ -46,7 +48,10 @@ class AuthHandler {
         return (request) {
           return Future.sync(() async {
             String path = request.url.path;
-            List<String> needAuthorizationPaths = ["auth/user/me"];
+            List<String> needAuthorizationPaths = [
+              "auth/user/me",
+              "auth/user/me/update"
+            ];
             if (needAuthorizationPaths.contains(path)) {
               String? token = request.headers['Authorization']
                   ?.toString()
@@ -177,6 +182,11 @@ class AuthHandler {
       logger.e(e, null, stack);
       return false;
     }
+  }
+
+  static bool checkPassword(String password, String hash) {
+    DBCrypt dbCrypt = DBCrypt();
+    return dbCrypt.checkpw(password, hash);
   }
 }
 

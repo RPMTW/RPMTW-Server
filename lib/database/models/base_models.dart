@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
+
 abstract class BaseModels {
   final String uuid;
 
@@ -15,5 +18,17 @@ abstract class BaseModels {
 
   Map<String, dynamic> outputMap() {
     throw UnimplementedError();
+  }
+
+  Future<WriteResult> delete() async {
+    return DataBase.instance.deleteOneModel(this);
+  }
+
+  Future<WriteResult> insert() async {
+    return DataBase.instance.insertOneModel(this);
+  }
+
+  Future<WriteResult> update() async {
+    return DataBase.instance.replaceOneModel(this);
   }
 }

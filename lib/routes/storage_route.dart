@@ -37,7 +37,7 @@ class StorageRoute implements BaseRoute {
               message: "File size is too large");
         }
         await gridIn.save();
-        await DataBase.instance.insertOneModel<Storage>(storage);
+        await storage.insert();
 
         return ResponseExtension.success(data: storage.outputMap());
       } catch (e, stack) {
@@ -49,8 +49,7 @@ class StorageRoute implements BaseRoute {
     router.get("/<uuid>", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
-        Storage? storage =
-            await DataBase.instance.getModelFromUUID<Storage>(uuid);
+        Storage? storage = await Storage.getByUUID(uuid);
         if (storage == null) {
           return ResponseExtension.notFound();
         }
@@ -64,10 +63,9 @@ class StorageRoute implements BaseRoute {
     router.get("/download/<uuid>", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
-        Storage? storage =
-            await DataBase.instance.getModelFromUUID<Storage>(uuid);
+        Storage? storage = await Storage.getByUUID(uuid);
         if (storage == null) {
-          return ResponseExtension.notFound();
+          return ResponseExtension.notFound("Storage not found");
         }
 
         Uint8List? bytes = await storage.readAsBytes();

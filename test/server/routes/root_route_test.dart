@@ -1,13 +1,11 @@
-
 import 'package:http/http.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:test/test.dart';
-import "../bin/server.dart" as server;
+import '../../../bin/server.dart' as server;
 
 void main() async {
-  final port = '8080';
-  final host = 'http://0.0.0.0:$port';
-  
+  final host = 'http://0.0.0.0:8080';
+
   setUpAll(() {
     kTestMode = true;
     return Future.sync(() async => await server.run());

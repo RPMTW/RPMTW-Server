@@ -56,13 +56,13 @@ class DataBase {
     // loggerNoStack.i("Successfully connected to Google APIs");
   }
 
-  DbCollection getCollection<T extends BaseModels>() {
+  DbCollection getCollection<T extends BaseModels>([String? runtimeType]) {
     Map<String, DbCollection> modelTypeMap = {
       "User": collectionList[0],
       "Storage": collectionList[1],
     };
 
-    return modelTypeMap[T.toString()]!;
+    return modelTypeMap[runtimeType ?? T.toString()]!;
   }
 
   T getModelFromMap<T extends BaseModels>(Map<String, dynamic> map) {
@@ -86,9 +86,10 @@ class DataBase {
 
   Future<WriteResult> insertOneModel<T extends BaseModels>(T model,
       {WriteConcern? writeConcern, bool? bypassDocumentValidation}) async {
-    WriteResult result = await getCollection<T>().insertOne(model.toMap(),
-        writeConcern: writeConcern,
-        bypassDocumentValidation: bypassDocumentValidation);
+    WriteResult result = await getCollection<T>(model.runtimeType.toString())
+        .insertOne(model.toMap(),
+            writeConcern: writeConcern,
+            bypassDocumentValidation: bypassDocumentValidation);
 
     result.exceptionHandler(model);
 
@@ -100,7 +101,8 @@ class DataBase {
       CollationOptions? collation,
       String? hint,
       Map<String, Object>? hintDocument}) async {
-    WriteResult result = await getCollection<T>().replaceOne(
+    WriteResult result =
+        await getCollection<T>(model.runtimeType.toString()).replaceOne(
       where.eq('uuid', model.uuid),
       model.toMap(),
       writeConcern: writeConcern,
@@ -119,7 +121,8 @@ class DataBase {
       CollationOptions? collation,
       String? hint,
       Map<String, Object>? hintDocument}) async {
-    WriteResult result = await getCollection<T>().deleteOne(
+    WriteResult result =
+        await getCollection<T>(model.runtimeType.toString()).deleteOne(
       where.eq('uuid', model.uuid),
       writeConcern: writeConcern,
       collation: collation,
@@ -148,7 +151,7 @@ class DataBase {
           .toList();
 
       for (Storage storage in storageList) {
-        await deleteOneModel<Storage>(storage);
+        await storage.delete();
       }
     });
     return timer;

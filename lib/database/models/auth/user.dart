@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:rpmtw_server/database/database.dart';
+
 import '../base_models.dart';
 
 class User extends BaseModels {
@@ -102,4 +104,7 @@ class User extends BaseModels {
         passwordHash.hashCode ^
         avatarStorageUUID.hashCode;
   }
+
+  static Future<User?> getByUUID(String uuid) async =>
+      DataBase.instance.getModelFromUUID<User>(uuid);
 }
