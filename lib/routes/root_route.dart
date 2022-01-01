@@ -8,11 +8,16 @@ import '../database/models/auth/user.dart';
 import '../utilities/data.dart';
 import '../utilities/extension.dart';
 import 'base_route.dart';
+import 'package:rpmtw_server/routes/auth_route.dart';
+import 'package:rpmtw_server/routes/storage_route.dart';
 
 class RootRoute implements BaseRoute {
   @override
   Router get router {
     final Router router = Router();
+    
+    router.mount('/auth/', AuthRoute().router);
+    router.mount('/storage/', StorageRoute().router);
 
     router.get('/', (Request req) async {
       return Response.ok('Hello RPMTW World!');

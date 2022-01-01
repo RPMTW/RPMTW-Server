@@ -103,12 +103,12 @@ class AuthHandler {
       "wanadoo.fr",
     ];
 
-    _EmailValidatedResult successfull =
+    _EmailValidatedResult successful =
         _EmailValidatedResult(true, 0, "no issue");
-    _EmailValidatedResult unkownDomain =
-        _EmailValidatedResult(false, 1, "unkown email domain");
+    _EmailValidatedResult unknownDomain =
+        _EmailValidatedResult(false, 1, "unknown email domain");
     _EmailValidatedResult invalid =
-        _EmailValidatedResult(false, 1, "invalid email");
+        _EmailValidatedResult(false, 2, "invalid email");
 
     if (email.contains(spliter)) {
       String domain = email.split(spliter)[1];
@@ -116,10 +116,10 @@ class AuthHandler {
       if (domain.contains('.')) {
         // 驗證網域是否為知名 Email 網域
         if (topEmails.contains(domain)) {
-          return successfull;
+          return successful;
         } else {
           // 未知網域
-          return unkownDomain;
+          return unknownDomain;
         }
       } else {
         return invalid;
@@ -141,7 +141,7 @@ class AuthHandler {
     } else if (!password.contains(RegExp(r'[A-Za-z]'))) {
       // 密碼必須至少包含一個英文字母
       return _PasswordValidatedResult(
-          false, 3, "Password must contain at least one letter of English.");
+          false, 3, "Password must contain at least one letter of English");
     } else if (!password.contains(RegExp(r'[0-9]'))) {
       // 密碼必須至少包含一個數字
       return _PasswordValidatedResult(

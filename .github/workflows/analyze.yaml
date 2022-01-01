@@ -25,12 +25,17 @@ jobs:
           dart pub global activate coverage
           export PATH="$PATH":"$HOME/.pub-cache/bin"
 
+      - name: Start MongoDB 5.0
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: 5.0
+
       - name: Dart Analyze
         uses: zgosalvez/github-actions-analyze-dart@524d7c3e24b8bd8feab6c5513871a6bc87b2d97b
       - name: Generate Coverage
         run: |
           dart test --coverage="coverage"
-          format_coverage --lcov --in=coverage --out=coverage.lcov --packages=.packages
+          format_coverage --lcov --in=coverage --out=coverage.lcov --packages=.packages --report-on=lib
         shell: bash
         continue-on-error: true
       - name: Update to Codecov

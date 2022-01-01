@@ -1,3 +1,5 @@
+
+[![codecov](https://codecov.io/gh/RPMTW/RPMTW-Server/branch/main/graph/badge.svg?token=NEAZZJO2M6)](https://codecov.io/gh/RPMTW/RPMTW-Server)
 ## RPMTW API Server
 ### Running with the Dart SDK
 
