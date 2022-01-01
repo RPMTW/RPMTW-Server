@@ -1,18 +1,19 @@
-@TestOn("vm")
 
 import 'package:http/http.dart';
+import 'package:rpmtw_server/utilities/data.dart';
 import 'package:test/test.dart';
 import "../bin/server.dart" as server;
 
-void main() {
+void main() async {
   final port = '8080';
   final host = 'http://0.0.0.0:$port';
-
+  
   setUpAll(() {
+    kTestMode = true;
     return Future.sync(() async => await server.run());
   });
 
-  tearDownAll(() async {
+  tearDownAll(() {
     return Future.sync(() async => await server.server?.close(force: true));
   });
 

@@ -23,7 +23,7 @@ class DataBase {
     }
   }
 
-  static late final List<DbCollection> collectionList;
+  static late List<DbCollection> collectionList;
 
   static Future<DataBase> _open() async {
     collectionList = [];

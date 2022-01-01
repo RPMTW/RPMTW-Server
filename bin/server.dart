@@ -6,7 +6,6 @@ import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/routes/root_route.dart';
 
 import 'package:rpmtw_server/utilities/data.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_rate_limiter/shelf_rate_limiter.dart';
@@ -16,8 +15,9 @@ HttpServer? server;
 void main(List<String> args) => run();
 
 Future<void> run() async {
-  await Utility.hotReload();
-  Data.init();
+  if (!kTestMode) {
+    Data.init();
+  }
   loggerNoStack.i("connecting to database");
   await DataBase.init();
   final InternetAddress ip = InternetAddress.anyIPv4;
