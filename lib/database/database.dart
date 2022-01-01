@@ -34,6 +34,12 @@ class DataBase {
         await _mongoDB.createCollection(name);
         await _mongoDB.createIndex(name,
             key: "uuid", name: 'uuid', unique: true);
+
+        if (name == "users") {
+          // 索引使用者數據中的 email
+          await _mongoDB.createIndex(name,
+              key: "email", name: 'email', unique: true);
+        }
       }
     }
 

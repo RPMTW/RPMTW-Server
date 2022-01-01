@@ -6,6 +6,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:shelf/shelf.dart';
 import '../database/database.dart';
 import '../database/models/auth/user.dart';
@@ -84,7 +85,8 @@ class AuthHandler {
         };
       };
 
-  static _EmailValidatedResult validateEmail(String email) {
+  static Future<_EmailValidatedResult> validateEmail(String email,
+      {bool skipDuplicate = false}) async {
     String splitter = '@';
     List<String> topEmails = [
       'gmail.com',
@@ -114,6 +116,8 @@ class AuthHandler {
         _EmailValidatedResult(false, 1, "unknown email domain");
     _EmailValidatedResult invalid =
         _EmailValidatedResult(false, 2, "invalid email");
+    _EmailValidatedResult duplicate =
+        _EmailValidatedResult(false, 3, "the email has already been used");
 
     if (email.contains(splitter)) {
       String domain = email.split(splitter)[1];
@@ -121,7 +125,16 @@ class AuthHandler {
       if (domain.contains('.')) {
         // 驗證網域是否為知名 Email 網域
         if (topEmails.contains(domain)) {
-          return successful;
+          Map<String, dynamic>? map = await DataBase.instance
+              .getCollection<User>()
+              .findOne(where.eq('email', email));
+
+          if (map == null || skipDuplicate) {
+            // 如果為空代表尚未被使用過
+            return successful;
+          } else {
+            return duplicate;
+          }
         } else {
           // 未知網域
           return unknownDomain;

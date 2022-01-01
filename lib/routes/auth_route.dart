@@ -28,7 +28,7 @@ class AuthRoute implements BaseRoute {
         }
         String email = data['email'];
         // 驗證電子郵件格式
-        final emailValidatedResult = AuthHandler.validateEmail(email);
+        final emailValidatedResult = await AuthHandler.validateEmail(email);
         if (!emailValidatedResult.isValid) {
           return ResponseExtension.badRequest(
               message: emailValidatedResult.message);
@@ -133,7 +133,7 @@ class AuthRoute implements BaseRoute {
         }
         if (email != null) {
           // 使用者想要修改電子郵件
-          final emailValidatedResult = AuthHandler.validateEmail(email);
+          final emailValidatedResult = await AuthHandler.validateEmail(email);
           if (!emailValidatedResult.isValid) {
             return ResponseExtension.badRequest(
                 message: emailValidatedResult.message);

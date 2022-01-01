@@ -7,6 +7,7 @@ import 'package:vm_service/vm_service_io.dart';
 import 'package:watcher/watcher.dart';
 
 class Utility {
+  // coverage:ignore-start
   static Future<void> hotReload() async {
     Uri? observatoryUri = (await Service.getInfo()).serverUri;
     if (observatoryUri != null) {
@@ -23,4 +24,6 @@ class Utility {
       }
     }
   }
+  // coverage:ignore-end
+
 }

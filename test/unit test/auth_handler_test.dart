@@ -53,31 +53,35 @@ void main() {
   });
 
   group("email validate - ", () {
-    test("successful", () {
+    test("successful", () async {
       String email = "helloworld@gmail.com";
-      final result = AuthHandler.validateEmail(email);
+      final result =
+          await AuthHandler.validateEmail(email, skipDuplicate: true);
       expect(result.isValid, isTrue);
       expect(result.code, 0);
       expect(result.message, contains("no issue"));
     });
-    test("unknown domain", () {
+    test("unknown domain", () async {
       String email = "helloworld@abc.com";
-      final result = AuthHandler.validateEmail(email);
+      final result =
+          await AuthHandler.validateEmail(email, skipDuplicate: true);
       expect(result.isValid, isFalse);
       expect(result.code, 1);
       expect(result.message, contains("unknown email domain"));
     });
-    test("invalid (none @)", () {
+    test("invalid (none @)", () async {
       String email = "helloworldgmail.com";
-      final result = AuthHandler.validateEmail(email);
+      final result =
+          await AuthHandler.validateEmail(email, skipDuplicate: true);
       expect(result.isValid, isFalse);
       expect(result.code, 2);
       expect(result.message, contains("invalid email"));
     });
 
-    test("invalid (none .)", () {
+    test("invalid (none .)", () async {
       String email = "helloworld@gmailcom";
-      final result = AuthHandler.validateEmail(email);
+      final result =
+          await AuthHandler.validateEmail(email, skipDuplicate: true);
       expect(result.isValid, isFalse);
       expect(result.code, 2);
       expect(result.message, contains("invalid email"));

@@ -62,8 +62,6 @@ void main() async {
           }),
           headers: {'Content-Type': 'application/json'});
 
-      print(response.body);
-
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
@@ -78,6 +76,8 @@ void main() async {
       final response = await get(
         Uri.parse(host + '/auth/user/$userUUID'),
       );
+      print(response.body);
+
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
@@ -106,11 +106,11 @@ void main() async {
       token = data['token'];
     });
 
-    test("update user", () async {
-      final String newPassword = 'newPassword123';
-      final String newEmail = 'abcd@gmail.com';
-      final String newUsername = 'abcd';
+    final String newPassword = 'newPassword123';
+    final String newEmail = 'abcd@gmail.com';
+    final String newUsername = 'abcd';
 
+    test("update user", () async {
       final response1 = await post(Uri.parse(host + '/auth/user/me/update'),
           body: json.encode({
             "uuid": userUUID,
@@ -143,6 +143,22 @@ void main() async {
       expect(data2['email'], newEmail);
       expect(data2['username'], newUsername);
       expect(data2['emailVerified'], isFalse);
+    });
+    test('create user (duplicate email)', () async {
+      final response = await post(Uri.parse(host + '/auth/user/create'),
+          body: json.encode({
+            "password": newPassword,
+            "email": newEmail,
+            "username": newUsername,
+            "avatarStorageUUID": avatarStorageUUID
+          }),
+          headers: {'Content-Type': 'application/json'});
+      print(response.body);
+
+      Map data = json.decode(response.body);
+
+      expect(response.statusCode, 400);
+      expect(data['message'], contains("already been used"));
     });
   });
 }
