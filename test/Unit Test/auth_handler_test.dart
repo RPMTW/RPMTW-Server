@@ -1,3 +1,6 @@
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:dotenv/dotenv.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:test/test.dart';
 
@@ -79,5 +82,19 @@ void main() {
       expect(result.code, 2);
       expect(result.message, contains("invalid email"));
     });
+  });
+
+  test("generateAuthToken", () {
+    env['DATA_BASE_SecretKey'] = "testSecretKey";
+    final String uuid = Uuid().v4();
+    final String token = AuthHandler.generateAuthToken(uuid);
+
+    JWT jwt = JWT.verify(token, AuthHandler.secretKey);
+
+    /// 故意輸入錯誤的 secretKey 來測試是否會驗證失敗
+    expect(() => JWT.verify(token, SecretKey("test")),
+        throwsA(isA<JWTUndefinedError>()));
+
+    expect(jwt.payload["uuid"], uuid);
   });
 }

@@ -40,6 +40,7 @@ class AuthRoute implements BaseRoute {
         User user = User(
             username: data['username'],
             email: email,
+            emailVerified: false,
             passwordHash: hash,
             uuid: Uuid().v4());
 

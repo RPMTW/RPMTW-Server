@@ -5,6 +5,7 @@ import '../base_models.dart';
 class User extends BaseModels {
   final String username;
   final String email;
+  final bool emailVerified;
   final String passwordHash;
   final String? avatarStorageUUID;
 
@@ -12,6 +13,7 @@ class User extends BaseModels {
     required String uuid,
     required this.username,
     required this.email,
+    required this.emailVerified,
     required this.passwordHash,
     this.avatarStorageUUID,
   }) : super(uuid: uuid);
@@ -20,6 +22,7 @@ class User extends BaseModels {
     String? uuid,
     String? username,
     String? email,
+    bool? emailVerified,
     String? passwordHash,
     String? avatarStorageUUID,
   }) {
@@ -27,6 +30,7 @@ class User extends BaseModels {
       uuid: uuid ?? this.uuid,
       username: username ?? this.username,
       email: email ?? this.email,
+      emailVerified: emailVerified ?? this.emailVerified,
       passwordHash: passwordHash ?? this.passwordHash,
       avatarStorageUUID: avatarStorageUUID ?? this.avatarStorageUUID,
     );
@@ -38,6 +42,7 @@ class User extends BaseModels {
       'uuid': uuid,
       'username': username,
       'email': email,
+      'emailVerified': emailVerified,
       'passwordHash': passwordHash,
       'avatarStorageUUID': avatarStorageUUID,
     };
@@ -49,6 +54,7 @@ class User extends BaseModels {
       'uuid': uuid,
       'username': username,
       'email': email,
+      'emailVerified': emailVerified,
       'avatarStorageUUID': avatarStorageUUID,
     };
   }
@@ -58,6 +64,7 @@ class User extends BaseModels {
       uuid: map['uuid'] ?? '',
       username: map['username'],
       email: map['email'],
+      emailVerified: map['emailVerified'] ?? false,
       passwordHash: map['passwordHash'] ?? '',
       avatarStorageUUID: map['avatarStorageUUID'],
     );
@@ -70,7 +77,7 @@ class User extends BaseModels {
 
   @override
   String toString() {
-    return 'User(uuid: $uuid, username: $username, email: $email, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID)';
+    return 'User(uuid: $uuid, username: $username, email: $email,emailVerified: $emailVerified, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID)';
   }
 
   @override
@@ -81,6 +88,7 @@ class User extends BaseModels {
         other.uuid == uuid &&
         other.username == username &&
         other.email == email &&
+        other.emailVerified == emailVerified &&
         other.passwordHash == passwordHash &&
         other.avatarStorageUUID == avatarStorageUUID;
   }
@@ -90,6 +98,7 @@ class User extends BaseModels {
     return uuid.hashCode ^
         username.hashCode ^
         email.hashCode ^
+        emailVerified.hashCode ^
         passwordHash.hashCode ^
         avatarStorageUUID.hashCode;
   }

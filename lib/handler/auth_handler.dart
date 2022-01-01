@@ -12,7 +12,7 @@ import '../utilities/data.dart';
 import '../utilities/extension.dart';
 
 class AuthHandler {
-  static SecretKey secretKey = SecretKey(env['DATA_BASE_SecretKey']!);
+  static SecretKey get secretKey => SecretKey(env['DATA_BASE_SecretKey']!);
   static late googleapi.GmailApi gmailApi;
 
   // TODO: google api
@@ -80,7 +80,7 @@ class AuthHandler {
       };
 
   static _EmailValidatedResult validateEmail(String email) {
-    String spliter = '@';
+    String splitter = '@';
     List<String> topEmails = [
       'gmail.com',
       'yahoo.com',
@@ -110,8 +110,8 @@ class AuthHandler {
     _EmailValidatedResult invalid =
         _EmailValidatedResult(false, 2, "invalid email");
 
-    if (email.contains(spliter)) {
-      String domain = email.split(spliter)[1];
+    if (email.contains(splitter)) {
+      String domain = email.split(splitter)[1];
       //驗證網域格式
       if (domain.contains('.')) {
         // 驗證網域是否為知名 Email 網域
