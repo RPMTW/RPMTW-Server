@@ -125,11 +125,11 @@ class AuthHandler {
       if (domain.contains('.')) {
         // 驗證網域是否為知名 Email 網域
         if (topEmails.contains(domain)) {
+          if (skipDuplicate) return successful;
           Map<String, dynamic>? map = await DataBase.instance
               .getCollection<User>()
               .findOne(where.eq('email', email));
-
-          if (map == null || skipDuplicate) {
+          if (map == null) {
             // 如果為空代表尚未被使用過
             return successful;
           } else {
