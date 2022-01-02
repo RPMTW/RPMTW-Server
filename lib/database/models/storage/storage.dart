@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -68,11 +67,6 @@ class Storage extends BaseModels {
         createAt:
             map['createAt'] ?? DateTime.now().toUtc().millisecondsSinceEpoch);
   }
-  @override
-  String toJson() => json.encode(toMap());
-
-  factory Storage.fromJson(String source) =>
-      Storage.fromMap(json.decode(source));
 
   @override
   String toString() =>

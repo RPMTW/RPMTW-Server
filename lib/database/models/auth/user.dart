@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:rpmtw_server/database/database.dart';
 
 import '../base_models.dart';
@@ -71,11 +69,6 @@ class User extends BaseModels {
       avatarStorageUUID: map['avatarStorageUUID'],
     );
   }
-
-  @override
-  String toJson() => json.encode(toMap());
-
-  factory User.fromJson(String source) => User.fromMap(json.decode(source));
 
   @override
   String toString() {

@@ -60,7 +60,7 @@ class StorageRoute implements BaseRoute {
       }
     });
 
-    router.get("/download/<uuid>", (Request req) async {
+    router.get("/<uuid>/download", (Request req) async {
       try {
         String uuid = req.params['uuid']!;
         Storage? storage = await Storage.getByUUID(uuid);

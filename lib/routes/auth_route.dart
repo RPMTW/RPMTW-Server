@@ -176,7 +176,6 @@ class AuthRoute implements BaseRoute {
           // 如果資料變更才儲存至資料庫
           await newUser.update();
         }
-
         return ResponseExtension.success(data: newUser.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);

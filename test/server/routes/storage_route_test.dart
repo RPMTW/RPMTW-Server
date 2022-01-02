@@ -52,7 +52,7 @@ void main() async {
 
   test("download storage", () async {
     final response = await get(
-      Uri.parse(host + '/storage/download/$storageUUID'),
+      Uri.parse(host + '/storage/$storageUUID/download'),
     );
 
     expect(response.statusCode, 200);

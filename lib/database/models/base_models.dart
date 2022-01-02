@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/database.dart';
 
@@ -10,10 +8,6 @@ abstract class BaseModels {
 
   Map<String, dynamic> toMap() {
     throw UnimplementedError();
-  }
-
-  String toJson() {
-    return json.encode(toMap());
   }
 
   Map<String, dynamic> outputMap() {

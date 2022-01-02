@@ -64,8 +64,7 @@ class AuthHandler {
                 JWT jwt = JWT.verify(token, secretKey);
                 Map<String, dynamic> payload = jwt.payload;
                 String uuid = payload['uuid'];
-                User? user =
-                    await DataBase.instance.getModelByUUID<User>(uuid);
+                User? user = await DataBase.instance.getModelByUUID<User>(uuid);
                 if (user == null) {
                   return ResponseExtension.unauthorized();
                 }
@@ -190,6 +189,7 @@ class AuthHandler {
     // TODO:實現驗證電子郵件的界面
 
     try {
+      if (kTestMode) return true; //在測試模式下不發送訊息
       await send(message, smtpServer);
       return true;
     } catch (e, stack) {
