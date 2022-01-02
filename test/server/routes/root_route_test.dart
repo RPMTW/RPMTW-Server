@@ -1,4 +1,5 @@
 import 'package:http/http.dart';
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:test/test.dart';
 import '../../../bin/server.dart' as server;
@@ -12,9 +13,11 @@ void main() async {
   });
 
   tearDownAll(() {
-    return Future.sync(() async => await server.server?.close(force: true));
+    return Future.sync(() async {
+      await DataBase.instance.db.drop(); // 刪除測試用資料庫
+      await server.server?.close(force: true); // 關閉伺服器
+    });
   });
-
   test('Root', () async {
     final response = await get(Uri.parse(host + '/'));
     expect(response.statusCode, 200);

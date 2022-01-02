@@ -65,7 +65,7 @@ class AuthHandler {
                 Map<String, dynamic> payload = jwt.payload;
                 String uuid = payload['uuid'];
                 User? user =
-                    await DataBase.instance.getModelFromUUID<User>(uuid);
+                    await DataBase.instance.getModelByUUID<User>(uuid);
                 if (user == null) {
                   return ResponseExtension.unauthorized();
                 }
@@ -123,7 +123,7 @@ class AuthHandler {
       String domain = email.split(splitter)[1];
       //驗證網域格式
       if (domain.contains('.')) {
-        // 驗證網域是否為知名 Email 網域
+        //驗證網域是否為已知 Email 網域
         if (topEmails.contains(domain)) {
           if (skipDuplicate) return successful;
           Map<String, dynamic>? map = await DataBase.instance
@@ -170,27 +170,28 @@ class AuthHandler {
   }
 
   // TODO: 完成密碼驗證信件發送
-  static Future<bool> sendVerifyEmail() async {
+  static Future<bool> sendVerifyEmail(String email) async {
     String email = env["SMTP_User"]!;
     SmtpServer smtpServer = qq(email, env["SMTP_Password"]!);
 
+    String text = '''
+      您收到這封電子郵件是因為要驗證該帳號是否由您註冊，通過驗證後您才能使用 RPMTW 帳號。
+      如果您並未提出註冊 RPMTW 帳號的請求，您可以忽略此封電子郵件。
+      ''';
+
     final message = Message()
       ..from = Address(email, 'RPMTW Team Support')
-      ..recipients.add('rrt467778@gmail.com')
-      ..ccRecipients.add('rrt467778@gmail.com')
-      ..bccRecipients.add('rrt467778@gmail.com')
-      ..subject = 'test rpmtw server email'
-      ..text = 'Hello World! now time is ${DateTime.now()}';
+      ..recipients.add(email)
+      ..ccRecipients.add(email)
+      ..bccRecipients.add(email)
+      ..subject = '驗證您的 RPMTW 帳號電子郵件地址'
+      ..text = text
+      ..html = "<a href=\"https://www.rpmtw.com\">點我完成 RPMTW 帳號註冊</a>";
+    // TODO:實現驗證電子郵件的界面
+
     try {
-      final sendReport = await send(message, smtpServer);
-      print('Message sent: ' + sendReport.toString());
+      await send(message, smtpServer);
       return true;
-    } on MailerException catch (e) {
-      print('Message not sent.');
-      for (var p in e.problems) {
-        print('Problem: ${p.code}: ${p.msg}');
-      }
-      return false;
     } catch (e, stack) {
       logger.e(e, null, stack);
       return false;

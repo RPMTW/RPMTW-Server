@@ -97,7 +97,7 @@ class Storage extends BaseModels {
   Map<String, dynamic> outputMap() => toMap();
 
   static Future<Storage?> getByUUID(String uuid) async =>
-      DataBase.instance.getModelFromUUID<Storage>(uuid);
+      DataBase.instance.getModelByUUID<Storage>(uuid);
 }
 
 enum StorageType { temp, general }

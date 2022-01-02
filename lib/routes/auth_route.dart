@@ -89,6 +89,20 @@ class AuthRoute implements BaseRoute {
       }
     });
 
+    router.get("/user/get-by-email/<email>", (Request req) async {
+      try {
+        String email = req.params['email']!;
+        User? user = await User.getByEmail(email);
+        if (user == null) {
+          return ResponseExtension.notFound("User not found");
+        }
+        return ResponseExtension.success(data: user.outputMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
     /// 更新使用者資訊
     router.post("/user/<uuid>/update", (Request req) async {
       try {

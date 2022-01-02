@@ -52,7 +52,13 @@ class DataBase {
   }
 
   static Future<void> init() async {
-    String url = env['DATA_BASE_URL'] ?? "mongodb://127.0.0.1:27017/rpmtw_data";
+    String url;
+
+    if (kTestMode) {
+      url = "mongodb://127.0.0.1:27017/test";
+    } else {
+      url = env['DATA_BASE_URL'] ?? "mongodb://127.0.0.1:27017/rpmtw_data";
+    }
 
     _mongoDB = await Db.create(url);
     await _mongoDB.open();
@@ -71,7 +77,7 @@ class DataBase {
     return modelTypeMap[runtimeType ?? T.toString()]!;
   }
 
-  T getModelFromMap<T extends BaseModels>(Map<String, dynamic> map) {
+  T getModelByMap<T extends BaseModels>(Map<String, dynamic> map) {
     Map<String, T Function(Map<String, dynamic>)> modelTypeMap = {
       "User": User.fromMap,
       "Storage": Storage.fromMap,
@@ -81,13 +87,17 @@ class DataBase {
     return factory(map);
   }
 
-  Future<T?> getModelFromUUID<T extends BaseModels>(String uuid) async {
+  Future<T?> getModelByUUID<T extends BaseModels>(String uuid) =>
+      getModelByField<T>("uuid", uuid);
+
+  Future<T?> getModelByField<T extends BaseModels>(
+      String fieldName, String value) async {
     Map<String, dynamic>? map =
-        await getCollection<T>().findOne(where.eq('uuid', uuid));
+        await getCollection<T>().findOne(where.eq(fieldName, value));
 
     if (map == null) return null;
 
-    return getModelFromMap<T>(map);
+    return getModelByMap<T>(map);
   }
 
   Future<WriteResult> insertOneModel<T extends BaseModels>(T model,

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart';
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:test/test.dart';
 import '../../../bin/server.dart' as server;
@@ -15,7 +16,10 @@ void main() async {
   });
 
   tearDownAll(() {
-    return Future.sync(() async => await server.server?.close(force: true));
+    return Future.sync(() async {
+      await DataBase.instance.db.drop(); // 刪除測試用資料庫
+      await server.server?.close(force: true); // 關閉伺服器
+    });
   });
 
   test('valid password', () async {
@@ -72,11 +76,23 @@ void main() async {
 
       userUUID = data['uuid'];
     });
-    test("view user", () async {
+    test("view user by uuid", () async {
       final response = await get(
         Uri.parse(host + '/auth/user/$userUUID'),
       );
-      print(response.body);
+
+      Map data = json.decode(response.body)['data'];
+
+      expect(response.statusCode, 200);
+      expect(data['uuid'], userUUID);
+      expect(data['email'], email);
+      expect(data['username'], username);
+      expect(data['emailVerified'], isFalse);
+    });
+    test("view user by email", () async {
+      final response = await get(
+        Uri.parse(host + '/auth/user/get-by-email/$email'),
+      );
 
       Map data = json.decode(response.body)['data'];
 
@@ -153,7 +169,6 @@ void main() async {
             "avatarStorageUUID": avatarStorageUUID
           }),
           headers: {'Content-Type': 'application/json'});
-      print(response.body);
 
       Map data = json.decode(response.body);
 

@@ -106,5 +106,8 @@ class User extends BaseModels {
   }
 
   static Future<User?> getByUUID(String uuid) async =>
-      DataBase.instance.getModelFromUUID<User>(uuid);
+      DataBase.instance.getModelByUUID<User>(uuid);
+
+  static Future<User?> getByEmail(String email) async =>
+      DataBase.instance.getModelByField<User>("email", email);
 }
