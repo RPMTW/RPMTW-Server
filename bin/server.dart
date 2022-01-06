@@ -8,6 +8,7 @@ import 'package:rpmtw_server/routes/root_route.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
+import 'package:shelf_cors_headers/shelf_cors_headers.dart';
 import 'package:shelf_rate_limiter/shelf_rate_limiter.dart';
 
 HttpServer? server;
@@ -30,13 +31,19 @@ Future<void> run() async {
       duration: Duration(seconds: 60),
       maxRequests: 100);
 
-  final Handler _handler = Pipeline()
+  // final overrideHeaders = {
+  //   ACCESS_CONTROL_ALLOW_ORIGIN: "*",
+  // };
+
+  final Handler _handler = const Pipeline()
       .addMiddleware(logRequests())
+      .addMiddleware(corsHeaders())
       .addMiddleware(rateLimiter.rateLimiter())
       .addMiddleware(AuthHandler.authorizationToken())
       .addHandler(RootRoute().router);
 
   final int port = int.parse(env['API_PORT'] ?? '8080');
   server = await serve(_handler, ip, port);
+  server!.autoCompress = true;
   loggerNoStack.i('Server listening on port http://${ip.host}:${server!.port}');
 }

@@ -47,6 +47,7 @@ class AuthRoute implements BaseRoute {
             uuid: Uuid().v4());
 
         String? avatarStorageUUID = user.avatarStorageUUID;
+
         if (avatarStorageUUID != null) {
           Storage? storage = await Storage.getByUUID(avatarStorageUUID);
           if (storage == null) {

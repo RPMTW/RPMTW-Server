@@ -21,6 +21,7 @@ dependencies:
   mongo_dart: ^0.7.4
   path: ^1.8.1
   shelf: ^1.1.0
+  shelf_cors_headers: ^0.1.2
   shelf_rate_limiter: ^1.0.1
   shelf_router: ^1.0.0
   vm_service: ^7.5.0

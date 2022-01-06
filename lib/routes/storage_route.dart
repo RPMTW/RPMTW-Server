@@ -74,7 +74,7 @@ class StorageRoute implements BaseRoute {
         }
 
         return Response.ok(bytes, headers: {
-          'Content-Type': storage.contentType,
+          "Content-Type": storage.contentType,
         });
       } catch (e, stack) {
         logger.e(e, null, stack);

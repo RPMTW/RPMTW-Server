@@ -15,12 +15,14 @@ class RootRoute implements BaseRoute {
   @override
   Router get router {
     final Router router = Router();
-    
+
     router.mount('/auth/', AuthRoute().router);
     router.mount('/storage/', StorageRoute().router);
 
     router.get('/', (Request req) async {
-      return Response.ok('Hello RPMTW World!');
+      return Response.ok(
+        'Hello RPMTW World!',
+      );
     });
 
     router.get('/ip', (Request req) async {
