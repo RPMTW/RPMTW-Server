@@ -124,10 +124,11 @@ class AuthRoute implements BaseRoute {
         }
         User newUser = user;
         Map data = await req.data;
-        String password = data['password'];
+        String? password = data['password'];
 
-        bool checkPassword =
-            AuthHandler.checkPassword(password, newUser.passwordHash);
+        bool checkPassword = uuid == "me"
+            ? true
+            : AuthHandler.checkPassword(password!, newUser.passwordHash);
         if (!checkPassword) {
           return ResponseExtension.badRequest(message: "Password is incorrect");
         }
@@ -140,7 +141,7 @@ class AuthRoute implements BaseRoute {
         if (newPassword != null) {
           // 使用者想要修改密碼
           final passwordValidatedResult =
-              AuthHandler.validatePassword(password);
+              AuthHandler.validatePassword(password!);
           if (!passwordValidatedResult.isValid) {
             // 密碼驗證失敗
             return ResponseExtension.badRequest(

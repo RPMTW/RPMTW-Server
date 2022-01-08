@@ -285,7 +285,7 @@
     },
     {
       "name": "pointycastle",
-      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/pointycastle-3.4.0",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/pointycastle-3.5.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     },
@@ -482,7 +482,7 @@
       "languageVersion": "2.16"
     }
   ],
-  "generated": "2022-01-04T13:43:14.706802Z",
+  "generated": "2022-01-08T14:19:05.266580Z",
   "generator": "pub",
   "generatorVersion": "2.16.0-80.1.beta"
 }
