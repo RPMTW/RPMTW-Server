@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:dotenv/dotenv.dart';
@@ -176,20 +178,47 @@ class AuthHandler {
     }
   }
 
-  // TODO: 完成密碼驗證信件發送
   static Future<bool> sendVerifyEmail(String email, int authCode) async {
-    String smtpEmail = env["SMTP_User"]!;
-    SmtpServer _qqSmtp = qq(smtpEmail, env["SMTP_Password"]!);
-    SmtpServer smtpServer = _qqSmtp;
+    if (kTestMode) return true;
+    SmtpServer smtpServer;
+    String smtpEmail;
+    int randomInt = Random.secure().nextInt(100);
 
-    String text = '''
-感謝您註冊本網站的帳號，下方是完成註冊此帳號的驗證碼，此驗證碼將於 30 分鐘後失效：
-${authCode.toString()}
+    /// 隨機選擇一種 smtp 服務使用
+    if (randomInt % 2 == 0) {
+      // 偶數
+      String _qqSmtpEmail = env["SMTP_QQ_User"]!;
+      SmtpServer _qqSmtp = qq(_qqSmtpEmail, env["SMTP_QQ_Password"]!);
 
-您收到這封電子郵件是因為要驗證該帳號是否由您註冊，通過驗證後您才能使用 RPMTW 帳號。
-如果您並未提出註冊 RPMTW 帳號的請求，則請忽略此封電子郵件。
+      smtpEmail = _qqSmtpEmail;
+      smtpServer = _qqSmtp;
+    } else {
+      // 奇數
+      String _zohoSmtpEmail = env["SMTP_ZOHO_User"]!;
+      SmtpServer _zohoSmtp = SmtpServer(
+        "smtppro.zoho.com",
+        port: 587,
+        username: _zohoSmtpEmail,
+        password: env["SMTP_ZOHO_Password"]!,
+      );
 
-Copyright © RPMTW 2021-2022 Powered by The RPMTW Team.
+      smtpEmail = _zohoSmtpEmail;
+      smtpServer = _zohoSmtp;
+    }
+
+    String html = '''
+Thank you for registering for an account on this site. Below is the verification code to complete registration for this account, which will expire in 30 minutes.<br>
+感謝您註冊本網站的帳號，下方是完成註冊此帳號的驗證碼，此驗證碼將於 30 分鐘後失效。
+
+<h1>${authCode.toString()}<br></h1>
+
+You are receiving this email to verify that the account is registered by you and that you can use the RPMTW account after verification.<br>
+If you have not requested an RPMTW account, please ignore this email.<br><br>
+
+您收到這封電子郵件是因為要驗證該帳號是否由您註冊，通過驗證後您才能使用 RPMTW 帳號。<br>
+如果您並未提出註冊 RPMTW 帳號的請求，則請忽略此封電子郵件。<br><br>
+
+<strong>Copyright © RPMTW 2021-2022 Powered by The RPMTW Team.</strong>
       ''';
 
     final message = Message()
@@ -198,7 +227,7 @@ Copyright © RPMTW 2021-2022 Powered by The RPMTW Team.
       ..ccRecipients.add(email)
       ..bccRecipients.add(email)
       ..subject = '驗證您的 RPMTW 帳號電子郵件地址'
-      ..text = text;
+      ..html = html;
     // TODO:實現驗證電子郵件的界面
 
     try {

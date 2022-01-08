@@ -67,9 +67,7 @@ class AuthRoute implements BaseRoute {
         output['token'] = AuthHandler.generateAuthToken(user.uuid);
         AuthCode code =
             await AuthHandler.generateAuthCode(user.email, user.uuid);
-        bool successful = kTestMode
-            ? true
-            : await AuthHandler.sendVerifyEmail(email, code.code);
+        bool successful = await AuthHandler.sendVerifyEmail(email, code.code);
         if (!successful) ResponseExtension.internalServerError();
         return ResponseExtension.success(data: output);
       } catch (e, stack) {
