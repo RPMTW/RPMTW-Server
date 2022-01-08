@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
 
 import '../utilities/data.dart';
 import 'models/auth/user.dart';
@@ -17,7 +18,7 @@ class DataBase {
 
   DataBase() {
     try {
-      startStorageTimer();
+      startTimer();
     } catch (e, stack) {
       logger.e(e, null, stack);
     }
@@ -27,7 +28,7 @@ class DataBase {
 
   static Future<DataBase> _open() async {
     collectionList = [];
-    List<String> collectionNameList = ["users", "storages"];
+    List<String> collectionNameList = ["users", "storages", "auth_codes"];
     List<String?> collections = await _mongoDB.getCollectionNames();
     Future<void> checkCollection(String name) async {
       if (!collections.contains(name)) {
@@ -39,6 +40,10 @@ class DataBase {
           // 索引使用者數據中的 email
           await _mongoDB.createIndex(name,
               key: "email", name: 'email', unique: true);
+        } else if (name == "auth_codes") {
+          // 索引驗證碼數據中的 code
+          await _mongoDB.createIndex(name,
+              key: "code", name: 'code', unique: true);
         }
       }
     }
@@ -72,6 +77,7 @@ class DataBase {
     Map<String, DbCollection> modelTypeMap = {
       "User": collectionList[0],
       "Storage": collectionList[1],
+      "AuthCode": collectionList[2]
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -81,6 +87,7 @@ class DataBase {
     Map<String, T Function(Map<String, dynamic>)> modelTypeMap = {
       "User": User.fromMap,
       "Storage": Storage.fromMap,
+      "AuthCode": AuthCode.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;
@@ -91,7 +98,7 @@ class DataBase {
       getModelByField<T>("uuid", uuid);
 
   Future<T?> getModelByField<T extends BaseModels>(
-      String fieldName, String value) async {
+      String fieldName, dynamic value) async {
     Map<String, dynamic>? map =
         await getCollection<T>().findOne(where.eq(fieldName, value));
 
@@ -108,7 +115,6 @@ class DataBase {
             bypassDocumentValidation: bypassDocumentValidation);
 
     result.exceptionHandler(model);
-
     return result;
   }
 
@@ -151,26 +157,45 @@ class DataBase {
     return result;
   }
 
-  Timer startStorageTimer() {
-    /// 暫存檔案超過指定時間後將刪除
+  Timer startTimer() {
     Timer timer = Timer.periodic(Duration(hours: 1), (timer) async {
       DateTime time = DateTime.now().toUtc();
-
-      /// 檔案最多暫存一天
-      SelectorBuilder selector = where
-          .eq("type", StorageType.temp.name) // 檔案類型為暫存檔案
-          .and(where.lte('createdAt', time.subtract(Duration(days: 1))));
-      // 檔案建立時間為一天前
-      List<Storage> storageList = await getCollection<Storage>()
-          .find(selector)
-          .map((map) => Storage.fromMap(map))
-          .toList();
-
-      for (Storage storage in storageList) {
-        await storage.delete();
-      }
+      await _storageTimer(time);
+      await _authCodeTimer(time);
     });
     return timer;
+  }
+
+  Future<void> _storageTimer(DateTime time) async {
+    /// 暫存檔案超過指定時間後將刪除
+    /// 檔案最多暫存一天
+    SelectorBuilder selector = where
+        .eq("type", StorageType.temp.name) // 檔案類型為暫存檔案
+        .and(where.lte('createdAt',
+            time.subtract(Duration(days: 1)).millisecondsSinceEpoch));
+    // 檔案建立時間為一天前
+    List<Storage> storageList = await getCollection<Storage>()
+        .find(selector)
+        .map((map) => Storage.fromMap(map))
+        .toList();
+
+    for (Storage storage in storageList) {
+      await storage.delete();
+    }
+  }
+
+  Future<void> _authCodeTimer(DateTime time) async {
+    /// 驗證碼最多暫存 1 小時
+    SelectorBuilder selector = where.lte(
+        'expiresAt', time.subtract(Duration(hours: 1)).millisecondsSinceEpoch);
+    List<AuthCode> authCodeList = await getCollection<AuthCode>()
+        .find(selector)
+        .map((map) => AuthCode.fromMap(map))
+        .toList();
+
+    for (AuthCode authCode in authCodeList) {
+      await authCode.delete();
+    }
   }
 }
 

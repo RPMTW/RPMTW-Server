@@ -7,6 +7,7 @@ import 'package:http/http.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
 import 'package:shelf/shelf.dart';
 import '../database/database.dart';
 import '../database/models/auth/user.dart';
@@ -43,6 +44,13 @@ class AuthHandler {
   static String generateAuthToken(String userUUID) {
     JWT jwt = JWT({'uuid': userUUID});
     return jwt.sign(AuthHandler.secretKey);
+  }
+
+  static Future<AuthCode> generateAuthCode(
+      String email, String userUUID) async {
+    AuthCode authCode = AuthCode.create(email);
+    await authCode.insert();
+    return authCode;
   }
 
   static Middleware authorizationToken() => (innerHandler) {
@@ -169,27 +177,33 @@ class AuthHandler {
   }
 
   // TODO: 完成密碼驗證信件發送
-  static Future<bool> sendVerifyEmail(String email) async {
-    String email = env["SMTP_User"]!;
-    SmtpServer smtpServer = qq(email, env["SMTP_Password"]!);
+  static Future<bool> sendVerifyEmail(String email, int authCode) async {
+    String smtpEmail = env["SMTP_User"]!;
+    SmtpServer _qqSmtp = qq(smtpEmail, env["SMTP_Password"]!);
+    SmtpServer smtpServer = _qqSmtp;
 
     String text = '''
-      您收到這封電子郵件是因為要驗證該帳號是否由您註冊，通過驗證後您才能使用 RPMTW 帳號。
-      如果您並未提出註冊 RPMTW 帳號的請求，您可以忽略此封電子郵件。
+感謝您註冊本網站的帳號，下方是完成註冊此帳號的驗證碼，此驗證碼將於 30 分鐘後失效：
+${authCode.toString()}
+
+您收到這封電子郵件是因為要驗證該帳號是否由您註冊，通過驗證後您才能使用 RPMTW 帳號。
+如果您並未提出註冊 RPMTW 帳號的請求，則請忽略此封電子郵件。
+
+Copyright © RPMTW 2021-2022 Powered by The RPMTW Team.
       ''';
 
     final message = Message()
-      ..from = Address(email, 'RPMTW Team Support')
+      ..from = Address(smtpEmail, 'RPMTW Team Support')
       ..recipients.add(email)
       ..ccRecipients.add(email)
       ..bccRecipients.add(email)
       ..subject = '驗證您的 RPMTW 帳號電子郵件地址'
-      ..text = text
-      ..html = "<a href=\"https://www.rpmtw.com\">點我完成 RPMTW 帳號註冊</a>";
+      ..text = text;
     // TODO:實現驗證電子郵件的界面
 
     try {
       if (kTestMode) return true; //在測試模式下不發送訊息
+      print(email);
       await send(message, smtpServer);
       return true;
     } catch (e, stack) {
@@ -201,6 +215,38 @@ class AuthHandler {
   static bool checkPassword(String password, String hash) {
     DBCrypt dbCrypt = DBCrypt();
     return dbCrypt.checkpw(password, hash);
+  }
+
+  static Future<bool> validateAuthCode(String email, int authCode) async {
+    try {
+      AuthCode? model = await AuthCode.getByCode(authCode);
+      if (model == null) {
+        return false;
+      } else {
+        if (model.email == email) {
+          //驗證碼的 email 與輸入的 email 是否相同
+          if (model.isExpired) {
+            //驗證碼過期
+            return false;
+          } else {
+            //驗證碼未過期
+            if (kTestMode) return true; //在測試模式下略過確認使用者
+            User? user = await User.getByEmail(email);
+            if (user != null) {
+              user = user.copyWith(emailVerified: true);
+              await user.update();
+              return true;
+            } else {
+              return false;
+            }
+          }
+        } else {
+          return false;
+        }
+      }
+    } catch (e) {
+      return false;
+    }
   }
 }
 

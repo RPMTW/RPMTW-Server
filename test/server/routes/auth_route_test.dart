@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart';
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:test/test.dart';
 import '../../../bin/server.dart' as server;
@@ -31,6 +34,17 @@ void main() async {
     expect(body['isValid'], isTrue);
     expect(body['code'], 0);
     expect(body['message'], contains("no issue"));
+  });
+
+  test('valid auth code', () async {
+    AuthCode code =
+        await AuthHandler.generateAuthCode("test@gmail.com", Uuid().v4());
+
+    final response = await get(Uri.parse(host +
+        '/auth/valid-auth-code?authCode=${code.code}&email=${code.email}'));
+    Map body = json.decode(response.body)['data'];
+    expect(response.statusCode, 200);
+    expect(body['isValid'], isTrue);
   });
 
   group("User", () {

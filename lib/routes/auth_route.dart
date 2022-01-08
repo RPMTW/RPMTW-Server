@@ -1,6 +1,7 @@
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/storage/storage.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
@@ -64,6 +65,10 @@ class AuthRoute implements BaseRoute {
 
         Map output = user.outputMap();
         output['token'] = AuthHandler.generateAuthToken(user.uuid);
+        AuthCode code =
+            await AuthHandler.generateAuthCode(user.email, user.uuid);
+        bool successful = await AuthHandler.sendVerifyEmail(email, code.code);
+        if (!successful) ResponseExtension.internalServerError();
         return ResponseExtension.success(data: output);
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -225,6 +230,21 @@ class AuthRoute implements BaseRoute {
         String password = queryParameters['password']!;
         final validatedResult = AuthHandler.validatePassword(password);
         return ResponseExtension.success(data: validatedResult.toMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.get("/valid-auth-code", (Request req) async {
+      try {
+        Map<String, dynamic> queryParameters = req.requestedUri.queryParameters;
+        int authCode = int.parse(queryParameters['authCode']!);
+        String email = queryParameters['email']!;
+        bool isValid = await AuthHandler.validateAuthCode(email, authCode);
+        return ResponseExtension.success(data: {
+          'isValid': isValid,
+        });
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

@@ -10,9 +10,7 @@ abstract class BaseModels {
     throw UnimplementedError();
   }
 
-  Map<String, dynamic> outputMap() {
-    throw UnimplementedError();
-  }
+  Map<String, dynamic> outputMap() => toMap();
 
   Future<WriteResult> delete() async {
     return DataBase.instance.deleteOneModel(this);
