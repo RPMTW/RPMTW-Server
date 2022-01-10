@@ -2,11 +2,18 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/models/index_fields.dart';
 
 import '../../database.dart';
 import '../base_models.dart';
 
 class Storage extends BaseModels {
+  static const String collectionName = "storages";
+  static const List<IndexFields> indexFields = [
+    IndexFields("createAt", unique: false),
+    IndexFields("type", unique: false)
+  ];
+
   final String contentType;
   final StorageType type;
   final int createAt;

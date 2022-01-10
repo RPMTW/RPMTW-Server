@@ -1,8 +1,12 @@
 import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/index_fields.dart';
 
 import '../base_models.dart';
 
 class User extends BaseModels {
+  static const String collectionName = 'users';
+  static const List<IndexFields> indexFields = [IndexFields('email')];
+
   final String username;
   final String email;
   final bool emailVerified;

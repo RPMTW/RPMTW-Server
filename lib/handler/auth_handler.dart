@@ -3,9 +3,6 @@ import 'dart:math';
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:dbcrypt/dbcrypt.dart';
 import 'package:dotenv/dotenv.dart';
-import 'package:googleapis/gmail/v1.dart' as googleapi;
-import 'package:googleapis_auth/auth_io.dart';
-import 'package:http/http.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:mongo_dart/mongo_dart.dart';
@@ -18,30 +15,7 @@ import '../utilities/extension.dart';
 
 class AuthHandler {
   static SecretKey get secretKey => SecretKey(env['DATA_BASE_SecretKey']!);
-  static late googleapi.GmailApi gmailApi;
   static final int saltRounds = 10;
-
-  // TODO: google api
-  static Future<void> initGoogleApis() async {
-    List<String> scopes = [googleapi.GmailApi.mailGoogleComScope];
-
-    AutoRefreshingAuthClient httpClient = autoRefreshingClient(
-      ClientId(
-          '504357039485-65inr6tkht8vuumkpb6m2f1ksog83dpo.apps.googleusercontent.com',
-          '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'),
-      AccessCredentials(
-          AccessToken("Bearer", "", DateTime.parse("")), "", scopes),
-      Client(),
-    );
-
-    httpClient.credentialUpdates.listen((cred) {
-      print('Credential updated\n${cred.toJson()}');
-    });
-
-    print(httpClient.credentials.toJson());
-
-    gmailApi = googleapi.GmailApi(httpClient);
-  }
 
   static String generateAuthToken(String userUUID) {
     JWT jwt = JWT({'uuid': userUUID});
@@ -136,8 +110,7 @@ class AuthHandler {
         if (topEmails.contains(domain)) {
           if (skipDuplicate) return successful;
           Map<String, dynamic>? map = await DataBase.instance
-              .getCollection<User>()
-              .findOne(where.eq('email', email));
+              .getCollection<User>()              .findOne(where.eq('email', email));
           if (map == null) {
             // 如果為空代表尚未被使用過
             return successful;

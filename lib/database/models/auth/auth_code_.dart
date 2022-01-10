@@ -4,12 +4,20 @@ import 'dart:math';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/models/base_models.dart';
+import 'package:rpmtw_server/database/models/index_fields.dart';
 
 class AuthCode extends BaseModels {
+  static const String collectionName = 'auth_codes';
+  static const List<IndexFields> indexFields = [
+    IndexFields("code"),
+    IndexFields("expiresAt", unique: false)
+  ];
+
   final int code;
   final DateTime expiresAt;
   final String email;
-  AuthCode({
+
+  const AuthCode({
     required String uuid,
     required this.code,
     required this.expiresAt,
