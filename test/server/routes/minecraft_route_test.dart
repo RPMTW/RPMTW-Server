@@ -1,7 +1,7 @@
 import 'dart:convert';
 
+import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:test/test.dart';
 import '../../test_utility.dart';
@@ -19,13 +19,26 @@ void main() async {
 
   group("Minecraft Mod", () {
     late String modUUID;
+    late String token;
     MinecraftVersionManifest versionManifest =
         MinecraftVersionManifest.fromJson(
             TestData.versionManifest.getFileString());
     List<Map<String, dynamic>> supportVersions =
         [versionManifest.versions.first].map((e) => e.toMap()).toList();
 
+    env['DATA_BASE_SecretKey'] = "testSecretKey";
+
     test("create mod", () async {
+      /// 由於建立 Minecraft 模組需要驗證使用者，因此先建立一個使用者帳號
+      final _response = await post(Uri.parse(host + '/auth/user/create'),
+          body: json.encode({
+            "password": "testPassword1234",
+            "email": "test@gmail.com",
+            "username": "test",
+          }),
+          headers: {'Content-Type': 'application/json'});
+      token = json.decode(_response.body)['data']['token'];
+
       final response = await post(Uri.parse(host + '/minecraft/mod/create'),
           body: json.encode({
             "name": "test mod",
@@ -33,7 +46,10 @@ void main() async {
             "supportVersions": supportVersions,
             "description": "This is the test mod",
           }),
-          headers: {'Content-Type': 'application/json'});
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
@@ -47,7 +63,11 @@ void main() async {
 
     test("create mod (missing required fields)", () async {
       final response = await post(Uri.parse(host + '/minecraft/mod/create'),
-          body: json.encode({}), headers: {'Content-Type': 'application/json'});
+          body: json.encode({}),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          });
 
       Map map = json.decode(response.body);
 

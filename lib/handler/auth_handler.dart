@@ -35,7 +35,8 @@ class AuthHandler {
             String path = request.url.path;
             List<String> needAuthorizationPaths = [
               "auth/user/me",
-              "auth/user/me/update"
+              "auth/user/me/update",
+              "minecraft/mod/create"
             ];
             if (needAuthorizationPaths.contains(path)) {
               String? token = request.headers['Authorization']
@@ -51,6 +52,10 @@ class AuthHandler {
                 User? user = await DataBase.instance.getModelByUUID<User>(uuid);
                 if (user == null) {
                   return ResponseExtension.unauthorized();
+                } else if (!user.emailVerified && !kTestMode) {
+                  // 驗證是否已經驗證電子郵件，測試模式不需要驗證
+                  return ResponseExtension.unauthorized(
+                      message: "Unauthorized (email not verified)");
                 }
                 request = request.change(context: {"user": user});
               } on JWTError catch (e) {
@@ -110,7 +115,8 @@ class AuthHandler {
         if (topEmails.contains(domain)) {
           if (skipDuplicate) return successful;
           Map<String, dynamic>? map = await DataBase.instance
-              .getCollection<User>()              .findOne(where.eq('email', email));
+              .getCollection<User>()
+              .findOne(where.eq('email', email));
           if (map == null) {
             // 如果為空代表尚未被使用過
             return successful;

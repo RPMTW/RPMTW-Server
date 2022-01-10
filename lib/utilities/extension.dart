@@ -29,12 +29,13 @@ class ResponseExtension {
           }),
           headers: _baseHeaders);
 
-  static Response unauthorized() => Response(HttpStatus.unauthorized,
-      body: json.encode({
-        'status': HttpStatus.unauthorized,
-        'message': 'Unauthorized',
-      }),
-      headers: _baseHeaders);
+  static Response unauthorized({String message = "Unauthorized"}) =>
+      Response(HttpStatus.unauthorized,
+          body: json.encode({
+            'status': HttpStatus.unauthorized,
+            'message': message,
+          }),
+          headers: _baseHeaders);
   static Response notFound([String message = 'Not Found']) =>
       Response(HttpStatus.notFound,
           body: json.encode({
