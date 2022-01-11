@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dotenv/dotenv.dart';
 import 'package:path/path.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/utilities/data.dart';
@@ -27,9 +28,14 @@ extension TestDataExtension on TestData {
 }
 
 class TestUttily {
-  static Future<void> setUpAll() {
-    kTestMode = true;
-    return Future.sync(() async => await server.run());
+  static Future<void> setUpAll({bool isServer = true}) {
+    return Future.sync(() async {
+      kTestMode = true;
+      env['DATA_BASE_SecretKey'] = "testSecretKey";
+      if (isServer) {
+        await server.run();
+      }
+    });
   }
 
   static Future<void> tearDownAll() {

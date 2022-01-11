@@ -1,10 +1,14 @@
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:test/test.dart';
 
+import '../test_utility.dart';
+
 void main() {
+  setUpAll(() {
+    return TestUttily.setUpAll(isServer: false);
+  });
   group("password validate - ", () {
     test("successful", () {
       String password = "testPassword12345";
@@ -89,7 +93,6 @@ void main() {
   });
 
   test("generateAuthToken", () {
-    env['DATA_BASE_SecretKey'] = "testSecretKey";
     final String uuid = Uuid().v4();
     final String token = AuthHandler.generateAuthToken(uuid);
 

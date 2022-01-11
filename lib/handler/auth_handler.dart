@@ -7,6 +7,8 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
+import 'package:rpmtw_server/routes/root_route.dart';
 import 'package:shelf/shelf.dart';
 import '../database/database.dart';
 import '../database/models/auth/user.dart';
@@ -49,15 +51,33 @@ class AuthHandler {
                 JWT jwt = JWT.verify(token, secretKey);
                 Map<String, dynamic> payload = jwt.payload;
                 String uuid = payload['uuid'];
+                String clientIP = request.ip;
                 User? user = await DataBase.instance.getModelByUUID<User>(uuid);
+                BanInfo? banInfo = await BanInfo.getByIP(clientIP);
                 if (user == null) {
                   return ResponseExtension.unauthorized();
                 } else if (!user.emailVerified && !kTestMode) {
                   // 驗證是否已經驗證電子郵件，測試模式不需要驗證
                   return ResponseExtension.unauthorized(
                       message: "Unauthorized (email not verified)");
+                } else if (banInfo != null) {
+                  // 檢查是否被封鎖
+                  return ResponseExtension.banned(reason: banInfo.reason);
                 }
-                request = request.change(context: {"user": user});
+
+                List<String> loginIPs = user.loginIPs;
+
+                /// 如果此登入IP尚未被紀錄過
+                if (!loginIPs.contains(clientIP)) {
+                  loginIPs.add(clientIP);
+                  User _newUser = user.copyWith(loginIPs: loginIPs);
+
+                  /// 寫入新的登入IP
+                  await _newUser.update();
+                }
+
+                request = request
+                    .change(context: {"user": user, "isAuthenticated": true});
               } on JWTError catch (e) {
                 logger.e(e.message, null, e.stackTrace);
                 return ResponseExtension.unauthorized();

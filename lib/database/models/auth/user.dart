@@ -1,5 +1,6 @@
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
+import 'package:collection/collection.dart';
 
 import '../base_models.dart';
 
@@ -12,6 +13,7 @@ class User extends BaseModels {
   final bool emailVerified;
   final String passwordHash;
   final String? avatarStorageUUID;
+  final List<String> loginIPs;
 
   const User({
     required String uuid,
@@ -20,6 +22,7 @@ class User extends BaseModels {
     required this.emailVerified,
     required this.passwordHash,
     this.avatarStorageUUID,
+    required this.loginIPs,
   }) : super(uuid: uuid);
 
   User copyWith({
@@ -29,6 +32,7 @@ class User extends BaseModels {
     bool? emailVerified,
     String? passwordHash,
     String? avatarStorageUUID,
+    List<String>? loginIPs,
   }) {
     return User(
       uuid: uuid ?? this.uuid,
@@ -37,6 +41,7 @@ class User extends BaseModels {
       emailVerified: emailVerified ?? this.emailVerified,
       passwordHash: passwordHash ?? this.passwordHash,
       avatarStorageUUID: avatarStorageUUID ?? this.avatarStorageUUID,
+      loginIPs: loginIPs ?? this.loginIPs,
     );
   }
 
@@ -49,6 +54,7 @@ class User extends BaseModels {
       'emailVerified': emailVerified,
       'passwordHash': passwordHash,
       'avatarStorageUUID': avatarStorageUUID,
+      'loginIPs': loginIPs,
     };
   }
 
@@ -71,17 +77,19 @@ class User extends BaseModels {
       emailVerified: map['emailVerified'] ?? false,
       passwordHash: map['passwordHash'] ?? '',
       avatarStorageUUID: map['avatarStorageUUID'],
+      loginIPs: List<String>.from(map['loginIPs'] ?? []),
     );
   }
 
   @override
   String toString() {
-    return 'User(uuid: $uuid, username: $username, email: $email,emailVerified: $emailVerified, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID)';
+    return 'User(uuid: $uuid, username: $username, email: $email,emailVerified: $emailVerified, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID, loginIPs: $loginIPs)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
+    final listEquals = const DeepCollectionEquality().equals;
 
     return other is User &&
         other.uuid == uuid &&
@@ -89,7 +97,8 @@ class User extends BaseModels {
         other.email == email &&
         other.emailVerified == emailVerified &&
         other.passwordHash == passwordHash &&
-        other.avatarStorageUUID == avatarStorageUUID;
+        other.avatarStorageUUID == avatarStorageUUID &&
+        listEquals(other.loginIPs, loginIPs);
   }
 
   @override
@@ -99,7 +108,8 @@ class User extends BaseModels {
         email.hashCode ^
         emailVerified.hashCode ^
         passwordHash.hashCode ^
-        avatarStorageUUID.hashCode;
+        avatarStorageUUID.hashCode ^
+        loginIPs.hashCode;
   }
 
   static Future<User?> getByUUID(String uuid) async =>

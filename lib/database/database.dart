@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 
@@ -34,13 +35,15 @@ class DataBase {
       User.collectionName,
       Storage.collectionName,
       AuthCode.collectionName,
-      MinecraftMod.collectionName
+      MinecraftMod.collectionName,
+      BanInfo.collectionName,
     ];
     List<List<IndexFields>> indexFields = [
       User.indexFields,
       Storage.indexFields,
       AuthCode.indexFields,
-      MinecraftMod.indexFields
+      MinecraftMod.indexFields,
+      BanInfo.indexFields
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -87,7 +90,8 @@ class DataBase {
       "User": collectionList[0],
       "Storage": collectionList[1],
       "AuthCode": collectionList[2],
-      "MinecraftMod": collectionList[3]
+      "MinecraftMod": collectionList[3],
+      "BanInfo": collectionList[4],
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -98,7 +102,8 @@ class DataBase {
       "User": User.fromMap,
       "Storage": Storage.fromMap,
       "AuthCode": AuthCode.fromMap,
-      "MinecraftMod": MinecraftMod.fromMap
+      "MinecraftMod": MinecraftMod.fromMap,
+      "BanInfo": BanInfo.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;

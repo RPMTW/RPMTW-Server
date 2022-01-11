@@ -45,7 +45,8 @@ class AuthRoute implements BaseRoute {
             avatarStorageUUID: data['avatarStorageUUID'],
             emailVerified: false,
             passwordHash: hash,
-            uuid: Uuid().v4());
+            uuid: Uuid().v4(),
+            loginIPs: [req.ip]);
 
         String? avatarStorageUUID = user.avatarStorageUUID;
 
@@ -126,11 +127,10 @@ class AuthRoute implements BaseRoute {
         Map data = await req.data;
         String? password = data['password'];
 
-        bool checkPassword = uuid == "me"
-            ? true
-            : AuthHandler.checkPassword(password!, newUser.passwordHash);
-        if (!checkPassword) {
-          return ResponseExtension.badRequest(message: "Password is incorrect");
+        bool isAuthenticated = req.isAuthenticated() ||
+            AuthHandler.checkPassword(password!, newUser.passwordHash);
+        if (!isAuthenticated) {
+          return ResponseExtension.unauthorized();
         }
 
         String? newPassword = data['newPassword'];
@@ -141,7 +141,7 @@ class AuthRoute implements BaseRoute {
         if (newPassword != null) {
           // 使用者想要修改密碼
           final passwordValidatedResult =
-              AuthHandler.validatePassword(password!);
+              AuthHandler.validatePassword(newPassword);
           if (!passwordValidatedResult.isValid) {
             // 密碼驗證失敗
             return ResponseExtension.badRequest(
@@ -149,7 +149,7 @@ class AuthRoute implements BaseRoute {
           }
           DBCrypt dbCrypt = DBCrypt();
           String salt = dbCrypt.gensaltWithRounds(AuthHandler.saltRounds);
-          String hash = dbCrypt.hashpw(password, salt);
+          String hash = dbCrypt.hashpw(newPassword, salt);
           newUser = newUser.copyWith(passwordHash: hash);
         }
         if (email != null) {

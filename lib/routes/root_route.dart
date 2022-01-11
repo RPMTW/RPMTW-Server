@@ -29,10 +29,7 @@ class RootRoute implements BaseRoute {
 
     router.get('/ip', (Request req) async {
       try {
-        HttpConnectionInfo connectionInfo =
-            req.context['shelf.io.connection_info'] as HttpConnectionInfo;
-        String ip = connectionInfo.remoteAddress.address;
-        return Response.ok(ip);
+        return Response.ok(req.ip);
       } catch (e) {
         logger.e(e);
         return ResponseExtension.internalServerError();
@@ -44,6 +41,22 @@ class RootRoute implements BaseRoute {
 }
 
 extension RequestUserExtension on Request {
+  String get ip {
+    String? xForwardedFor = headers['X-Forwarded-For'];
+    if (xForwardedFor != null && kTestMode) {
+      return xForwardedFor;
+    } else {
+      HttpConnectionInfo connectionInfo =
+          context['shelf.io.connection_info'] as HttpConnectionInfo;
+      InternetAddress internetAddress = connectionInfo.remoteAddress;
+      return internetAddress.address;
+    }
+  }
+
+  bool isAuthenticated() {
+    return context['isAuthenticated'] == true && context['user'] is User;
+  }
+
   User? get user {
     try {
       return context['user'] as User;

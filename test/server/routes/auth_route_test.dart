@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:test/test.dart';
 import '../../test_utility.dart';
@@ -42,10 +42,6 @@ void main() async {
   });
 
   group("User", () {
-    setUpAll(() {
-      env['DATA_BASE_SecretKey'] = "testSecretKey";
-    });
-
     final String password = 'passWord123';
     final String email = 'helloworld@gmail.com';
     final String username = 'helloworld';
@@ -97,6 +93,7 @@ void main() async {
       expect(data['username'], username);
       expect(data['emailVerified'], isFalse);
     });
+
     test("view user by email", () async {
       final response = await get(
         Uri.parse(host + '/auth/user/get-by-email/$email'),
@@ -128,6 +125,19 @@ void main() async {
       expect(data['token'], isNotNull);
 
       token = data['token'];
+    });
+    test("view user by token", () async {
+      final response = await get(Uri.parse(host + '/auth/user/me'), headers: {
+        'Authorization': 'Bearer $token',
+      });
+
+      Map data = json.decode(response.body)['data'];
+
+      expect(response.statusCode, 200);
+      expect(data['uuid'], userUUID);
+      expect(data['email'], email);
+      expect(data['username'], username);
+      expect(data['emailVerified'], isFalse);
     });
 
     final String newPassword = 'newPassword123';
@@ -182,6 +192,26 @@ void main() async {
 
       expect(response.statusCode, 400);
       expect(data['message'], contains("already been used"));
+    });
+    test('user ip is banned', () async {
+      String ip = (await get(Uri.parse("https://api.ipify.org"))).body;
+
+      /// 由於目前尚未新增任何觸發 Ban 的條件，因此暫時手動新增一個測試用假資料
+      BanInfo _info = BanInfo(
+          ip: ip, reason: "test ban", userUUID: [userUUID], uuid: Uuid().v4());
+      await _info.insert();
+
+      final response = await get(Uri.parse(host + '/auth/user/me'), headers: {
+        'X-Forwarded-For': ip,
+        'Authorization': 'Bearer $token',
+      });
+      Map data = json.decode(response.body);
+
+      print(response.body);
+
+      expect(response.statusCode, 403);
+      expect(data['message'], contains("Ban"));
+      expect(data['data']['reason'], contains("test ban"));
     });
   });
 }

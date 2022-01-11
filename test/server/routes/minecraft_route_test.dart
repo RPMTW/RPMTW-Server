@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:test/test.dart';
@@ -25,8 +24,6 @@ void main() async {
             TestData.versionManifest.getFileString());
     List<Map<String, dynamic>> supportVersions =
         [versionManifest.versions.first].map((e) => e.toMap()).toList();
-
-    env['DATA_BASE_SecretKey'] = "testSecretKey";
 
     test("create mod", () async {
       /// 由於建立 Minecraft 模組需要驗證使用者，因此先建立一個使用者帳號

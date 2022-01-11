@@ -43,4 +43,13 @@ class ResponseExtension {
             'message': message,
           }),
           headers: _baseHeaders);
+
+  static Response banned({required String reason}) =>
+      Response(HttpStatus.forbidden,
+          body: json.encode({
+            'status': HttpStatus.forbidden,
+            'message': "Banned",
+            'data': {'reason': reason}
+          }),
+          headers: _baseHeaders);
 }
