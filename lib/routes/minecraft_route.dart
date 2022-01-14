@@ -1,3 +1,4 @@
+import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
@@ -79,6 +80,18 @@ class MinecraftRoute implements BaseRoute {
           return ResponseExtension.notFound("Minecraft mod not found");
         }
         return ResponseExtension.success(data: mod.outputMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    /// 從資料庫快取中取得 Minecraft 版本資訊
+    router.get("/versions", (Request req) async {
+      try {
+        MinecraftVersionManifest manifest =
+            await MinecraftVersionManifest.getFromCache();
+        return ResponseExtension.success(data: manifest.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

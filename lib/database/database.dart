@@ -6,6 +6,7 @@ import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 
 import '../utilities/data.dart';
 import 'models/auth/user.dart';
@@ -37,13 +38,15 @@ class DataBase {
       AuthCode.collectionName,
       MinecraftMod.collectionName,
       BanInfo.collectionName,
+      MinecraftVersionManifest.collectionName,
     ];
     List<List<IndexFields>> indexFields = [
       User.indexFields,
       Storage.indexFields,
       AuthCode.indexFields,
       MinecraftMod.indexFields,
-      BanInfo.indexFields
+      BanInfo.indexFields,
+      MinecraftVersionManifest.indexFields,
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -92,6 +95,7 @@ class DataBase {
       "AuthCode": collectionList[2],
       "MinecraftMod": collectionList[3],
       "BanInfo": collectionList[4],
+      "MinecraftVersionManifest": collectionList[5],
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -104,6 +108,7 @@ class DataBase {
       "AuthCode": AuthCode.fromMap,
       "MinecraftMod": MinecraftMod.fromMap,
       "BanInfo": BanInfo.fromMap,
+      "MinecraftVersionManifest": MinecraftVersionManifest.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;
@@ -174,12 +179,18 @@ class DataBase {
   }
 
   Timer startTimer() {
+    _startAllTimer(DateTime.now().toUtc());
     Timer timer = Timer.periodic(Duration(hours: 1), (timer) async {
       DateTime time = DateTime.now().toUtc();
-      await _storageTimer(time);
-      await _authCodeTimer(time);
+      await _startAllTimer(time);
     });
     return timer;
+  }
+
+  Future<void> _startAllTimer(DateTime time) async {
+    await _storageTimer(time);
+    await _authCodeTimer(time);
+    await _minecraftVersionManifest(time);
   }
 
   Future<void> _storageTimer(DateTime time) async {
@@ -211,6 +222,27 @@ class DataBase {
 
     for (AuthCode authCode in authCodeList) {
       await authCode.delete();
+    }
+  }
+
+  Future<void> _minecraftVersionManifest(DateTime time) async {
+    /// 每天更新一次 Minecraft 版本資訊
+    int timeStamp = time.subtract(Duration(days: 1)).millisecondsSinceEpoch;
+    SelectorBuilder selector = where.gte('lastUpdated', timeStamp);
+    DbCollection collection = getCollection<MinecraftVersionManifest>();
+    List<Map<String, dynamic>> manifests =
+        await collection.find(selector).toList();
+    if (manifests.isEmpty) {
+      ///如果為空則代表最後一次更新為一天前
+
+      /// 刪除其他已經過期的資料
+      await collection.deleteMany(where.lte('lastUpdated', timeStamp));
+
+      ///從 Mojang API 取得 Minecraft 版本資訊
+      MinecraftVersionManifest manifest =
+          await MinecraftVersionManifest.getFromWeb();
+
+      await manifest.insert();
     }
   }
 }

@@ -16,14 +16,22 @@ void main() async {
     return TestUttily.tearDownAll();
   });
 
-  group("Minecraft Mod", () {
+  group("Minecraft", () {
     late String modUUID;
     late String token;
-    MinecraftVersionManifest versionManifest =
-        MinecraftVersionManifest.fromJson(
-            TestData.versionManifest.getFileString());
-    List<Map<String, dynamic>> supportVersions =
-        [versionManifest.versions.first].map((e) => e.toMap()).toList();
+    late List<Map<String, dynamic>> supportVersions;
+
+    test("get versions", () async {
+      final response = await get(
+        Uri.parse(host + '/minecraft/versions'),
+      );
+      Map<String, dynamic> data =
+          json.decode(response.body)['data'].cast<String, dynamic>();
+      MinecraftVersionManifest _manifest =
+          MinecraftVersionManifest.fromMap(data);
+      supportVersions =
+          [_manifest.manifest.versions.first].map((e) => e.toMap()).toList();
+    });
 
     test("create mod", () async {
       /// 由於建立 Minecraft 模組需要驗證使用者，因此先建立一個使用者帳號
