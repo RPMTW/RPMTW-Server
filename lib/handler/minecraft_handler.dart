@@ -14,7 +14,7 @@ class MinecraftHeader {
     List<RelationMod>? relationMods,
     ModIntegrationPlatform? integration,
     List<ModSide>? side,
-    ModLoader? loader,
+    List<ModLoader>? loader,
   }) async {
     DateTime nowTime = DateTime.now().toUtc();
 

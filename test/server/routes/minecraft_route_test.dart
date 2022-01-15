@@ -51,7 +51,7 @@ void main() async {
             "id": "test_mod",
             "supportVersions": supportVersions,
             "description": "This is the test mod",
-            "loader": ModLoader.fabric.name
+            "loader": [ModLoader.fabric.name, ModLoader.forge.name],
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ void main() async {
       expect(data['id'], 'test_mod');
       expect(data['description'], 'This is the test mod');
       expect(data['supportVersions'], supportVersions);
-      expect(data['loader'], ModLoader.fabric.name);
+      expect(data['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
     });
   });
 }

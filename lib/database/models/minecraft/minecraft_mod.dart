@@ -39,7 +39,7 @@ class MinecraftMod extends BaseModels {
   final List<ModSide> side;
 
   /// 模組使用的模組載入器 (例如 Forge、Fabric...)
-  final ModLoader? loader;
+  final List<ModLoader>? loader;
 
   /// 最後資料更新日期
   final DateTime lastUpdate;
@@ -70,7 +70,7 @@ class MinecraftMod extends BaseModels {
     ModIntegrationPlatform? integration,
     List<ModSide>? side,
     DateTime? lastUpdate,
-    ModLoader? loader,
+    List<ModLoader>? loader,
     DateTime? createTime,
   }) {
     return MinecraftMod(
@@ -101,7 +101,7 @@ class MinecraftMod extends BaseModels {
       'side': side.map((x) => x.toMap()).toList(),
       'lastUpdate': lastUpdate.millisecondsSinceEpoch,
       'createTime': createTime.millisecondsSinceEpoch,
-      'loader': loader?.name,
+      'loader': loader?.map((x) => x.name).toList(),
     };
   }
 
@@ -119,7 +119,8 @@ class MinecraftMod extends BaseModels {
       side: List<ModSide>.from(map['side']?.map((x) => ModSide.fromMap(x))),
       lastUpdate: DateTime.fromMillisecondsSinceEpoch(map['lastUpdate']),
       createTime: DateTime.fromMillisecondsSinceEpoch(map['createTime']),
-      loader: ModLoader.values.byName(map['loader']),
+      loader: List<ModLoader>.from(
+          map['loader']?.map((x) => ModLoader.values.byName(x))),
     );
   }
 
@@ -149,7 +150,7 @@ class MinecraftMod extends BaseModels {
         listEquals(other.side, side) &&
         other.lastUpdate == lastUpdate &&
         other.createTime == createTime &&
-        other.loader == loader;
+        listEquals(other.loader, loader);
   }
 
   @override

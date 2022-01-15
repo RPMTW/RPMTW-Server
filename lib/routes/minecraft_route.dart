@@ -46,8 +46,9 @@ class MinecraftRoute implements BaseRoute {
         List<ModSide>? side = data['side'] != null
             ? data['side']!.map((x) => ModSide.fromMap(x))?.toList()
             : null;
-        ModLoader? loader = data['loader'] != null
-            ? ModLoader.values.byName(data['loader'])
+        List<ModLoader>? loader = data['loader'] != null
+            ? List<ModLoader>.from(
+                data['loader']?.map((x) => ModLoader.values.byName(x)))
             : null;
 
         MinecraftMod mod = await MinecraftHeader.createMod(
