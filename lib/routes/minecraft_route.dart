@@ -22,8 +22,8 @@ class MinecraftRoute implements BaseRoute {
     router.post("/mod/create", (Request req) async {
       try {
         Map<String, dynamic> data = await req.data;
-        bool validateFields = Utility.validateRequiredFields(
-            data, ["name", "id", "supportVersions"]);
+        bool validateFields =
+            Utility.validateRequiredFields(data, ["name", "supportVersions"]);
 
         if (!validateFields) {
           return ResponseExtension.badRequest(
@@ -31,10 +31,10 @@ class MinecraftRoute implements BaseRoute {
         }
 
         String name = data['name'];
-        String id = data['id'];
         List<MinecraftVersion> supportedVersions = List<MinecraftVersion>.from(
             data['supportVersions']?.map((x) => MinecraftVersion.fromMap(x)));
 
+        String? id = data['id'];
         String? description = data['description'];
         List<RelationMod>? relationMods = data['relationMods'] != null
             ? List<RelationMod>.from(
@@ -91,6 +91,12 @@ class MinecraftRoute implements BaseRoute {
       try {
         MinecraftVersionManifest manifest =
             await MinecraftVersionManifest.getFromCache();
+        manifest.copyWith(
+            manifest: manifest.manifest.copyWith(
+                versions: manifest.manifest.versions
+                    // 僅輸出正式版
+                    .where((v) => v.type == MinecraftVersionType.release)
+                    .toList()));
         return ResponseExtension.success(data: manifest.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);

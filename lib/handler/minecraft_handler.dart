@@ -8,8 +8,8 @@ import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 class MinecraftHeader {
   static Future<MinecraftMod> createMod(
       {required String name,
-      required String id,
       required List<MinecraftVersion> supportVersions,
+      String? id,
       String? description,
       List<RelationMod>? relationMods,
       ModIntegration? integration,
