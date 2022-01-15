@@ -33,10 +33,13 @@ class MinecraftMod extends BaseModels {
   final List<RelationMod> relationMods;
 
   /// 模組串連的平台 (例如 CurseForge、Modrinth...)
-  final ModIntegration integration;
+  final ModIntegrationPlatform integration;
 
   /// 模組支援的執行環境 (客戶端/伺服器端)
   final List<ModSide> side;
+
+  /// 模組使用的模組載入器 (例如 Forge、Fabric...)
+  final ModLoader? loader;
 
   /// 最後資料更新日期
   final DateTime lastUpdate;
@@ -46,6 +49,7 @@ class MinecraftMod extends BaseModels {
   const MinecraftMod(
       {required this.name,
       this.description,
+      this.loader,
       required this.id,
       required this.supportVersions,
       required this.relationMods,
@@ -63,9 +67,10 @@ class MinecraftMod extends BaseModels {
     String? id,
     List<MinecraftVersion>? supportVersions,
     List<RelationMod>? relationMods,
-    ModIntegration? integration,
+    ModIntegrationPlatform? integration,
     List<ModSide>? side,
     DateTime? lastUpdate,
+    ModLoader? loader,
     DateTime? createTime,
   }) {
     return MinecraftMod(
@@ -79,6 +84,7 @@ class MinecraftMod extends BaseModels {
       side: side ?? this.side,
       lastUpdate: lastUpdate ?? this.lastUpdate,
       createTime: createTime ?? this.createTime,
+      loader: loader ?? this.loader,
     );
   }
 
@@ -95,6 +101,7 @@ class MinecraftMod extends BaseModels {
       'side': side.map((x) => x.toMap()).toList(),
       'lastUpdate': lastUpdate.millisecondsSinceEpoch,
       'createTime': createTime.millisecondsSinceEpoch,
+      'loader': loader?.name,
     };
   }
 
@@ -108,10 +115,11 @@ class MinecraftMod extends BaseModels {
           map['supportVersions']?.map((x) => MinecraftVersion.fromMap(x))),
       relationMods: List<RelationMod>.from(
           map['relationMods']?.map((x) => RelationMod.fromMap(x))),
-      integration: ModIntegration.fromMap(map['integration']),
+      integration: ModIntegrationPlatform.fromMap(map['integration']),
       side: List<ModSide>.from(map['side']?.map((x) => ModSide.fromMap(x))),
       lastUpdate: DateTime.fromMillisecondsSinceEpoch(map['lastUpdate']),
       createTime: DateTime.fromMillisecondsSinceEpoch(map['createTime']),
+      loader: ModLoader.values.byName(map['loader']),
     );
   }
 
@@ -122,7 +130,7 @@ class MinecraftMod extends BaseModels {
 
   @override
   String toString() {
-    return 'MinecraftMod(uuid:$uuid, name: $name, description: $description, id: $id, supportVersions: $supportVersions, relationMods: $relationMods, integration: $integration, side: $side, lastUpdate: $lastUpdate, createTime: $createTime)';
+    return 'MinecraftMod(uuid:$uuid, name: $name, description: $description, id: $id, supportVersions: $supportVersions, relationMods: $relationMods, integration: $integration, side: $side, lastUpdate: $lastUpdate, createTime: $createTime, loader: $loader)';
   }
 
   @override
@@ -140,7 +148,8 @@ class MinecraftMod extends BaseModels {
         other.integration == integration &&
         listEquals(other.side, side) &&
         other.lastUpdate == lastUpdate &&
-        other.createTime == createTime;
+        other.createTime == createTime &&
+        other.loader == loader;
   }
 
   @override
@@ -154,7 +163,8 @@ class MinecraftMod extends BaseModels {
         integration.hashCode ^
         side.hashCode ^
         lastUpdate.hashCode ^
-        createTime.hashCode;
+        createTime.hashCode ^
+        loader.hashCode;
   }
 
   static Future<MinecraftMod?> getByUUID(String uuid) async =>
@@ -163,3 +173,5 @@ class MinecraftMod extends BaseModels {
   static Future<MinecraftMod?> getByModID(String id) async =>
       DataBase.instance.getModelByField<MinecraftMod>("id", id);
 }
+
+enum ModLoader { fabric, forge, other }

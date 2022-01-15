@@ -40,22 +40,25 @@ class MinecraftRoute implements BaseRoute {
             ? List<RelationMod>.from(
                 data['relationMods']!.map((x) => RelationMod.fromMap(x)))
             : null;
-        ModIntegration? integration = data['integration'] != null
-            ? ModIntegration.fromMap(data['integration'])
+        ModIntegrationPlatform? integration = data['integration'] != null
+            ? ModIntegrationPlatform.fromMap(data['integration'])
             : null;
         List<ModSide>? side = data['side'] != null
             ? data['side']!.map((x) => ModSide.fromMap(x))?.toList()
             : null;
+        ModLoader? loader = data['loader'] != null
+            ? ModLoader.values.byName(data['loader'])
+            : null;
 
         MinecraftMod mod = await MinecraftHeader.createMod(
-          name: name,
-          id: id,
-          supportVersions: supportedVersions,
-          description: description,
-          relationMods: relationMods,
-          integration: integration,
-          side: side,
-        );
+            name: name,
+            id: id,
+            supportVersions: supportedVersions,
+            description: description,
+            relationMods: relationMods,
+            integration: integration,
+            side: side,
+            loader: loader);
 
         return ResponseExtension.success(data: mod.outputMap());
       } catch (e, stack) {

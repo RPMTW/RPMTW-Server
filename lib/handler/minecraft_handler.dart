@@ -6,14 +6,16 @@ import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 
 class MinecraftHeader {
-  static Future<MinecraftMod> createMod(
-      {required String name,
-      required List<MinecraftVersion> supportVersions,
-      String? id,
-      String? description,
-      List<RelationMod>? relationMods,
-      ModIntegration? integration,
-      List<ModSide>? side}) async {
+  static Future<MinecraftMod> createMod({
+    required String name,
+    required List<MinecraftVersion> supportVersions,
+    String? id,
+    String? description,
+    List<RelationMod>? relationMods,
+    ModIntegrationPlatform? integration,
+    List<ModSide>? side,
+    ModLoader? loader,
+  }) async {
     DateTime nowTime = DateTime.now().toUtc();
 
     MinecraftMod mod = MinecraftMod(
@@ -23,10 +25,11 @@ class MinecraftHeader {
         description: description,
         supportVersions: supportVersions,
         relationMods: relationMods ?? [],
-        integration: integration ?? ModIntegration(),
+        integration: integration ?? ModIntegrationPlatform(),
         side: side ?? [],
         lastUpdate: nowTime,
-        createTime: nowTime);
+        createTime: nowTime,
+        loader: loader);
 
     await mod.insert();
     return mod;

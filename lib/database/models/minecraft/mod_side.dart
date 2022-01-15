@@ -37,18 +37,20 @@ class ModSide {
 
   String toJson() => json.encode(toMap());
 
-  factory ModSide.fromJson(String source) => ModSide.fromMap(json.decode(source));
+  factory ModSide.fromJson(String source) =>
+      ModSide.fromMap(json.decode(source));
 
   @override
-  String toString() => 'ModSide(environment: $environment, requireType: $requireType)';
+  String toString() =>
+      'ModSide(environment: $environment, requireType: $requireType)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-  
+
     return other is ModSide &&
-      other.environment == environment &&
-      other.requireType == requireType;
+        other.environment == environment &&
+        other.requireType == requireType;
   }
 
   @override

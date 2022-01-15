@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:test/test.dart';
 import '../../test_utility.dart';
@@ -50,6 +51,7 @@ void main() async {
             "id": "test_mod",
             "supportVersions": supportVersions,
             "description": "This is the test mod",
+            "loader": ModLoader.fabric.name
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -91,6 +93,7 @@ void main() async {
       expect(data['id'], 'test_mod');
       expect(data['description'], 'This is the test mod');
       expect(data['supportVersions'], supportVersions);
+      expect(data['loader'], ModLoader.fabric.name);
     });
   });
 }
