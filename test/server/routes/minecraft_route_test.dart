@@ -20,7 +20,7 @@ void main() async {
   group("Minecraft", () {
     late String modUUID;
     late String token;
-    late List<Map<String, dynamic>> supportVersions;
+    late List<String> supportVersions;
 
     final String modName = "test mod";
     final String modID = "test_mod";
@@ -34,8 +34,7 @@ void main() async {
           json.decode(response.body)['data'].cast<String, dynamic>();
       MinecraftVersionManifest _manifest =
           MinecraftVersionManifest.fromMap(data);
-      supportVersions =
-          [_manifest.manifest.versions.first].map((e) => e.toMap()).toList();
+      supportVersions = [_manifest.manifest.versions.first.id];
     });
 
     test("create mod", () async {
@@ -67,7 +66,6 @@ void main() async {
       expect(data['name'], modName);
       expect(data['id'], modID);
       expect(data['description'], modDescription);
-      expect(data['supportVersions'], supportVersions);
 
       modUUID = data['uuid'];
     });
@@ -96,7 +94,6 @@ void main() async {
       expect(data['name'], modName);
       expect(data['id'], modID);
       expect(data['description'], modDescription);
-      expect(data['supportVersions'], supportVersions);
       expect(data['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
     });
     test("search mods", () async {
@@ -113,7 +110,6 @@ void main() async {
       expect(mods[0]['name'], modName);
       expect(mods[0]['id'], modID);
       expect(mods[0]['description'], modDescription);
-      expect(mods[0]['supportVersions'], supportVersions);
       expect(mods[0]['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
     });
   });

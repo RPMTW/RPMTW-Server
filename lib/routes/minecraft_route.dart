@@ -31,8 +31,17 @@ class MinecraftRoute implements BaseRoute {
         }
 
         String name = data['name'];
-        List<MinecraftVersion> supportedVersions = List<MinecraftVersion>.from(
-            data['supportVersions']?.map((x) => MinecraftVersion.fromMap(x)));
+
+        List<MinecraftVersion> allVersions =
+            (await MinecraftVersionManifest.getFromCache()).manifest.versions;
+        List<MinecraftVersion> supportedVersions;
+        try {
+          supportedVersions = List<MinecraftVersion>.from(
+              data['supportVersions']
+                  ?.map((x) => allVersions.firstWhere((e) => e.id == x)));
+        } catch (e) {
+          return ResponseExtension.badRequest(message: "Invalid game version");
+        }
 
         String? id = data['id'];
         String? description = data['description'];
