@@ -13,6 +13,7 @@ import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 class MinecraftMod extends BaseModels {
   static const String collectionName = "minecraft_mods";
   static const List<IndexFields> indexFields = [
+    IndexFields("name", unique: false),
     IndexFields("id", unique: false),
     IndexFields("integration", unique: false)
   ];
@@ -120,7 +121,7 @@ class MinecraftMod extends BaseModels {
       lastUpdate: DateTime.fromMillisecondsSinceEpoch(map['lastUpdate']),
       createTime: DateTime.fromMillisecondsSinceEpoch(map['createTime']),
       loader: List<ModLoader>.from(
-          map['loader']?.map((x) => ModLoader.values.byName(x))),
+          map['loader']?.map((x) => ModLoader.values.byName(x)) ?? []),
     );
   }
 

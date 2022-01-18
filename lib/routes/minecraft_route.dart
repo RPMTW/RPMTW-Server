@@ -68,7 +68,7 @@ class MinecraftRoute implements BaseRoute {
       }
     });
 
-    router.get("/mod/<uuid>", (Request req) async {
+    router.get("/mod/view/<uuid>", (Request req) async {
       try {
         bool validateFields =
             Utility.validateRequiredFields(req.params, ["uuid"]);
@@ -84,6 +84,29 @@ class MinecraftRoute implements BaseRoute {
           return ResponseExtension.notFound("Minecraft mod not found");
         }
         return ResponseExtension.success(data: mod.outputMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.get("/mod/search", (Request req) async {
+      try {
+        Map<String, dynamic> query = req.url.queryParameters;
+
+        String? filter = query['filter'];
+        int? limit =
+            query['limit'] != null ? int.tryParse(query['limit']) : null;
+        int? skip = query['skip'] != null ? int.tryParse(query['skip']) : null;
+
+        List<MinecraftMod> mods = await MinecraftHeader.search(
+            filter: filter, limit: limit, skip: skip);
+
+        return ResponseExtension.success(data: {
+          if (limit != null) "limit": (limit > 50) ? 50 : limit,
+          if (skip != null) "skip": skip,
+          "mods": mods.map((e) => e.outputMap()).toList()
+        });
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

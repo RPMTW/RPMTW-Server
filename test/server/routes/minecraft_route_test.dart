@@ -22,6 +22,10 @@ void main() async {
     late String token;
     late List<Map<String, dynamic>> supportVersions;
 
+    final String modName = "test mod";
+    final String modID = "test_mod";
+    final String modDescription = "This is the test mod";
+
     test("get versions", () async {
       final response = await get(
         Uri.parse(host + '/minecraft/versions'),
@@ -47,10 +51,10 @@ void main() async {
 
       final response = await post(Uri.parse(host + '/minecraft/mod/create'),
           body: json.encode({
-            "name": "test mod",
-            "id": "test_mod",
+            "name": modName,
+            "id": modID,
             "supportVersions": supportVersions,
-            "description": "This is the test mod",
+            "description": modDescription,
             "loader": [ModLoader.fabric.name, ModLoader.forge.name],
           }),
           headers: {
@@ -60,9 +64,9 @@ void main() async {
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
-      expect(data['name'], 'test mod');
-      expect(data['id'], 'test_mod');
-      expect(data['description'], 'This is the test mod');
+      expect(data['name'], modName);
+      expect(data['id'], modID);
+      expect(data['description'], modDescription);
       expect(data['supportVersions'], supportVersions);
 
       modUUID = data['uuid'];
@@ -83,17 +87,34 @@ void main() async {
     });
     test("view mod", () async {
       final response = await get(
-        Uri.parse(host + '/minecraft/mod/$modUUID'),
+        Uri.parse(host + '/minecraft/mod/view/$modUUID'),
       );
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
       expect(data['uuid'], modUUID);
-      expect(data['name'], 'test mod');
-      expect(data['id'], 'test_mod');
-      expect(data['description'], 'This is the test mod');
+      expect(data['name'], modName);
+      expect(data['id'], modID);
+      expect(data['description'], modDescription);
       expect(data['supportVersions'], supportVersions);
       expect(data['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
+    });
+    test("search mods", () async {
+      final response = await get(
+        Uri.parse(host + '/minecraft/mod/search?filter=test&limit=1&skip=0'),
+      );
+      Map data = json.decode(response.body)['data'];
+      List<Map<String, dynamic>> mods =
+          data['mods'].cast<Map<String, dynamic>>();
+
+      expect(response.statusCode, 200);
+      expect(mods.length, 1);
+      expect(mods[0]['uuid'], modUUID);
+      expect(mods[0]['name'], modName);
+      expect(mods[0]['id'], modID);
+      expect(mods[0]['description'], modDescription);
+      expect(mods[0]['supportVersions'], supportVersions);
+      expect(mods[0]['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
     });
   });
 }

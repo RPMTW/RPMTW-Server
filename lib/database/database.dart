@@ -50,13 +50,15 @@ class DataBase {
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
-    Future<void> checkCollection(
-        String name, List<IndexFields> indexFields) async {
+    Future<void> checkCollection(String name, List<IndexFields> indexFields,
+        {bool needCreateIndex = false}) async {
       if (!collections.contains(name)) {
         await _mongoDB.createCollection(name);
         await _mongoDB.createIndex(name,
             key: 'uuid', name: 'uuid', unique: true);
+      }
 
+      if (needCreateIndex) {
         for (IndexFields field in indexFields) {
           await _mongoDB.createIndex(name,
               key: field.name, name: field.name, unique: field.unique);
@@ -65,9 +67,18 @@ class DataBase {
     }
 
     for (String name in collectionNameList) {
-      await checkCollection(
-          name, indexFields[collectionNameList.indexOf(name)]);
-      collectionList.add(_mongoDB.collection(name));
+      DbCollection collection = _mongoDB.collection(name);
+
+      List<Map<String, dynamic>> indexes = await collection.getIndexes();
+      List<String> indexFieldsName =
+          indexes.map((index) => index['name'] as String).toList();
+      List<IndexFields> _indexFields =
+          indexFields[collectionNameList.indexOf(name)];
+      await checkCollection(name, _indexFields,
+          needCreateIndex: !collections.contains(name) ||
+              _indexFields
+                  .any((field) => !indexFieldsName.contains(field.name)));
+      collectionList.add(collection);
     }
 
     return DataBase();
@@ -207,6 +218,14 @@ class DataBase {
         .toList();
 
     for (Storage storage in storageList) {
+      GridOut? gridOut = await gridFS.getFile(storage.uuid);
+
+      /// 刪除實際的二進位檔案
+      await gridOut?.fs.files.deleteOne(gridOut.data);
+      await gridOut?.fs.chunks
+          .deleteMany(where.eq('files_id', storage.uuid).sortBy('n'));
+
+      /// 刪除儲存數據 model
       await storage.delete();
     }
   }
