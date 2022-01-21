@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
+import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 import 'package:test/test.dart';
 import '../../test_utility.dart';
 
@@ -25,7 +26,9 @@ void main() async {
     final String modName = "test mod";
     final String modID = "test_mod";
     final String modDescription = "This is the test mod";
-
+    final ModSide modSide = ModSide(
+        environment: ModSideEnvironment.client,
+        requireType: ModRequireType.required);
     test("get versions", () async {
       final response = await get(
         Uri.parse(host + '/minecraft/versions'),
@@ -55,6 +58,7 @@ void main() async {
             "supportVersions": supportVersions,
             "description": modDescription,
             "loader": [ModLoader.fabric.name, ModLoader.forge.name],
+            "side": [modSide.toMap()]
           }),
           headers: {
             'Content-Type': 'application/json',
@@ -66,6 +70,8 @@ void main() async {
       expect(data['name'], modName);
       expect(data['id'], modID);
       expect(data['description'], modDescription);
+      expect(data['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
+      expect(data['side'], [modSide.toMap()]);
 
       modUUID = data['uuid'];
     });
@@ -95,6 +101,7 @@ void main() async {
       expect(data['id'], modID);
       expect(data['description'], modDescription);
       expect(data['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
+      expect(data['side'], [modSide.toMap()]);
     });
     test("search mods", () async {
       final response = await get(
@@ -111,6 +118,7 @@ void main() async {
       expect(mods[0]['id'], modID);
       expect(mods[0]['description'], modDescription);
       expect(mods[0]['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
+      expect(mods[0]['side'], [modSide.toMap()]);
     });
   });
 }

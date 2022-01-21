@@ -53,7 +53,8 @@ class MinecraftRoute implements BaseRoute {
             ? ModIntegrationPlatform.fromMap(data['integration'])
             : null;
         List<ModSide>? side = data['side'] != null
-            ? data['side']!.map((x) => ModSide.fromMap(x))?.toList()
+            ? List<ModSide>.from(
+                data['side']!.map((x) => ModSide.fromMap(x)).toList())
             : null;
         List<ModLoader>? loader = data['loader'] != null
             ? List<ModLoader>.from(
