@@ -1,9 +1,11 @@
+import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
+import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/data.dart';
@@ -117,6 +119,85 @@ class MinecraftRoute implements BaseRoute {
           if (skip != null) "skip": skip,
           "mods": mods.map((e) => e.outputMap()).toList()
         });
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.post("/mod/wiki/create", (Request req) async {
+      try {
+        Map<String, dynamic> data = await req.data;
+        bool validateFields = Utility.validateRequiredFields(data, ["modUUID"]);
+        if (!validateFields) {
+          return ResponseExtension.badRequest(
+              message: Messages.missingRequiredFields);
+        }
+
+        String modUUID = data['modUUID']!;
+        String? translatedName = data['translatedName'];
+        String? introduction = data['introduction'];
+        String? imageStorageUUID = data['imageStorageUUID'];
+
+        MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
+
+        if (mod == null) {
+          return ResponseExtension.notFound(
+              "Can't find this Minecraft mod ($modUUID)");
+        }
+
+        WikiModData modData = WikiModData(
+            uuid: Uuid().v4(),
+            modUUID: modUUID,
+            translatedName: translatedName,
+            introduction: introduction,
+            imageStorageUUID: imageStorageUUID);
+
+        await modData.insert();
+
+        return ResponseExtension.success(data: modData.outputMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.get("/mod/wiki/view/<uuid>", (Request req) async {
+      try {
+        bool validateFields =
+            Utility.validateRequiredFields(req.params, ["uuid"]);
+        if (!validateFields) {
+          return ResponseExtension.badRequest(
+              message: Messages.missingRequiredFields);
+        }
+
+        String uuid = req.params['uuid']!;
+        WikiModData? modData = await WikiModData.getByUUID(uuid);
+        if (modData == null) {
+          return ResponseExtension.notFound("Wiki mod data not found");
+        }
+        return ResponseExtension.success(data: modData.outputMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.get("/mod/wiki/view-by-mod-uuid/<modUUID>", (Request req) async {
+      try {
+        bool validateFields =
+            Utility.validateRequiredFields(req.params, ["modUUID"]);
+        if (!validateFields) {
+          return ResponseExtension.badRequest(
+              message: Messages.missingRequiredFields);
+        }
+
+        String modUUID = req.params['modUUID']!;
+        WikiModData? modData = await WikiModData.getByModUUID(modUUID);
+        if (modData == null) {
+          return ResponseExtension.notFound("Wiki mod data not found");
+        }
+        return ResponseExtension.success(data: modData.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

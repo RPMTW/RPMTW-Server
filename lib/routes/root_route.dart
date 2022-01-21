@@ -22,14 +22,12 @@ class RootRoute implements BaseRoute {
     router.mount('/minecraft/', MinecraftRoute().router);
 
     router.get('/', (Request req) async {
-      return Response.ok(
-        'Hello RPMTW World!',
-      );
+      return ResponseExtension.success(data: {"message": "Hello RPMTW World"});
     });
 
     router.get('/ip', (Request req) async {
       try {
-        return Response.ok(req.ip);
+        return ResponseExtension.success(data: {"ip": req.ip});
       } catch (e) {
         logger.e(e);
         return ResponseExtension.internalServerError();

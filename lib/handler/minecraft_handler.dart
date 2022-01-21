@@ -5,6 +5,7 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
+import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
 
 class MinecraftHeader {
   static Future<MinecraftMod> createMod({
@@ -46,22 +47,58 @@ class MinecraftHeader {
     }
 
     List<MinecraftMod> mods = [];
-    final DbCollection collection =
-        DataBase.instance.getCollection<MinecraftMod>();
 
-    SelectorBuilder builder = SelectorBuilder();
-    if (filter != null) {
-      /// search by name or id
-      builder = builder.match('id', filter).or(where.match('name', filter));
+    Future<void> _searchByMinecraftMod() async {
+      final DbCollection collection =
+          DataBase.instance.getCollection<MinecraftMod>();
+
+      SelectorBuilder builder = SelectorBuilder();
+      if (filter != null) {
+        /// search by name or id
+        builder = builder.match('id', filter).or(where.match('name', filter));
+      }
+      builder = builder.limit(limit!).skip(skip!);
+
+      final List<Map<String, dynamic>> modMaps =
+          await collection.find(builder).toList();
+
+      for (final Map<String, dynamic> map in modMaps) {
+        mods.add(MinecraftMod.fromMap(map));
+      }
     }
-    builder = builder.limit(limit).skip(skip);
 
-    final List<Map<String, dynamic>> modMaps =
-        await collection.find(builder).toList();
+    Future<void> _searchByWikiModData() async {
+      final DbCollection collection =
+          DataBase.instance.getCollection<WikiModData>();
 
-    for (final Map<String, dynamic> map in modMaps) {
-      mods.add(MinecraftMod.fromMap(map));
+      SelectorBuilder builder = SelectorBuilder();
+      if (filter != null) {
+        /// search by translated name
+        builder = builder.match('translatedName', filter);
+      }
+      builder = builder.limit(limit!).skip(skip!);
+
+      final List<Map<String, dynamic>> modMaps =
+          await collection.find(builder).toList();
+
+      for (final Map<String, dynamic> map in modMaps) {
+        WikiModData wikiData = WikiModData.fromMap(map);
+        MinecraftMod? mod = await MinecraftMod.getByUUID(wikiData.modUUID);
+        if (mod != null) {
+          mods.add(mod);
+        }
+      }
     }
+
+    await _searchByMinecraftMod();
+    await _searchByWikiModData();
+
+    /// remove duplicate
+    mods = mods.toSet().toList();
+
+    mods.sort((MinecraftMod a, MinecraftMod b) {
+      return a.createTime.compareTo(b.createTime);
+    });
 
     return mods;
   }
