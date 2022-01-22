@@ -192,8 +192,7 @@ void main() async {
 
     test("search mods (by translated name)", () async {
       final response = await get(
-        Uri.parse(host +
-            '/minecraft/mod/search?filter=測試&limit=1&skip=0'),
+        Uri.parse(host + '/minecraft/mod/search?filter=測試&limit=1&skip=0'),
       );
       Map data = json.decode(response.body)['data'];
       List<Map<String, dynamic>> mods =
@@ -207,6 +206,22 @@ void main() async {
       expect(mods[0]['description'], modDescription);
       expect(mods[0]['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
       expect(mods[0]['side'], [modSide.toMap()]);
+    });
+    test("filter changelogs", () async {
+      final response = await get(
+        Uri.parse(host + '/minecraft/changelog?limit=2&skip=0'),
+      );
+      Map data = json.decode(response.body)['data'];
+      List<Map<String, dynamic>> changelogs =
+          data['changelogs'].cast<Map<String, dynamic>>();
+
+      expect(response.statusCode, 200);
+      expect(changelogs.length, 2);
+      expect(changelogs[0]['type'], "addedMod");
+      expect(changelogs[0]['dataUUID'], modUUID);
+
+      expect(changelogs[1]['type'], "addedWikiModData");
+      expect(changelogs[1]['dataUUID'], wikiModDataUUID);
     });
   });
 }

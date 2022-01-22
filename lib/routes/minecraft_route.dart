@@ -5,6 +5,7 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
+import 'package:rpmtw_server/database/models/rpmwiki/wiki_change_log.dart';
 import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
@@ -73,6 +74,15 @@ class MinecraftRoute implements BaseRoute {
             side: side,
             loader: loader);
 
+        WikiChangeLog changeLog = WikiChangeLog(
+            uuid: Uuid().v4(),
+            type: WikiChangeLogType.addedMod,
+            dataUUID: mod.uuid,
+            time: DateTime.now(),
+            userUUID: req.user!.uuid);
+
+        await changeLog.insert();
+
         return ResponseExtension.success(data: mod.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -111,7 +121,7 @@ class MinecraftRoute implements BaseRoute {
             query['limit'] != null ? int.tryParse(query['limit']) : null;
         int? skip = query['skip'] != null ? int.tryParse(query['skip']) : null;
 
-        List<MinecraftMod> mods = await MinecraftHeader.search(
+        List<MinecraftMod> mods = await MinecraftHeader.searchMods(
             filter: filter, limit: limit, skip: skip);
 
         return ResponseExtension.success(data: {
@@ -153,6 +163,14 @@ class MinecraftRoute implements BaseRoute {
             introduction: introduction,
             imageStorageUUID: imageStorageUUID);
 
+        WikiChangeLog changeLog = WikiChangeLog(
+            uuid: Uuid().v4(),
+            type: WikiChangeLogType.addedWikiModData,
+            dataUUID: modData.uuid,
+            time: DateTime.now(),
+            userUUID: req.user!.uuid);
+
+        await changeLog.insert();
         await modData.insert();
 
         return ResponseExtension.success(data: modData.outputMap());
@@ -176,6 +194,12 @@ class MinecraftRoute implements BaseRoute {
         if (modData == null) {
           return ResponseExtension.notFound("Wiki mod data not found");
         }
+
+        modData = modData.copyWith(viewCount: modData.viewCount + 1);
+
+        /// Update view count
+        await modData.update();
+
         return ResponseExtension.success(data: modData.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -197,6 +221,12 @@ class MinecraftRoute implements BaseRoute {
         if (modData == null) {
           return ResponseExtension.notFound("Wiki mod data not found");
         }
+
+        modData = modData.copyWith(viewCount: modData.viewCount + 1);
+
+        /// Update view count
+        await modData.update();
+
         return ResponseExtension.success(data: modData.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -216,6 +246,28 @@ class MinecraftRoute implements BaseRoute {
                     .where((v) => v.type == MinecraftVersionType.release)
                     .toList()));
         return ResponseExtension.success(data: manifest.outputMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.get("/changelog", (Request req) async {
+      try {
+        Map<String, dynamic> query = req.url.queryParameters;
+
+        int? limit =
+            query['limit'] != null ? int.tryParse(query['limit']) : null;
+        int? skip = query['skip'] != null ? int.tryParse(query['skip']) : null;
+
+        List<WikiChangeLog> changelogs =
+            await MinecraftHeader.filterChangelogs(limit: limit, skip: skip);
+
+        return ResponseExtension.success(data: {
+          if (limit != null) "limit": (limit > 50) ? 50 : limit,
+          if (skip != null) "skip": skip,
+          "changelogs": changelogs.map((e) => e.outputMap()).toList()
+        });
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

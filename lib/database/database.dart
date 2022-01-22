@@ -7,6 +7,7 @@ import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
+import 'package:rpmtw_server/database/models/rpmwiki/wiki_change_log.dart';
 import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
 
 import '../utilities/data.dart';
@@ -42,6 +43,7 @@ class DataBase {
       BanInfo.collectionName,
       MinecraftVersionManifest.collectionName,
       WikiModData.collectionName,
+      WikiChangeLog.collectionName,
     ];
 
     List<List<IndexFields>> indexFields = [
@@ -52,6 +54,7 @@ class DataBase {
       BanInfo.indexFields,
       MinecraftVersionManifest.indexFields,
       WikiModData.indexFields,
+      WikiChangeLog.indexFields,
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -113,6 +116,7 @@ class DataBase {
       "BanInfo": collectionList[4],
       "MinecraftVersionManifest": collectionList[5],
       "WikiModData": collectionList[6],
+      "WikiChangeLog": collectionList[7],
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -127,6 +131,7 @@ class DataBase {
       "BanInfo": BanInfo.fromMap,
       "MinecraftVersionManifest": MinecraftVersionManifest.fromMap,
       "WikiModData": WikiModData.fromMap,
+      "WikiChangeLog": WikiChangeLog.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;

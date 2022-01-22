@@ -23,12 +23,16 @@ class WikiModData extends BaseModels {
   /// 模組的封面圖 (Storage UUID)
   final String? imageStorageUUID;
 
+  /// 模組瀏覽次數
+  final int viewCount;
+
   const WikiModData({
     required String uuid,
     required this.modUUID,
     this.translatedName,
     this.introduction,
     this.imageStorageUUID,
+    this.viewCount = 0,
   }) : super(uuid: uuid);
 
   WikiModData copyWith({
@@ -37,6 +41,7 @@ class WikiModData extends BaseModels {
     String? translatedName,
     String? introduction,
     String? imageStorageUUID,
+    int? viewCount,
   }) {
     return WikiModData(
       uuid: uuid ?? this.uuid,
@@ -44,6 +49,7 @@ class WikiModData extends BaseModels {
       translatedName: translatedName ?? this.translatedName,
       introduction: introduction ?? this.introduction,
       imageStorageUUID: imageStorageUUID ?? this.imageStorageUUID,
+      viewCount: viewCount ?? this.viewCount,
     );
   }
 
@@ -55,6 +61,7 @@ class WikiModData extends BaseModels {
       'translatedName': translatedName,
       'introduction': introduction,
       'imageStorageUUID': imageStorageUUID,
+      'viewCount': viewCount,
     };
   }
 
@@ -65,6 +72,7 @@ class WikiModData extends BaseModels {
       translatedName: map['translatedName'],
       introduction: map['introduction'],
       imageStorageUUID: map['imageStorageUUID'],
+      viewCount: map['viewCount'] ?? 0,
     );
   }
 
@@ -75,7 +83,7 @@ class WikiModData extends BaseModels {
 
   @override
   String toString() {
-    return 'WikiModData(uuid: $uuid, modUUID: $modUUID, translatedName: $translatedName, introduction: $introduction, imageStorageUUID: $imageStorageUUID)';
+    return 'WikiModData(uuid: $uuid, modUUID: $modUUID, translatedName: $translatedName, introduction: $introduction, imageStorageUUID: $imageStorageUUID, viewCount: $viewCount)';
   }
 
   @override
@@ -87,7 +95,8 @@ class WikiModData extends BaseModels {
         other.modUUID == modUUID &&
         other.translatedName == translatedName &&
         other.introduction == introduction &&
-        other.imageStorageUUID == imageStorageUUID;
+        other.imageStorageUUID == imageStorageUUID &&
+        other.viewCount == viewCount;
   }
 
   @override
@@ -96,7 +105,8 @@ class WikiModData extends BaseModels {
         modUUID.hashCode ^
         translatedName.hashCode ^
         introduction.hashCode ^
-        imageStorageUUID.hashCode;
+        imageStorageUUID.hashCode ^
+        viewCount.hashCode;
   }
 
   static Future<WikiModData?> getByUUID(String uuid) async =>

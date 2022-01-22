@@ -38,7 +38,8 @@ class AuthHandler {
             List<String> needAuthorizationPaths = [
               "auth/user/me",
               "auth/user/me/update",
-              "minecraft/mod/create"
+              "minecraft/mod/create",
+              "minecraft/mod/wiki/create",
             ];
             if (needAuthorizationPaths.contains(path)) {
               String? token = request.headers['Authorization']
