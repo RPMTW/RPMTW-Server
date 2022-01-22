@@ -7,8 +7,8 @@ import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
-import 'package:rpmtw_server/database/models/rpmwiki/wiki_change_log.dart';
-import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
 
 import '../utilities/data.dart';
 import 'models/auth/user.dart';

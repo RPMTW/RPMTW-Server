@@ -4,6 +4,7 @@ import 'package:http/http.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
+import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
 import 'package:test/test.dart';
 import '../../test_utility.dart';
 
@@ -62,7 +63,12 @@ void main() async {
             "supportVersions": supportVersions,
             "description": modDescription,
             "loader": [ModLoader.fabric.name, ModLoader.forge.name],
-            "side": [modSide.toMap()]
+            "side": [modSide.toMap()],
+            "relationMods": [
+              // TODO:另外建立一個關聯模組來取代 test
+              RelationMod(modUUID: "test", type: RelationType.dependency)
+                  .toMap()
+            ],
           }),
           headers: {
             'Content-Type': 'application/json',

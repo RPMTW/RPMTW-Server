@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:rpmtw_server/database/models/base_models.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
 
 class WikiChangeLog extends BaseModels {
   static const String collectionName = "rpmwiki_wiki_change_log";

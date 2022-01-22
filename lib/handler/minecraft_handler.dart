@@ -5,8 +5,8 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
-import 'package:rpmtw_server/database/models/rpmwiki/wiki_change_log.dart';
-import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
 
 class MinecraftHeader {
   static Future<MinecraftMod> createMod({

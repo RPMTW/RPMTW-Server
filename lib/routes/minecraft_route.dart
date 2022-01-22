@@ -5,8 +5,8 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
-import 'package:rpmtw_server/database/models/rpmwiki/wiki_change_log.dart';
-import 'package:rpmtw_server/database/models/rpmwiki/wiki_mod_data.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/data.dart';
@@ -217,9 +217,15 @@ class MinecraftRoute implements BaseRoute {
         }
 
         String modUUID = req.params['modUUID']!;
+        MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
+        if (mod == null) {
+          return ResponseExtension.notFound("Minecraft mod not found");
+        }
+
         WikiModData? modData = await WikiModData.getByModUUID(modUUID);
         if (modData == null) {
-          return ResponseExtension.notFound("Wiki mod data not found");
+          modData = WikiModData(uuid: Uuid().v4(), modUUID: modUUID);
+          await modData.insert();
         }
 
         modData = modData.copyWith(viewCount: modData.viewCount + 1);
