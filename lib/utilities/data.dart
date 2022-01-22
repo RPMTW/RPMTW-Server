@@ -1,5 +1,8 @@
+import 'package:collection/collection.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:logger/logger.dart';
+
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
 
 Logger logger =
     Logger(printer: PrettyPrinter(colors: false), filter: _LogFilter());
@@ -10,16 +13,104 @@ Logger loggerNoStack = Logger(
 
 bool kTestMode = false;
 
+class _LogFilter extends LogFilter {
+  @override
+  bool shouldLog(LogEvent event) {
+    /// 永遠啟用日誌輸出
+    return true;
+  }
+}
+
 class Data {
   static Future<void> init() async {
     load();
   }
 }
 
-class _LogFilter extends LogFilter {
+class UserViewCountFilter {
+  static final List<UserViewCountFilter> _userViewCountFilters = [];
+
+  final String userIP;
+
+  /// 已瀏覽過的模組 ( [WikiModData] 的 UUID )
+  final Set<String> viewedMods;
+
+  final DateTime createdAt;
+
+  const UserViewCountFilter({
+    required this.userIP,
+    required this.viewedMods,
+    required this.createdAt,
+  });
+
+  bool isViewed(String wikiModDataUUID) {
+    return viewedMods.contains(wikiModDataUUID);
+  }
+
   @override
-  bool shouldLog(LogEvent event) {
-    /// 永遠啟用日誌輸出
-    return true;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    final setEquals = const DeepCollectionEquality().equals;
+
+    return other is UserViewCountFilter &&
+        other.userIP == userIP &&
+        setEquals(other.viewedMods, viewedMods) &&
+        other.createdAt == createdAt;
+  }
+
+  @override
+  int get hashCode =>
+      userIP.hashCode ^ viewedMods.hashCode ^ createdAt.hashCode;
+
+  UserViewCountFilter copyWith({
+    String? userIP,
+    Set<String>? viewedMods,
+    DateTime? createdAt,
+  }) {
+    return UserViewCountFilter(
+      userIP: userIP ?? this.userIP,
+      viewedMods: viewedMods ?? this.viewedMods,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  static bool needUpdateViewCount(String ip, String wikiModDataUUID) {
+    UserViewCountFilter? _getUserViewCountFilter(String userIP) {
+      try {
+        return _userViewCountFilters.firstWhere(
+          (f) => f.userIP == userIP,
+        );
+      } catch (e) {
+        return null;
+      }
+    }
+
+    void _add(UserViewCountFilter filter) {
+      _userViewCountFilters.add(filter);
+    }
+
+    UserViewCountFilter? countFilter = _getUserViewCountFilter(ip);
+    if (countFilter == null) {
+      _add(UserViewCountFilter(
+          userIP: ip,
+          viewedMods: {wikiModDataUUID},
+          createdAt: DateTime.now()));
+      return true;
+    } else {
+      if (!countFilter.isViewed(wikiModDataUUID)) {
+        _add(countFilter.copyWith(
+            viewedMods: countFilter.viewedMods..add(wikiModDataUUID)));
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  static void clearUserViewCountFilter(DateTime time) {
+    /// 刪除超過一小時的資料
+    _userViewCountFilters.removeWhere(
+      (f) => f.createdAt.isBefore(time.subtract(Duration(hours: 1))),
+    );
   }
 }

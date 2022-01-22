@@ -214,6 +214,7 @@ class DataBase {
     await _storageTimer(time);
     await _authCodeTimer(time);
     await _minecraftVersionManifest(time);
+    _clearUserViewCountFilter(time);
   }
 
   Future<void> _storageTimer(DateTime time) async {
@@ -276,6 +277,9 @@ class DataBase {
       await manifest.insert();
     }
   }
+
+  void _clearUserViewCountFilter(DateTime time) =>
+      UserViewCountFilter.clearUserViewCountFilter(time);
 }
 
 class InsertModelException implements Exception {

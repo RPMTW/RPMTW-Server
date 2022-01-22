@@ -195,10 +195,12 @@ class MinecraftRoute implements BaseRoute {
           return ResponseExtension.notFound("Wiki mod data not found");
         }
 
-        modData = modData.copyWith(viewCount: modData.viewCount + 1);
+        if (UserViewCountFilter.needUpdateViewCount(req.ip, modData.uuid)) {
+          modData = modData.copyWith(viewCount: modData.viewCount + 1);
 
-        /// Update view count
-        await modData.update();
+          /// Update view count
+          await modData.update();
+        }
 
         return ResponseExtension.success(data: modData.outputMap());
       } catch (e, stack) {
@@ -228,10 +230,12 @@ class MinecraftRoute implements BaseRoute {
           await modData.insert();
         }
 
-        modData = modData.copyWith(viewCount: modData.viewCount + 1);
+        if (UserViewCountFilter.needUpdateViewCount(req.ip, modData.uuid)) {
+          modData = modData.copyWith(viewCount: modData.viewCount + 1);
 
-        /// Update view count
-        await modData.update();
+          /// Update view count
+          await modData.update();
+        }
 
         return ResponseExtension.success(data: modData.outputMap());
       } catch (e, stack) {
