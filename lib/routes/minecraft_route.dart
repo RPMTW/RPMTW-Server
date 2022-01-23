@@ -6,7 +6,6 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
-import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/data.dart';
@@ -63,6 +62,9 @@ class MinecraftRoute implements BaseRoute {
             ? List<ModLoader>.from(
                 data['loader']?.map((x) => ModLoader.values.byName(x)))
             : null;
+        String? translatedName = data['translatedName'];
+        String? introduction = data['introduction'];
+        String? imageStorageUUID = data['imageStorageUUID'];
 
         MinecraftMod mod = await MinecraftHeader.createMod(
             name: name,
@@ -72,7 +74,10 @@ class MinecraftRoute implements BaseRoute {
             relationMods: relationMods,
             integration: integration,
             side: side,
-            loader: loader);
+            loader: loader,
+            translatedName: translatedName,
+            introduction: introduction,
+            imageStorageUUID: imageStorageUUID);
 
         WikiChangeLog changeLog = WikiChangeLog(
             uuid: Uuid().v4(),
@@ -105,6 +110,19 @@ class MinecraftRoute implements BaseRoute {
         if (mod == null) {
           return ResponseExtension.notFound("Minecraft mod not found");
         }
+
+        String? _recordViewCount = req.url.queryParameters['recordViewCount'];
+        bool recordViewCount =
+            _recordViewCount == null ? false : _recordViewCount.toBool();
+
+        if (recordViewCount &&
+            UserViewCountFilter.needUpdateViewCount(req.ip, mod.uuid)) {
+          mod = mod.copyWith(viewCount: mod.viewCount + 1);
+
+          /// Update view count
+          await mod.update();
+        }
+
         return ResponseExtension.success(data: mod.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -120,124 +138,16 @@ class MinecraftRoute implements BaseRoute {
         int? limit =
             query['limit'] != null ? int.tryParse(query['limit']) : null;
         int? skip = query['skip'] != null ? int.tryParse(query['skip']) : null;
+        int sort = query['sort'] != null ? int.tryParse(query['sort']) ?? 0 : 0;
 
         List<MinecraftMod> mods = await MinecraftHeader.searchMods(
-            filter: filter, limit: limit, skip: skip);
+            filter: filter, limit: limit, skip: skip, sort: sort);
 
         return ResponseExtension.success(data: {
           if (limit != null) "limit": (limit > 50) ? 50 : limit,
           if (skip != null) "skip": skip,
           "mods": mods.map((e) => e.outputMap()).toList()
         });
-      } catch (e, stack) {
-        logger.e(e, null, stack);
-        return ResponseExtension.badRequest();
-      }
-    });
-
-    router.post("/mod/wiki/create", (Request req) async {
-      try {
-        Map<String, dynamic> data = await req.data;
-        bool validateFields = Utility.validateRequiredFields(data, ["modUUID"]);
-        if (!validateFields) {
-          return ResponseExtension.badRequest(
-              message: Messages.missingRequiredFields);
-        }
-
-        String modUUID = data['modUUID']!;
-        String? translatedName = data['translatedName'];
-        String? introduction = data['introduction'];
-        String? imageStorageUUID = data['imageStorageUUID'];
-
-        MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
-
-        if (mod == null) {
-          return ResponseExtension.notFound(
-              "Can't find this Minecraft mod ($modUUID)");
-        }
-
-        WikiModData modData = WikiModData(
-            uuid: Uuid().v4(),
-            modUUID: modUUID,
-            translatedName: translatedName,
-            introduction: introduction,
-            imageStorageUUID: imageStorageUUID);
-
-        WikiChangeLog changeLog = WikiChangeLog(
-            uuid: Uuid().v4(),
-            type: WikiChangeLogType.addedWikiModData,
-            dataUUID: modData.uuid,
-            time: DateTime.now(),
-            userUUID: req.user!.uuid);
-
-        await changeLog.insert();
-        await modData.insert();
-
-        return ResponseExtension.success(data: modData.outputMap());
-      } catch (e, stack) {
-        logger.e(e, null, stack);
-        return ResponseExtension.badRequest();
-      }
-    });
-
-    router.get("/mod/wiki/view/<uuid>", (Request req) async {
-      try {
-        bool validateFields =
-            Utility.validateRequiredFields(req.params, ["uuid"]);
-        if (!validateFields) {
-          return ResponseExtension.badRequest(
-              message: Messages.missingRequiredFields);
-        }
-
-        String uuid = req.params['uuid']!;
-        WikiModData? modData = await WikiModData.getByUUID(uuid);
-        if (modData == null) {
-          return ResponseExtension.notFound("Wiki mod data not found");
-        }
-
-        if (UserViewCountFilter.needUpdateViewCount(req.ip, modData.uuid)) {
-          modData = modData.copyWith(viewCount: modData.viewCount + 1);
-
-          /// Update view count
-          await modData.update();
-        }
-
-        return ResponseExtension.success(data: modData.outputMap());
-      } catch (e, stack) {
-        logger.e(e, null, stack);
-        return ResponseExtension.badRequest();
-      }
-    });
-
-    router.get("/mod/wiki/view-by-mod-uuid/<modUUID>", (Request req) async {
-      try {
-        bool validateFields =
-            Utility.validateRequiredFields(req.params, ["modUUID"]);
-        if (!validateFields) {
-          return ResponseExtension.badRequest(
-              message: Messages.missingRequiredFields);
-        }
-
-        String modUUID = req.params['modUUID']!;
-        MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
-        if (mod == null) {
-          return ResponseExtension.notFound("Minecraft mod not found");
-        }
-
-        WikiModData? modData = await WikiModData.getByModUUID(modUUID);
-        if (modData == null) {
-          modData = WikiModData(uuid: Uuid().v4(), modUUID: modUUID);
-          await modData.insert();
-        }
-
-        if (UserViewCountFilter.needUpdateViewCount(req.ip, modData.uuid)) {
-          modData = modData.copyWith(viewCount: modData.viewCount + 1);
-
-          /// Update view count
-          await modData.update();
-        }
-
-        return ResponseExtension.success(data: modData.outputMap());
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:rpmtw_server/database/models/base_models.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
 
 class WikiChangeLog extends BaseModels {
   static const String collectionName = "rpmwiki_wiki_change_log";
@@ -18,7 +17,7 @@ class WikiChangeLog extends BaseModels {
   /// 修改類型
   final WikiChangeLogType type;
 
-  /// 修改的資料 (可能是 [MinecraftMod] 或 [WikiModData] 的 UUID )
+  /// 修改的資料 (可能是 [MinecraftMod] 的 UUID )
   final String dataUUID;
 
   final String userUUID;
@@ -115,10 +114,4 @@ enum WikiChangeLogType {
   modifiedMod,
   // 刪除模組
   removedMod,
-  // 新增模組維基資料
-  addedWikiModData,
-  // 編輯模組維基資料
-  modifiedWikiModData,
-  // 刪除模組維基資料
-  removedWikiModData,
 }

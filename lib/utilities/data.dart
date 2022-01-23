@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:dotenv/dotenv.dart';
 import 'package:logger/logger.dart';
 
-import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_mod_data.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 
 Logger logger =
     Logger(printer: PrettyPrinter(colors: false), filter: _LogFilter());
@@ -28,11 +28,11 @@ class Data {
 }
 
 class UserViewCountFilter {
-  static final List<UserViewCountFilter> _userViewCountFilters = [];
+  static final List<UserViewCountFilter> _filters = [];
 
   final String userIP;
 
-  /// 已瀏覽過的模組 ( [WikiModData] 的 UUID )
+  /// 已瀏覽過的模組 ( [MinecraftMod] 的 UUID )
   final Set<String> viewedMods;
 
   final DateTime createdAt;
@@ -77,7 +77,7 @@ class UserViewCountFilter {
   static bool needUpdateViewCount(String ip, String wikiModDataUUID) {
     UserViewCountFilter? _getUserViewCountFilter(String userIP) {
       try {
-        return _userViewCountFilters.firstWhere(
+        return _filters.firstWhere(
           (f) => f.userIP == userIP,
         );
       } catch (e) {
@@ -86,7 +86,7 @@ class UserViewCountFilter {
     }
 
     void _add(UserViewCountFilter filter) {
-      _userViewCountFilters.add(filter);
+      _filters.add(filter);
     }
 
     UserViewCountFilter? countFilter = _getUserViewCountFilter(ip);
@@ -109,7 +109,7 @@ class UserViewCountFilter {
 
   static void clearUserViewCountFilter(DateTime time) {
     /// 刪除超過一小時的資料
-    _userViewCountFilters.removeWhere(
+    _filters.removeWhere(
       (f) => f.createdAt.isBefore(time.subtract(Duration(hours: 1))),
     );
   }
