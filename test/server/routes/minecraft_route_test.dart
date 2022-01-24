@@ -260,6 +260,7 @@ void main() async {
 
       expect(changelogs[1]['type'], "editedMod");
       expect(changelogs[1]['dataUUID'], modUUID);
+      expect(changelogs[1]['changelog'], contains("edit mod name"));
     });
   });
 }
