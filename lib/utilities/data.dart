@@ -94,7 +94,7 @@ class UserViewCountFilter {
       _add(UserViewCountFilter(
           userIP: ip,
           viewedMods: {wikiModDataUUID},
-          createdAt: DateTime.now()));
+          createdAt: DateTime.now().toUtc()));
       return true;
     } else {
       if (!countFilter.isViewed(wikiModDataUUID)) {

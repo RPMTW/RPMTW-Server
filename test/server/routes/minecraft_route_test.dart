@@ -25,6 +25,7 @@ void main() async {
     late List<String> supportVersions;
 
     final String modName = "test mod";
+    final String changedName = "test2 mod";
     final String modID = "test_mod";
     final String modDescription = "This is the test mod";
     final ModSide modSide = ModSide(
@@ -104,6 +105,22 @@ void main() async {
       expect(map['message'], contains("Missing required fields"));
     });
 
+    test("create mod (invalid mod name)", () async {
+      final response = await post(Uri.parse(host + '/minecraft/mod/create'),
+          body: json.encode({
+            "name": "",
+            "supportVersions": supportVersions,
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          });
+
+      Map map = json.decode(response.body);
+
+      expect(response.statusCode, 400);
+      expect(map['message'], contains("Invalid mod name"));
+    });
     test("view mod", () async {
       final response = await get(
         Uri.parse(host + '/minecraft/mod/view/$modUUID?recordViewCount=false'),
@@ -123,7 +140,8 @@ void main() async {
 
     test("search mods", () async {
       final response = await get(
-        Uri.parse(host + '/minecraft/mod/search?filter=test&limit=1&skip=0&sort=0'),
+        Uri.parse(
+            host + '/minecraft/mod/search?filter=test&limit=1&skip=0&sort=0'),
       );
       Map data = json.decode(response.body)['data'];
       List<Map<String, dynamic>> mods =
@@ -141,7 +159,8 @@ void main() async {
 
     test("search mods (by translated name)", () async {
       final response = await get(
-        Uri.parse(host + '/minecraft/mod/search?filter=測試&limit=1&skip=0&sort=1'),
+        Uri.parse(
+            host + '/minecraft/mod/search?filter=測試&limit=1&skip=0&sort=1'),
       );
       Map data = json.decode(response.body)['data'];
       List<Map<String, dynamic>> mods =
@@ -156,6 +175,27 @@ void main() async {
       expect(mods[0]['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
       expect(mods[0]['side'], [modSide.toMap()]);
     });
+    test("edit mod", () async {
+      final response =
+          await patch(Uri.parse(host + '/minecraft/mod/edit/$modUUID'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+              body: json.encode({"name": changedName}));
+      Map data = json.decode(response.body)['data'];
+      expect(response.statusCode, 200);
+      expect(data['name'], changedName);
+    });
+    test("edit mod (invalid mod uuid)", () async {
+      final response = await patch(Uri.parse(host + '/minecraft/mod/edit/abcd'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: json.encode({"name": changedName}));
+      expect(response.statusCode, 400);
+    });
     test("filter changelogs", () async {
       final response = await get(
         Uri.parse(host + '/minecraft/changelog?limit=2&skip=0'),
@@ -165,9 +205,12 @@ void main() async {
           data['changelogs'].cast<Map<String, dynamic>>();
 
       expect(response.statusCode, 200);
-      expect(changelogs.length, 1);
+      expect(changelogs.length, 2);
       expect(changelogs[0]['type'], "addedMod");
       expect(changelogs[0]['dataUUID'], modUUID);
+
+      expect(changelogs[1]['type'], "editedMod");
+      expect(changelogs[1]['dataUUID'], modUUID);
     });
   });
 }

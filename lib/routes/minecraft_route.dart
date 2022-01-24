@@ -1,10 +1,7 @@
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
-import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
-import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
-import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
@@ -32,60 +29,79 @@ class MinecraftRoute implements BaseRoute {
               message: Messages.missingRequiredFields);
         }
 
-        String name = data['name'];
+        ModRequestBodyParsedResult result =
+            await MinecraftHeader.parseModRequestBody(data);
 
-        List<MinecraftVersion> allVersions =
-            (await MinecraftVersionManifest.getFromCache()).manifest.versions;
-        List<MinecraftVersion> supportedVersions;
-        try {
-          supportedVersions = List<MinecraftVersion>.from(
-              data['supportVersions']
-                  ?.map((x) => allVersions.firstWhere((e) => e.id == x)));
-        } catch (e) {
+        if (result.name == null || result.name!.isEmpty) {
+          return ResponseExtension.badRequest(message: "Invalid mod name");
+        }
+
+        if (result.supportVersions == null || result.supportVersions!.isEmpty) {
           return ResponseExtension.badRequest(message: "Invalid game version");
         }
 
-        String? id = data['id'];
-        String? description = data['description'];
-        List<RelationMod>? relationMods = data['relationMods'] != null
-            ? List<RelationMod>.from(
-                data['relationMods']!.map((x) => RelationMod.fromMap(x)))
-            : null;
-        ModIntegrationPlatform? integration = data['integration'] != null
-            ? ModIntegrationPlatform.fromMap(data['integration'])
-            : null;
-        List<ModSide>? side = data['side'] != null
-            ? List<ModSide>.from(
-                data['side']!.map((x) => ModSide.fromMap(x)).toList())
-            : null;
-        List<ModLoader>? loader = data['loader'] != null
-            ? List<ModLoader>.from(
-                data['loader']?.map((x) => ModLoader.values.byName(x)))
-            : null;
-        String? translatedName = data['translatedName'];
-        String? introduction = data['introduction'];
-        String? imageStorageUUID = data['imageStorageUUID'];
-
-        MinecraftMod mod = await MinecraftHeader.createMod(
-            name: name,
-            id: id,
-            supportVersions: supportedVersions,
-            description: description,
-            relationMods: relationMods,
-            integration: integration,
-            side: side,
-            loader: loader,
-            translatedName: translatedName,
-            introduction: introduction,
-            imageStorageUUID: imageStorageUUID);
+        MinecraftMod mod = await MinecraftHeader.createMod(result);
 
         WikiChangeLog changeLog = WikiChangeLog(
             uuid: Uuid().v4(),
             type: WikiChangeLogType.addedMod,
             dataUUID: mod.uuid,
-            time: DateTime.now(),
+            changedData: mod.toMap(),
+            time: DateTime.now().toUtc(),
             userUUID: req.user!.uuid);
 
+        await changeLog.insert();
+
+        return ResponseExtension.success(data: mod.outputMap());
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    });
+
+    router.patch("/mod/edit/<uuid>", (Request req) async {
+      try {
+        Map<String, dynamic> data = await req.data;
+
+        MinecraftMod? mod = await MinecraftMod.getByUUID(req.params["uuid"]!);
+
+        if (mod == null) {
+          return ResponseExtension.badRequest(message: "Mod not found");
+        }
+
+        ModRequestBodyParsedResult result =
+            await MinecraftHeader.parseModRequestBody(data);
+
+        DateTime time = DateTime.now().toUtc();
+
+        mod = mod.copyWith(
+          name: result.name != null && result.name!.isNotEmpty
+              ? result.name
+              : null,
+          id: result.id != null && result.id!.isNotEmpty ? result.id : null,
+          description:
+              result.description != null && result.description!.isNotEmpty
+                  ? result.description
+                  : null,
+          supportVersions: result.supportVersions,
+          relationMods: result.relationMods,
+          integration: result.integration,
+          side: result.side,
+          lastUpdate: time,
+          translatedName: result.translatedName,
+          introduction: result.introduction,
+          imageStorageUUID: result.imageStorageUUID,
+        );
+
+        WikiChangeLog changeLog = WikiChangeLog(
+            uuid: Uuid().v4(),
+            type: WikiChangeLogType.editedMod,
+            dataUUID: mod.uuid,
+            changedData: mod.toMap(),
+            time: DateTime.now().toUtc(),
+            userUUID: req.user!.uuid);
+
+        await mod.update();
         await changeLog.insert();
 
         return ResponseExtension.success(data: mod.outputMap());
@@ -182,11 +198,15 @@ class MinecraftRoute implements BaseRoute {
 
         List<WikiChangeLog> changelogs =
             await MinecraftHeader.filterChangelogs(limit: limit, skip: skip);
+        List<Map<String, dynamic>> changelogsMap = [];
+        for (WikiChangeLog log in changelogs) {
+          changelogsMap.add(await log.output());
+        }
 
         return ResponseExtension.success(data: {
           if (limit != null) "limit": (limit > 50) ? 50 : limit,
           if (skip != null) "skip": skip,
-          "changelogs": changelogs.map((e) => e.outputMap()).toList()
+          "changelogs": changelogsMap
         });
       } catch (e, stack) {
         logger.e(e, null, stack);

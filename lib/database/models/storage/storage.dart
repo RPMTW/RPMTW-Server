@@ -94,9 +94,6 @@ class Storage extends BaseModels {
   int get hashCode =>
       uuid.hashCode ^ contentType.hashCode ^ type.hashCode ^ createAt.hashCode;
 
-  @override
-  Map<String, dynamic> outputMap() => toMap();
-
   static Future<Storage?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<Storage>(uuid);
 }

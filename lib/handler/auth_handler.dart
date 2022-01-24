@@ -35,13 +35,17 @@ class AuthHandler {
         return (request) {
           return Future.sync(() async {
             String path = request.url.path;
-            List<String> needAuthorizationPaths = [
-              "auth/user/me",
-              "auth/user/me/update",
-              "minecraft/mod/create",
-              "minecraft/mod/wiki/create",
+
+            List<AuthorizationPath> needAuthorizationPaths = [
+              AuthorizationPath("auth/user/me"),
+              AuthorizationPath("auth/user/me/update"),
+              AuthorizationPath("minecraft/mod/create"),
+              AuthorizationPath("minecraft/mod/edit", startsWith: true)
             ];
-            if (needAuthorizationPaths.contains(path)) {
+
+            if (needAuthorizationPaths.any((_path) => _path.startsWith
+                ? path.startsWith(_path.path)
+                : path == _path.path)) {
               String? token = request.headers['Authorization']
                   ?.toString()
                   .replaceAll('Bearer ', '');
@@ -303,4 +307,10 @@ class _PasswordValidatedResult extends _BaseValidatedResult {
 class _EmailValidatedResult extends _BaseValidatedResult {
   _EmailValidatedResult(bool isValid, int code, String message)
       : super(isValid, code, message);
+}
+
+class AuthorizationPath {
+  final String path;
+  final bool startsWith;
+  AuthorizationPath(this.path, {this.startsWith = false});
 }

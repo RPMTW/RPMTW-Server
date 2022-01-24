@@ -1,5 +1,6 @@
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
@@ -8,39 +9,75 @@ import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
 
 class MinecraftHeader {
-  static Future<MinecraftMod> createMod({
-    required String name,
-    required List<MinecraftVersion> supportVersions,
-    String? id,
-    String? description,
-    List<RelationMod>? relationMods,
-    ModIntegrationPlatform? integration,
-    List<ModSide>? side,
-    List<ModLoader>? loader,
-    String? translatedName,
-    String? introduction,
-    String? imageStorageUUID,
-    int viewCount = 0,
-  }) async {
+  static Future<ModRequestBodyParsedResult> parseModRequestBody(
+      Map<String, dynamic> body) async {
+    String name = body['name'];
+
+    List<MinecraftVersion> allVersions =
+        (await MinecraftVersionManifest.getFromCache()).manifest.versions;
+    List<MinecraftVersion>? supportedVersions;
+    try {
+      supportedVersions = List<MinecraftVersion>.from(body['supportVersions']
+          ?.map((x) => allVersions.firstWhere((e) => e.id == x)));
+    } catch (e) {
+      supportedVersions = null;
+    }
+
+    String? id = body['id'];
+    String? description = body['description'];
+    List<RelationMod>? relationMods = body['relationMods'] != null
+        ? List<RelationMod>.from(
+            body['relationMods']!.map((x) => RelationMod.fromMap(x)))
+        : null;
+    ModIntegrationPlatform? integration = body['integration'] != null
+        ? ModIntegrationPlatform.fromMap(body['integration'])
+        : null;
+    List<ModSide>? side = body['side'] != null
+        ? List<ModSide>.from(
+            body['side']!.map((x) => ModSide.fromMap(x)).toList())
+        : null;
+    List<ModLoader>? loader = body['loader'] != null
+        ? List<ModLoader>.from(
+            body['loader']?.map((x) => ModLoader.values.byName(x)))
+        : null;
+    String? translatedName = body['translatedName'];
+    String? introduction = body['introduction'];
+    String? imageStorageUUID = body['imageStorageUUID'];
+
+    return ModRequestBodyParsedResult(
+        name: name,
+        supportVersions: supportedVersions,
+        id: id,
+        description: description,
+        relationMods: relationMods,
+        integration: integration,
+        side: side,
+        loader: loader,
+        translatedName: translatedName,
+        introduction: introduction,
+        imageStorageUUID: imageStorageUUID);
+  }
+
+  static Future<MinecraftMod> createMod(
+      ModRequestBodyParsedResult result) async {
     DateTime nowTime = DateTime.now().toUtc();
 
     MinecraftMod mod = MinecraftMod(
-      uuid: Uuid().v4(),
-      name: name,
-      id: id,
-      description: description,
-      supportVersions: supportVersions,
-      relationMods: relationMods ?? [],
-      integration: integration ?? ModIntegrationPlatform(),
-      side: side ?? [],
-      lastUpdate: nowTime,
-      createTime: nowTime,
-      loader: loader,
-      translatedName: translatedName,
-      introduction: introduction,
-      imageStorageUUID: imageStorageUUID,
-      viewCount: viewCount,
-    );
+        uuid: Uuid().v4(),
+        name: result.name!,
+        id: result.id,
+        description: result.description,
+        supportVersions: result.supportVersions!,
+        relationMods: result.relationMods ?? [],
+        integration: result.integration ?? ModIntegrationPlatform(),
+        side: result.side ?? [],
+        lastUpdate: nowTime,
+        createTime: nowTime,
+        loader: result.loader,
+        translatedName: result.translatedName,
+        introduction: result.introduction,
+        imageStorageUUID: result.imageStorageUUID,
+        viewCount: 0);
 
     await mod.insert();
     return mod;
@@ -119,4 +156,32 @@ class MinecraftHeader {
 
     return changelogs;
   }
+}
+
+class ModRequestBodyParsedResult {
+  final String? name;
+  final List<MinecraftVersion>? supportVersions;
+  final String? id;
+  final String? description;
+  final List<RelationMod>? relationMods;
+  final ModIntegrationPlatform? integration;
+  final List<ModSide>? side;
+  final List<ModLoader>? loader;
+  final String? translatedName;
+  final String? introduction;
+  final String? imageStorageUUID;
+
+  ModRequestBodyParsedResult({
+    this.name,
+    this.supportVersions,
+    this.id,
+    this.description,
+    this.relationMods,
+    this.integration,
+    this.side,
+    this.loader,
+    this.translatedName,
+    this.introduction,
+    this.imageStorageUUID,
+  });
 }

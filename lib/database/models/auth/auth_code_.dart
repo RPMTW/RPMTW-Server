@@ -29,11 +29,12 @@ class AuthCode extends BaseModels {
     return AuthCode(
         uuid: Uuid().v4(),
         code: code,
-        expiresAt: DateTime.now().add(Duration(minutes: 30)), // 驗證碼有效時間為 30 分鐘
+        expiresAt:
+            DateTime.now().toUtc().add(Duration(minutes: 30)), // 驗證碼有效時間為 30 分鐘
         email: email);
   }
 
-  bool get isExpired => DateTime.now().isAfter(expiresAt);
+  bool get isExpired => DateTime.now().toUtc().isAfter(expiresAt);
 
   AuthCode copyWith({
     int? code,
