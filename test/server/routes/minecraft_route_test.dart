@@ -210,13 +210,14 @@ void main() async {
       expect(mods[0]['side'], [modSide.toMap()]);
     });
     test("edit mod", () async {
-      final response =
-          await patch(Uri.parse(host + '/minecraft/mod/edit/$modUUID'),
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer $token',
-              },
-              body: json.encode({"name": changedName}));
+      final response = await patch(
+          Uri.parse(host + '/minecraft/mod/edit/$modUUID'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body:
+              json.encode({"name": changedName, "changelog": "edit mod name"}));
       Map data = json.decode(response.body)['data'];
       expect(response.statusCode, 200);
       expect(data['name'], changedName);

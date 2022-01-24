@@ -120,6 +120,7 @@ class MinecraftRoute implements BaseRoute {
 
         WikiChangeLog changeLog = WikiChangeLog(
             uuid: Uuid().v4(),
+            changelog: data["changelog"],
             type: WikiChangeLogType.editedMod,
             dataUUID: mod.uuid,
             changedData: mod.toMap(),
