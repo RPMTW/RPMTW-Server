@@ -3,6 +3,7 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifes
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import 'package:rpmtw_server/database/models/storage/storage.dart';
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/data.dart';
@@ -40,6 +41,18 @@ class MinecraftRoute implements BaseRoute {
           return ResponseExtension.badRequest(message: "Invalid game version");
         }
 
+        if (result.imageStorageUUID != null) {
+          Storage? storage = await Storage.getByUUID(result.imageStorageUUID!);
+          if (storage == null) {
+            return ResponseExtension.badRequest(
+                message: "Invalid image storage");
+          }
+          if (storage.type == StorageType.temp) {
+            storage = storage.copyWith(type: StorageType.general);
+            await storage.update();
+          }
+        }
+
         MinecraftMod mod = await MinecraftHeader.createMod(result);
 
         WikiChangeLog changeLog = WikiChangeLog(
@@ -73,6 +86,18 @@ class MinecraftRoute implements BaseRoute {
             await MinecraftHeader.parseModRequestBody(data);
 
         DateTime time = DateTime.now().toUtc();
+
+        if (result.imageStorageUUID != null) {
+          Storage? storage = await Storage.getByUUID(result.imageStorageUUID!);
+          if (storage == null) {
+            return ResponseExtension.badRequest(
+                message: "Invalid image storage");
+          }
+          if (storage.type == StorageType.temp) {
+            storage = storage.copyWith(type: StorageType.general);
+            await storage.update();
+          }
+        }
 
         mod = mod.copyWith(
           name: result.name != null && result.name!.isNotEmpty

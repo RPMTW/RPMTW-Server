@@ -11,6 +11,7 @@ class WikiChangeLog extends BaseModels {
   static const List<IndexFields> indexFields = [
     IndexFields("userUUID", unique: false),
     IndexFields("type", unique: false),
+    IndexFields("time", unique: false),
   ];
 
   /// 變更日誌

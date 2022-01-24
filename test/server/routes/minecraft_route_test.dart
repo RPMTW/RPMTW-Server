@@ -121,6 +121,23 @@ void main() async {
       expect(response.statusCode, 400);
       expect(map['message'], contains("Invalid mod name"));
     });
+    test("create mod (invalid mod image storage)", () async {
+      final response = await post(Uri.parse(host + '/minecraft/mod/create'),
+          body: json.encode({
+            "name": "abc",
+            "supportVersions": supportVersions,
+            "imageStorageUUID": "abc"
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          });
+
+      Map map = json.decode(response.body);
+
+      expect(response.statusCode, 400);
+      expect(map['message'], contains("Invalid image storage"));
+    });
     test("view mod", () async {
       final response = await get(
         Uri.parse(host + '/minecraft/mod/view/$modUUID?recordViewCount=false'),
@@ -195,6 +212,19 @@ void main() async {
           },
           body: json.encode({"name": changedName}));
       expect(response.statusCode, 400);
+    });
+    test("edit mod (invalid mod image storage)", () async {
+      final response = await patch(Uri.parse(host + '/minecraft/mod/edit/$modUUID'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: json.encode({"imageStorageUUID": "abc"}));
+
+      Map map = json.decode(response.body);
+
+      expect(response.statusCode, 400);
+      expect(map['message'], contains("Invalid image storage"));
     });
     test("filter changelogs", () async {
       final response = await get(

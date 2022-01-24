@@ -210,6 +210,7 @@ class DataBase {
     await _authCodeTimer(time);
     await _minecraftVersionManifest(time);
     _clearUserViewCountFilter(time);
+    await _wikiChangelogTimer(time);
   }
 
   Future<void> _storageTimer(DateTime time) async {
@@ -217,9 +218,10 @@ class DataBase {
     /// 檔案最多暫存一天
     SelectorBuilder selector = where
         .eq("type", StorageType.temp.name) // 檔案類型為暫存檔案
-        .and(where.lte('createdAt',
+        .and(where.lte('createAt',
             time.subtract(Duration(days: 1)).millisecondsSinceEpoch));
     // 檔案建立時間為一天前
+
     List<Storage> storageList = await getCollection<Storage>()
         .find(selector)
         .map((map) => Storage.fromMap(map))
@@ -275,6 +277,23 @@ class DataBase {
 
   void _clearUserViewCountFilter(DateTime time) =>
       UserViewCountFilter.clearUserViewCountFilter(time);
+
+  Future<void> _wikiChangelogTimer(DateTime time) async {
+    /// 變更日誌超過指定時間後將刪除
+    /// 變更日誌最多暫存 90 天 ( 約為三個月 )
+    SelectorBuilder selector = where.lte(
+        'time', time.subtract(Duration(days: 90)).millisecondsSinceEpoch);
+    // 變更日誌建立時間為 90 天前
+
+    List<WikiChangeLog> changelogs = await getCollection<WikiChangeLog>()
+        .find(selector)
+        .map((map) => WikiChangeLog.fromMap(map))
+        .toList();
+
+    for (WikiChangeLog log in changelogs) {
+      await log.delete();
+    }
+  }
 }
 
 class InsertModelException implements Exception {

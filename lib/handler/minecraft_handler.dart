@@ -11,7 +11,7 @@ import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.d
 class MinecraftHeader {
   static Future<ModRequestBodyParsedResult> parseModRequestBody(
       Map<String, dynamic> body) async {
-    String name = body['name'];
+    String? name = body['name'];
 
     List<MinecraftVersion> allVersions =
         (await MinecraftVersionManifest.getFromCache()).manifest.versions;
