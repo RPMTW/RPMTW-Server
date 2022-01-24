@@ -110,6 +110,7 @@ class MinecraftRoute implements BaseRoute {
                   : null,
           supportVersions: result.supportVersions,
           relationMods: result.relationMods,
+          loader: result.loader,
           integration: result.integration,
           side: result.side,
           lastUpdate: time,
