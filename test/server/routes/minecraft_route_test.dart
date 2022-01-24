@@ -173,7 +173,24 @@ void main() async {
       expect(mods[0]['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
       expect(mods[0]['side'], [modSide.toMap()]);
     });
+    test("search mods (upper case)", () async {
+      final response = await get(
+        Uri.parse(
+            host + '/minecraft/mod/search?filter=TEST&limit=1&skip=0&sort=0'),
+      );
+      Map data = json.decode(response.body)['data'];
+      List<Map<String, dynamic>> mods =
+          data['mods'].cast<Map<String, dynamic>>();
 
+      expect(response.statusCode, 200);
+      expect(mods.length, 1);
+      expect(mods[0]['uuid'], modUUID);
+      expect(mods[0]['name'], modName);
+      expect(mods[0]['id'], modID);
+      expect(mods[0]['description'], modDescription);
+      expect(mods[0]['loader'], [ModLoader.fabric.name, ModLoader.forge.name]);
+      expect(mods[0]['side'], [modSide.toMap()]);
+    });
     test("search mods (by translated name)", () async {
       final response = await get(
         Uri.parse(
@@ -214,12 +231,13 @@ void main() async {
       expect(response.statusCode, 400);
     });
     test("edit mod (invalid mod image storage)", () async {
-      final response = await patch(Uri.parse(host + '/minecraft/mod/edit/$modUUID'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-          body: json.encode({"imageStorageUUID": "abc"}));
+      final response =
+          await patch(Uri.parse(host + '/minecraft/mod/edit/$modUUID'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+              body: json.encode({"imageStorageUUID": "abc"}));
 
       Map map = json.decode(response.body);
 

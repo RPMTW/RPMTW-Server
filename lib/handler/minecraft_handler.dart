@@ -107,8 +107,8 @@ class MinecraftHeader {
       /// search by name or id
       builder = builder
           .match('id', filter)
-          .or(where.match('name', filter))
-          .or(where.match('translatedName', filter));
+          .or(where.match('name', "(?i)$filter"))
+          .or(where.match('translatedName', "(?i)$filter"));
     }
     builder = builder.limit(limit).skip(skip);
 
