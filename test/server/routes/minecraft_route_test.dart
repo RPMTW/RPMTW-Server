@@ -22,6 +22,7 @@ void main() async {
   group("Minecraft", () {
     late String modUUID;
     late String token;
+    late String userUUID;
     late List<String> supportVersions;
 
     final String modName = "test mod";
@@ -54,7 +55,9 @@ void main() async {
             "username": "test",
           }),
           headers: {'Content-Type': 'application/json'});
-      token = json.decode(_response.body)['data']['token'];
+      Map _body = json.decode(_response.body)['data'];
+      token = _body['token'];
+      userUUID = _body['uuid'];
 
       final response = await post(Uri.parse(host + '/minecraft/mod/create'),
           body: json.encode({
@@ -247,7 +250,8 @@ void main() async {
     });
     test("filter changelogs", () async {
       final response = await get(
-        Uri.parse(host + '/minecraft/changelog?limit=2&skip=0'),
+        Uri.parse(host +
+            '/minecraft/changelog?limit=2&skip=0&dataUUID=$modUUID&userUUID=$userUUID'),
       );
       Map data = json.decode(response.body)['data'];
       List<Map<String, dynamic>> changelogs =

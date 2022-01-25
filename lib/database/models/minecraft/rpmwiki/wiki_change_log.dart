@@ -10,6 +10,7 @@ class WikiChangeLog extends BaseModels {
   static const String collectionName = "rpmwiki_wiki_change_log";
   static const List<IndexFields> indexFields = [
     IndexFields("userUUID", unique: false),
+    IndexFields("dataUUID", unique: false),
     IndexFields("type", unique: false),
     IndexFields("time", unique: false),
   ];

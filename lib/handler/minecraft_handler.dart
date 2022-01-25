@@ -134,7 +134,7 @@ class MinecraftHeader {
   }
 
   static Future<List<WikiChangeLog>> filterChangelogs(
-      {int? limit, int? skip}) async {
+      {int? limit, int? skip, String? dataUUID, String? userUUID}) async {
     limit ??= 50;
     skip ??= 0;
     if (limit > 50) {
@@ -146,9 +146,17 @@ class MinecraftHeader {
 
     final DbCollection collection =
         DataBase.instance.getCollection<WikiChangeLog>();
+    SelectorBuilder builder = where.limit(limit).skip(skip);
+
+    if (dataUUID != null) {
+      builder = builder.eq('dataUUID', dataUUID);
+    }
+    if (userUUID != null) {
+      builder = builder.eq('userUUID', userUUID);
+    }
 
     final List<Map<String, dynamic>> changelogMaps =
-        await collection.find(where.limit(limit).skip(skip)).toList();
+        await collection.find().toList();
 
     for (final Map<String, dynamic> map in changelogMaps) {
       changelogs.add(WikiChangeLog.fromMap(map));

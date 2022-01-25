@@ -222,9 +222,11 @@ class MinecraftRoute implements BaseRoute {
         int? limit =
             query['limit'] != null ? int.tryParse(query['limit']) : null;
         int? skip = query['skip'] != null ? int.tryParse(query['skip']) : null;
+        String? dataUUID = query['dataUUID'];
+        String? userUUID = query['userUUID'];
 
-        List<WikiChangeLog> changelogs =
-            await MinecraftHeader.filterChangelogs(limit: limit, skip: skip);
+        List<WikiChangeLog> changelogs = await MinecraftHeader.filterChangelogs(
+            limit: limit, skip: skip, dataUUID: dataUUID, userUUID: userUUID);
         List<Map<String, dynamic>> changelogsMap = [];
         for (WikiChangeLog log in changelogs) {
           changelogsMap.add(await log.output());
