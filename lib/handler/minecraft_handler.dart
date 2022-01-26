@@ -146,17 +146,19 @@ class MinecraftHeader {
 
     final DbCollection collection =
         DataBase.instance.getCollection<WikiChangeLog>();
-    SelectorBuilder builder = where.limit(limit).skip(skip);
+    SelectorBuilder builder = SelectorBuilder();
 
-    if (dataUUID != null) {
-      builder = builder.eq('dataUUID', dataUUID);
+    if (dataUUID != null && dataUUID.isNotEmpty) {
+      builder = builder.eq("dataUUID", dataUUID);
     }
-    if (userUUID != null) {
-      builder = builder.eq('userUUID', userUUID);
+    if (userUUID != null && userUUID.isNotEmpty) {
+      builder = builder.eq("userUUID", userUUID);
     }
+
+    builder = builder.limit(limit).skip(skip);
 
     final List<Map<String, dynamic>> changelogMaps =
-        await collection.find().toList();
+        await collection.find(builder).toList();
 
     for (final Map<String, dynamic> map in changelogMaps) {
       changelogs.add(WikiChangeLog.fromMap(map));
