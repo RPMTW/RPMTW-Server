@@ -1,6 +1,8 @@
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:collection/collection.dart';
+import 'package:rpmtw_server/handler/auth_handler.dart';
 
 import '../base_models.dart';
 
@@ -117,4 +119,11 @@ class User extends BaseModels {
 
   static Future<User?> getByEmail(String email) async =>
       DataBase.instance.getModelByField<User>("email", email);
+
+  static Future<User?> getByToken(String token) async {
+    JWT jwt = JWT.verify(token, AuthHandler.secretKey);
+    Map<String, dynamic> payload = jwt.payload;
+    String uuid = payload['uuid'];
+    return await DataBase.instance.getModelByUUID<User>(uuid);
+  }
 }

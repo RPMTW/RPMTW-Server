@@ -17,7 +17,7 @@ import 'package:rpmtw_server/routes/root_route.dart';
 class MinecraftRoute implements BaseRoute {
   @override
   Router get router {
-    Router router = Router();
+    final Router router = Router();
 
     router.post("/mod/create", (Request req) async {
       try {

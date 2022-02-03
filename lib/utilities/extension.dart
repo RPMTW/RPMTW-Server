@@ -16,9 +16,9 @@ class ResponseExtension {
           }),
           headers: _baseHeaders);
 
-  static Response success({required Map data}) {
-    // assert(data is Map || data is List,
-    //     "Data must be a Map or List, but it is ${data.runtimeType}");
+  static Response success({required dynamic data}) {
+    assert(data is Map || data is List,
+        "Data must be a Map or List, but it is ${data.runtimeType}");
     return Response(HttpStatus.ok,
         body: json.encode(
             {'status': HttpStatus.ok, 'message': 'success', 'data': data}),

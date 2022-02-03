@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:rpmtw_server/routes/curseforge_route.dart';
 import 'package:rpmtw_server/routes/minecraft_route.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -20,6 +21,7 @@ class RootRoute implements BaseRoute {
     router.mount('/auth/', AuthRoute().router);
     router.mount('/storage/', StorageRoute().router);
     router.mount('/minecraft/', MinecraftRoute().router);
+    router.mount('/curseforge/', CurseForgeRoute().router);
 
     router.get('/', (Request req) async {
       return ResponseExtension.success(data: {"message": "Hello RPMTW World"});

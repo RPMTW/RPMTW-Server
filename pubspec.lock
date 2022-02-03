@@ -163,7 +163,7 @@ packages:
     source: hosted
     version: "2.0.2"
   http:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -337,6 +337,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
+  rikulo_commons:
+    dependency: transitive
+    description:
+      name: rikulo_commons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "5.2.0+1"
   sasl_scram:
     dependency: transitive
     description:
@@ -400,6 +407,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.1"
+  socket_io:
+    dependency: "direct main"
+    description:
+      name: socket_io
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
+  socket_io_client:
+    dependency: "direct dev"
+    description:
+      name: socket_io_client
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
+  socket_io_common:
+    dependency: transitive
+    description:
+      name: socket_io_common
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   source_map_stack_trace:
     dependency: transitive
     description:
@@ -428,6 +456,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.10.0"
+  stream:
+    dependency: transitive
+    description:
+      name: stream
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.0.3"
   stream_channel:
     dependency: transitive
     description:

@@ -4,6 +4,9 @@ on:
     branches:
       - main
 
+env: 
+  CurseForge_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+
 jobs:
   Analyze:
     runs-on: ubuntu-latest

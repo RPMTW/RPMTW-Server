@@ -53,11 +53,8 @@ class AuthHandler {
                 return ResponseExtension.unauthorized();
               }
               try {
-                JWT jwt = JWT.verify(token, secretKey);
-                Map<String, dynamic> payload = jwt.payload;
-                String uuid = payload['uuid'];
+                User? user = await User.getByToken(token);
                 String clientIP = request.ip;
-                User? user = await DataBase.instance.getModelByUUID<User>(uuid);
                 BanInfo? banInfo = await BanInfo.getByIP(clientIP);
                 if (user == null) {
                   return ResponseExtension.unauthorized();

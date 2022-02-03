@@ -290,6 +290,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "rikulo_commons",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/rikulo_commons-5.2.0+1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "sasl_scram",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/sasl_scram-0.1.0",
       "packageUri": "lib/",
@@ -344,6 +350,24 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "socket_io",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/socket_io-1.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "socket_io_client",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/socket_io_client-1.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "socket_io_common",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/socket_io_common-1.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "source_map_stack_trace",
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/source_map_stack_trace-2.1.0",
       "packageUri": "lib/",
@@ -366,6 +390,12 @@
       "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/stack_trace-1.10.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "stream",
+      "rootUri": "file:///home/siongsng/.pub-cache/hosted/pub.dartlang.org/stream-3.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.13"
     },
     {
       "name": "stream_channel",
@@ -464,7 +494,7 @@
       "languageVersion": "2.15"
     }
   ],
-  "generated": "2022-01-15T09:15:08.701678Z",
+  "generated": "2022-02-03T09:10:05.636130Z",
   "generator": "pub",
-  "generatorVersion": "2.16.0-134.1.beta"
+  "generatorVersion": "2.16.0-134.5.beta"
 }
