@@ -46,6 +46,11 @@ extension RequestUserExtension on Request {
     if (xForwardedFor != null && kTestMode) {
       return xForwardedFor;
     } else {
+      String? cfIP = headers['CF-Connecting-IP'];
+      if (cfIP != null) {
+        return cfIP;
+      }
+
       HttpConnectionInfo connectionInfo =
           context['shelf.io.connection_info'] as HttpConnectionInfo;
       InternetAddress internetAddress = connectionInfo.remoteAddress;
