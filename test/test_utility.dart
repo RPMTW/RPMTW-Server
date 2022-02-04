@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:dotenv/dotenv.dart';
 import 'package:path/path.dart';
 import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/handler/cosmic_chat_handler.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import '../bin/server.dart' as server;
 
@@ -42,6 +43,7 @@ class TestUttily {
     return Future.sync(() async {
       await DataBase.instance.db.drop(); // 刪除測試用資料庫
       await server.server?.close(force: true); // 關閉伺服器
+      await CosmicChatHandler.io.close(); // 關閉宇宙通訊伺服器
     });
   }
 }

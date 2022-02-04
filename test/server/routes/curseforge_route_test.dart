@@ -29,7 +29,6 @@ void main() async {
         body: json.encode({
           "modIds": [461500]
         }));
-    print(response.body);
     List data = json.decode(response.body)['data']['data'];
     expect(response.statusCode, 200);
     expect(data[0]['id'], 461500);
