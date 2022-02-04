@@ -83,7 +83,7 @@ class CosmicChatHandler {
                     minecraftUUID: minecraftUUID,
                     nickname: data['nickname']);
 
-                client.emit('serverMessage', msg.toMap());
+                client.emit('serverMessage', msg.toJson());
               }
             } catch (e) {
               // ignore

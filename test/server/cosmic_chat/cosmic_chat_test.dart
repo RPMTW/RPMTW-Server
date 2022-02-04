@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:test/test.dart';
@@ -27,7 +29,7 @@ void main() async {
     socket = socket.connect();
 
     socket.onConnect((_) async {
-      socket.emit('clientMessage', 'Hello,World!');
+      socket.emit('clientMessage', json.encode({"message": 'Hello,World!'}));
     });
 
     socket.on('serverError', (_error) => error = _error);
