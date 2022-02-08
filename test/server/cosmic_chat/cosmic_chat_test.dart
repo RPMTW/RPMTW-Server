@@ -8,15 +8,10 @@ import '../../test_utility.dart';
 
 void main() async {
   final cosmicChatHost = 'http://0.0.0.0:2087';
-  late io.Socket socket;
+  final baseOption =
+      OptionBuilder().setTransports(['websocket']).disableAutoConnect();
 
   setUpAll(() {
-    socket = io.io(
-        cosmicChatHost,
-        OptionBuilder()
-            .setTransports(['websocket'])
-            .disableAutoConnect()
-            .build());
     return TestUttily.setUpAll();
   });
 
@@ -26,6 +21,8 @@ void main() async {
 
   test("send message (unauthorized)", () async {
     String? error;
+    io.Socket socket = io.io(cosmicChatHost, baseOption.build());
+
     socket = socket.connect();
 
     socket.onConnect((_) async {
@@ -37,5 +34,30 @@ void main() async {
     await Future.delayed(Duration(seconds: 1));
 
     expect(error, contains('Unauthorized'));
+
+    socket.disconnect();
+  });
+  test("send message", () async {
+    String? error;
+    io.Socket socket = io.io(
+        cosmicChatHost,
+        baseOption.setExtraHeaders({
+          "minecraft_uuid": "977e69fb-0b15-40bf-b25e-4718485bf72f"
+        }).build());
+
+    socket = socket.connect();
+
+    socket.onConnect((_) async {
+      socket.emit('clientMessage', json.encode({"message": 'Hello,World!'}));
+    });
+
+    socket.on('serverError', (_error) => error = _error);
+
+    socket.on('serverMessage', (data) => print(data));
+
+    await Future.delayed(Duration(seconds: 3));
+
+    expect(error, null);
+    socket.disconnect();
   });
 }

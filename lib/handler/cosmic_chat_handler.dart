@@ -34,8 +34,10 @@ class CosmicChatHandler {
   void start(Server io) {
     io.on('connection', (client) async {
       if (client is Socket) {
-        String? token = client.handshake?['auth']?['rpmtw_auth_token'];
-        String? minecraftUUID = client.handshake?['auth']?['minecraft_uuid'];
+        String? token = client.handshake?['headers']?['rpmtw_auth_token']?[0];
+
+        String? minecraftUUID =
+            client.handshake?['headers']?['minecraft_uuid']?[0];
         String? minecraftUsername;
         User? user;
         if (token != null) {
@@ -68,22 +70,32 @@ class CosmicChatHandler {
               Map data = json.decode(_data.toString());
               String? message = data['message'];
               bool isValidMessage = isAuthenticated && message != null;
+    print("test");
 
               if (isValidMessage) {
                 String username = user?.username ?? minecraftUsername!;
+                String? userUUID = user?.uuid;
 
-                if (user?.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
+                if (user != null &&
+                    user.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
                   username = "RPMTW 維護者兼創辦人";
+                }
+
+                late String avatar;
+
+                if (userUUID != null) {
+                  avatar =
+                      "https://api.rpmtw.com:2096/storage/$userUUID/download";
+                } else if (minecraftUUID != null) {
+                  avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
                 }
 
                 CosmicChatMessage msg = CosmicChatMessage(
                     username: username,
                     message: message,
-                    userUUID: user?.uuid,
-                    minecraftUUID: minecraftUUID,
-                    nickname: data['nickname']);
-
-                client.emit('serverMessage', msg.toJson());
+                    nickname: data['nickname'],
+                    avatarUrl: avatar);
+                sendMessage(client, msg);
               }
             } catch (e) {
               // ignore
@@ -95,11 +107,15 @@ class CosmicChatHandler {
       }
     });
   }
+
+  void sendMessage(Socket client, CosmicChatMessage msg) {
+    client.emit('serverMessage', msg.toJson());
+  }
 }
 
 /// 宇宙通訊的訊息
 class CosmicChatMessage {
-  /// 使用者名稱 (非暱稱，可能是 RPMTW 帳號或 Minecraft 帳號的使用者名稱)
+  /// 使用者名稱 (非暱稱，可能是 RPMTW 帳號、Minecraft 帳號或 Discord 帳號的使用者名稱)
   final String username;
 
   /// 訊息內容
@@ -108,33 +124,26 @@ class CosmicChatMessage {
   /// 暱稱
   final String? nickname;
 
-  /// 發送訊息的使用者 ID
-  final String? userUUID;
-
-  /// Minecraft 帳號 UUID
-  final String? minecraftUUID;
+  final String avatarUrl;
 
   const CosmicChatMessage({
     required this.username,
     required this.message,
     this.nickname,
-    this.userUUID,
-    this.minecraftUUID,
+    required this.avatarUrl,
   });
 
   CosmicChatMessage copyWith({
     String? username,
     String? message,
     String? nickname,
-    String? userUUID,
-    String? minecraftUUID,
+    String? avatarUrl,
   }) {
     return CosmicChatMessage(
       username: username ?? this.username,
       message: message ?? this.message,
       nickname: nickname ?? this.nickname,
-      userUUID: userUUID ?? this.userUUID,
-      minecraftUUID: minecraftUUID ?? this.minecraftUUID,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
 
@@ -143,8 +152,7 @@ class CosmicChatMessage {
       'username': username,
       'message': message,
       'nickname': nickname,
-      'userUUID': userUUID,
-      'minecraftUUID': minecraftUUID,
+      'avatarUrl': avatarUrl,
     };
   }
 
@@ -153,8 +161,7 @@ class CosmicChatMessage {
       username: map['username'] ?? '',
       message: map['message'] ?? '',
       nickname: map['nickname'],
-      userUUID: map['userUUID'],
-      minecraftUUID: map['minecraftUUID'],
+      avatarUrl: map['avatarUrl'] ?? '',
     );
   }
 
@@ -165,7 +172,7 @@ class CosmicChatMessage {
 
   @override
   String toString() {
-    return 'CosmicChatMessage(username: $username, message: $message, nickname: $nickname, userUUID: $userUUID, minecraftUUID: $minecraftUUID)';
+    return 'CosmicChatMessage(username: $username, message: $message, nickname: $nickname, avatarUrl: $avatarUrl)';
   }
 
   @override
@@ -176,8 +183,7 @@ class CosmicChatMessage {
         other.username == username &&
         other.message == message &&
         other.nickname == nickname &&
-        other.userUUID == userUUID &&
-        other.minecraftUUID == minecraftUUID;
+        other.avatarUrl == avatarUrl;
   }
 
   @override
@@ -185,7 +191,6 @@ class CosmicChatMessage {
     return username.hashCode ^
         message.hashCode ^
         nickname.hashCode ^
-        userUUID.hashCode ^
-        minecraftUUID.hashCode;
+        avatarUrl.hashCode;
   }
 }
