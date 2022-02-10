@@ -115,11 +115,11 @@ class MinecraftHeader {
     if (sort == 0) {
       builder = builder.sortBy('createTime', descending: true);
     } else if (sort == 1) {
-      builder = builder.sortBy('viewCount');
+      builder = builder.sortBy('viewCount', descending: true);
     } else if (sort == 2) {
       builder = builder.sortBy('name', descending: true);
     } else if (sort == 3) {
-      builder = builder.sortBy('lastUpdate');
+      builder = builder.sortBy('lastUpdate', descending: true);
     }
 
     final List<Map<String, dynamic>> modMaps =
