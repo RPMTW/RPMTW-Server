@@ -56,7 +56,7 @@ void main() async {
 
     socket.onError((e) async => errors.add(e));
 
-    socket.on('serverMessage',
+    socket.on('sentMessage',
         (msg) => messages.add(CosmicChatMessage.fromJson(msg)));
 
     await wait(scale: 5);

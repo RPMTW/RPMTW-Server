@@ -115,7 +115,7 @@ class CosmicChatHandler {
   }
 
   void sendMessage(Socket client, CosmicChatMessage msg) {
-    client.emit('serverMessage', msg.toJson());
+    client.emit('sentMessage', msg.toJson());
   }
 }
 
