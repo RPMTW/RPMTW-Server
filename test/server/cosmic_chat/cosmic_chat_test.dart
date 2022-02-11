@@ -21,12 +21,15 @@ void main() async {
     return TestUttily.tearDownAll();
   });
 
+  tearDown(() {
+    socket = socket.disconnect();
+  });
+
   Future<void> wait({int scale = 1}) =>
       Future.delayed(Duration(milliseconds: 500 * scale));
 
   test("send message (unauthorized)", () async {
     List<String> errors = [];
-    socket = socket.connect();
 
     socket.onConnect((_) async {
       await wait();
@@ -34,6 +37,8 @@ void main() async {
     });
 
     socket.onError((e) async => errors.add(e));
+
+    socket = socket.connect();
 
     await wait(scale: 2);
 
@@ -45,9 +50,6 @@ void main() async {
     List<String> errors = [];
     List<CosmicChatMessage> messages = [];
     socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
-    socket = socket
-      ..disconnect()
-      ..connect();
 
     socket.onConnect((_) async {
       await wait(scale: 2);
@@ -56,8 +58,10 @@ void main() async {
 
     socket.onError((e) async => errors.add(e));
 
-    socket.on('sentMessage',
-        (msg) => messages.add(CosmicChatMessage.fromJson(msg)));
+    socket.on(
+        'sentMessage', (msg) => messages.add(CosmicChatMessage.fromJson(msg)));
+
+    socket = socket.connect();
 
     await wait(scale: 5);
 
@@ -67,6 +71,5 @@ void main() async {
     expect(messages.first.username, contains("SiongSng"));
     expect(messages.first.nickname, null);
     expect(messages.first.avatarUrl, contains(minecraftUUID));
-    socket.disconnect();
   });
 }
