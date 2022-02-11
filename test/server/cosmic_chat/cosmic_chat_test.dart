@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:rpmtw_server/handler/cosmic_chat_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:test/test.dart';
@@ -7,9 +8,10 @@ import 'package:test/test.dart';
 import '../../test_utility.dart';
 
 void main() async {
-  final cosmicChatHost = 'http://0.0.0.0:2087';
+  final cosmicChatHost = 'http://localhost:2087';
   final baseOption =
       OptionBuilder().setTransports(['websocket']).disableAutoConnect();
+  io.Socket socket = io.io(cosmicChatHost, baseOption.build());
 
   setUpAll(() {
     return TestUttily.setUpAll();
@@ -19,45 +21,52 @@ void main() async {
     return TestUttily.tearDownAll();
   });
 
-  test("send message (unauthorized)", () async {
-    String? error;
-    io.Socket socket = io.io(cosmicChatHost, baseOption.build());
+  Future<void> wait({int scale = 1}) =>
+      Future.delayed(Duration(milliseconds: 500 * scale));
 
+  test("send message (unauthorized)", () async {
+    List<String> errors = [];
     socket = socket.connect();
 
     socket.onConnect((_) async {
+      await wait();
       socket.emit('clientMessage', json.encode({"message": 'Hello,World!'}));
     });
 
-    socket.on('serverError', (_error) => error = _error);
+    socket.onError((e) async => errors.add(e));
 
-    await Future.delayed(Duration(seconds: 1));
+    await wait(scale: 2);
 
-    expect(error, contains('Unauthorized'));
-
-    socket.disconnect();
+    expect(errors.first, contains('Unauthorized'));
   });
   test("send message", () async {
-    String? error;
-    io.Socket socket = io.io(
-        cosmicChatHost,
-        baseOption.setExtraHeaders({
-          "minecraft_uuid": "977e69fb-0b15-40bf-b25e-4718485bf72f"
-        }).build());
-
-    socket = socket.connect();
+    final String message = "Hello,World!";
+    final String minecraftUUID = "977e69fb-0b15-40bf-b25e-4718485bf72f";
+    List<String> errors = [];
+    List<CosmicChatMessage> messages = [];
+    socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
+    socket = socket
+      ..disconnect()
+      ..connect();
 
     socket.onConnect((_) async {
-      socket.emit('clientMessage', json.encode({"message": 'Hello,World!'}));
+      await wait(scale: 2);
+      socket.emit('clientMessage', json.encode({"message": message}));
     });
 
-    socket.on('serverError', (_error) => error = _error);
+    socket.onError((e) async => errors.add(e));
 
-    socket.on('serverMessage', (data) => print(data));
+    socket.on('serverMessage',
+        (msg) => messages.add(CosmicChatMessage.fromJson(msg)));
 
-    await Future.delayed(Duration(seconds: 3));
+    await wait(scale: 5);
 
-    expect(error, null);
+    expect(errors.isEmpty, true);
+    expect(messages.isEmpty, false);
+    expect(messages.first.message, message);
+    expect(messages.first.username, contains("SiongSng"));
+    expect(messages.first.nickname, null);
+    expect(messages.first.avatarUrl, contains(minecraftUUID));
     socket.disconnect();
   });
 }

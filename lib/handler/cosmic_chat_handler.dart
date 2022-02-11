@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dotenv/dotenv.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:socket_io/socket_io.dart';
 
 import 'package:rpmtw_server/database/models/auth/user.dart';
@@ -13,97 +13,103 @@ class CosmicChatHandler {
 
   static Server get io => _io;
 
-  void init() {
+  Future<void> init() async {
     /// 2087 is cloudflare supported proxy https port
     int port = int.parse(env['COSMIC_CHAT_PORT'] ?? '2087');
-
-    _io = Server(server: port);
-
+    _io = Server();
     final InternetAddress ip = InternetAddress.anyIPv4;
-
-    loggerNoStack
-        .i('Cosmic Chat Server listening on port http://${ip.host}:$port');
 
     try {
       start(io);
+      await io.listen(port);
+      loggerNoStack
+          .i('Cosmic Chat Server listening on port http://${ip.host}:$port');
     } catch (e) {
       loggerNoStack.e('Cosmic Chat Server error: $e');
     }
   }
 
   void start(Server io) {
-    io.on('connection', (client) async {
+    io.on('connection', (client) {
       if (client is Socket) {
+        List<bool> initCheckList = List<bool>.generate(2, (index) => false);
         String? token = client.handshake?['headers']?['rpmtw_auth_token']?[0];
-
         String? minecraftUUID =
             client.handshake?['headers']?['minecraft_uuid']?[0];
         String? minecraftUsername;
+        bool minecraftUUIDValid = false;
         User? user;
         if (token != null) {
           try {
-            user = await User.getByToken(token);
+            User.getByToken(token).then((value) {
+              user = value;
+              initCheckList[0] = true;
+            });
           } catch (e) {
             user = null;
+            initCheckList[0] = true;
           }
+        } else {
+          initCheckList[0] = true;
         }
 
-        bool minecraftUUIDValid = false;
+        bool isInit() => initCheckList.reduce((a, b) => a && b);
+        bool isAuthenticated() =>
+            user != null || (minecraftUUIDValid && minecraftUsername != null);
 
         if (minecraftUUID != null) {
           /// 驗證 minecraft 帳號是否存在
-          Response response = await get(Uri.parse(
-              "https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID"));
-          if (response.statusCode == 200) {
-            Map data = json.decode(response.body);
-            minecraftUUIDValid = true;
-            minecraftUsername = data['name'];
-          }
-        }
-
-        bool isAuthenticated =
-            user != null || (minecraftUUIDValid && minecraftUsername != null);
-
-        if (isAuthenticated) {
-          client.on('clientMessage', (_data) {
-            try {
-              Map data = json.decode(_data.toString());
-              String? message = data['message'];
-              bool isValidMessage = isAuthenticated && message != null;
-    print("test");
-
-              if (isValidMessage) {
-                String username = user?.username ?? minecraftUsername!;
-                String? userUUID = user?.uuid;
-
-                if (user != null &&
-                    user.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
-                  username = "RPMTW 維護者兼創辦人";
-                }
-
-                late String avatar;
-
-                if (userUUID != null) {
-                  avatar =
-                      "https://api.rpmtw.com:2096/storage/$userUUID/download";
-                } else if (minecraftUUID != null) {
-                  avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
-                }
-
-                CosmicChatMessage msg = CosmicChatMessage(
-                    username: username,
-                    message: message,
-                    nickname: data['nickname'],
-                    avatarUrl: avatar);
-                sendMessage(client, msg);
-              }
-            } catch (e) {
-              // ignore
+          http
+              .get(Uri.parse(
+                  "https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID"))
+              .then((response) {
+            if (response.statusCode == 200) {
+              Map data = json.decode(response.body);
+              minecraftUUIDValid = true;
+              minecraftUsername = data['name'];
             }
+            initCheckList[1] = true;
           });
         } else {
-          client.emit('serverError', 'Unauthorized');
+          initCheckList[1] = true;
         }
+
+        client.on('clientMessage', (_data) {
+          if (!isInit()) return; // 尚未完成初始化程序因此不處理該訊息
+          if (!isAuthenticated()) return client.error('Unauthorized');
+
+          try {
+            Map data = json.decode(_data.toString());
+            String? message = data['message'];
+
+            if (message != null && message.isNotEmpty) {
+              String username = user?.username ?? minecraftUsername!;
+              String? userUUID = user?.uuid;
+
+              if (user?.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
+                username = "RPMTW 維護者兼創辦人";
+              }
+
+              late String avatar;
+
+              if (userUUID != null) {
+                avatar =
+                    "https://api.rpmtw.com:2096/storage/$userUUID/download";
+              } else if (minecraftUUID != null) {
+                avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
+              }
+
+              CosmicChatMessage msg = CosmicChatMessage(
+                  username: username,
+                  message: message,
+                  nickname: data['nickname'],
+                  avatarUrl: avatar);
+              sendMessage(client, msg);
+            }
+          } catch (e) {
+            // ignore
+          }
+        });
       }
     });
   }

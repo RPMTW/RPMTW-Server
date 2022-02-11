@@ -47,5 +47,5 @@ Future<void> run() async {
   loggerNoStack
       .i('API Server listening on port http://${ip.host}:${server!.port}');
 
-  CosmicChatHandler().init();
+  await CosmicChatHandler().init();
 }
