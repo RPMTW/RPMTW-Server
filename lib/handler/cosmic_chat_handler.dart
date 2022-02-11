@@ -20,7 +20,7 @@ class CosmicChatHandler {
     final InternetAddress ip = InternetAddress.anyIPv4;
 
     try {
-      start(io);
+      eventHandler(io);
       await io.listen(port);
       loggerNoStack
           .i('Cosmic Chat Server listening on port http://${ip.host}:$port');
@@ -29,7 +29,7 @@ class CosmicChatHandler {
     }
   }
 
-  void start(Server io) {
+  void eventHandler(Server io) {
     io.on('connection', (client) {
       if (client is Socket) {
         List<bool> initCheckList = List<bool>.generate(2, (index) => false);
