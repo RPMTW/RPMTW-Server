@@ -33,8 +33,9 @@ class CosmicChatHandler {
     io.on('connection', (client) {
       if (client is Socket) {
         List<bool> initCheckList = List<bool>.generate(2, (index) => false);
-        String? token = client.handshake?['headers']?['rpmtw_auth_token']?[0];
-        String? minecraftUUID =
+        final String? token =
+            client.handshake?['headers']?['rpmtw_auth_token']?[0];
+        final String? minecraftUUID =
             client.handshake?['headers']?['minecraft_uuid']?[0];
         String? minecraftUsername;
         bool minecraftUUIDValid = false;
