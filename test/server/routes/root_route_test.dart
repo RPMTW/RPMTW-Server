@@ -22,6 +22,13 @@ void main() async {
     expect(data['message'], 'Hello RPMTW World');
   });
 
+  test('IP', () async {
+    final response = await get(Uri.parse(host + '/ip'));
+    Map data = json.decode(response.body)['data'];
+    expect(response.statusCode, 200);
+    expect(data['ip'], contains("127.0.0.1"));
+  });
+
   test('404', () async {
     final response = await get(Uri.parse(host + '/foobar'));
     expect(response.statusCode, 404);
