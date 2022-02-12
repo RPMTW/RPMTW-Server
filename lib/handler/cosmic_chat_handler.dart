@@ -51,15 +51,19 @@ class CosmicChatHandler {
       bool minecraftUUIDValid = false;
       User? user;
       if (token != null) {
-        try {
-          User.getByToken(token).then((value) {
-            user = value;
+        fetch() async {
+          try {
+            User? _user = await User.getByToken(token);
+            user = _user;
             initCheckList[0] = true;
-          });
-        } catch (e) {
-          user = null;
-          initCheckList[0] = true;
+          } catch (e) {
+            user = null;
+            initCheckList[0] = true;
+            client.error("Invalid rpmtw account token");
+          }
         }
+
+        fetch();
       } else {
         initCheckList[0] = true;
       }
@@ -69,7 +73,7 @@ class CosmicChatHandler {
           user != null || (minecraftUUIDValid && minecraftUsername != null);
 
       if (minecraftUUID != null) {
-        /// 驗證 minecraft 帳號是否存在
+        /// Verify that the minecraft account exists
         http
             .get(Uri.parse(
                 "https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID"))
@@ -86,7 +90,8 @@ class CosmicChatHandler {
       }
 
       client.on('clientMessage', (_data) {
-        if (!isInit()) return; // 尚未完成初始化程序因此不處理該訊息
+        /// The server has not completed the initialization process and therefore does not process the message.
+        if (!isInit()) return;
         if (!isAuthenticated()) return client.error('Unauthorized');
 
         Map data = json.decode(_data.toString());
@@ -176,7 +181,7 @@ class CosmicChatHandler {
   }
 
   void sendMessage(Socket client, CosmicChatMessage msg) {
-    // Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
+    /// Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
     client.emit('sentMessage', utf8.encode(json.encode(msg.outputMap())));
   }
 }

@@ -25,6 +25,7 @@ void main() async {
 
   tearDown(() {
     socket = socket.disconnect();
+    (socket.opts?['extraHeaders'] as Map?)?.clear();
     socket.clearListeners();
   });
 
@@ -50,7 +51,7 @@ void main() async {
 
     await wait(scale: 1.5);
 
-    expect(errors.first, contains('Unauthorized'));
+    expect(errors.first.toLowerCase(), contains('unauthorized'));
     expect(messages.isEmpty, true);
   });
   test("send message by minecraft account", () async {
@@ -120,6 +121,29 @@ void main() async {
     expect(messages.first['userType'], "rpmtw");
     expect(messages.length, 1);
   });
+  test("send message by rpmtw account (invalid token)", () async {
+    List<String> errors = [];
+    List<Map> messages = [];
+    socket.opts!["extraHeaders"] = {"rpmtw_auth_token": "test"};
+
+    socket.onConnect((_) async {
+      await wait();
+      socket.emit('clientMessage', json.encode({"message": message}));
+    });
+
+    socket.onError((e) async => errors.add(e));
+
+    socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+    socket = socket.connect();
+
+    await wait(scale: 1.5);
+
+    expect(errors.isEmpty, false);
+    expect(errors.first.toLowerCase(), contains("invalid"));
+    expect(errors.first.toLowerCase(), contains("token"));
+    expect(messages.isEmpty, true);
+  });
   group("send message form discord", () {
     final String username = "SiongSng";
     final String nickname = "菘菘";
@@ -146,7 +170,6 @@ void main() async {
       socket = socket.connect();
 
       await wait();
-
       // No errors are thrown for the "discordMessage" event in order to reduce server load.
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, true);
@@ -176,7 +199,7 @@ void main() async {
 
       await wait();
 
-      expect(errors.first, contains('Invalid'));
+      expect(errors.first.toLowerCase(), contains('invalid'));
       expect(messages.isEmpty, true);
     });
     test("(valid message)", () async {

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:rpmtw_server/database/models/base_models.dart';
 
-/// 宇宙通訊的訊息
 class CosmicChatMessage extends BaseModels {
   /// Username (not a nickname, may be the username of RPMTW account, Minecraft account or Discord account)
   final String username;
