@@ -29,6 +29,9 @@ void main() async {
   Future<void> wait({double scale = 1}) =>
       Future.delayed(Duration(milliseconds: (500 * scale).toInt()));
 
+  Map decodeMessage(List<dynamic> message) =>
+      json.decode(utf8.decode(List<int>.from(message)));
+
   test("send message (unauthorized)", () async {
     List<String> errors = [];
     List<Map> messages = [];
@@ -39,8 +42,7 @@ void main() async {
     });
 
     socket.onError((e) async => errors.add(e));
-    socket.on(
-        'sentMessage', (msg) => messages.add(json.decode(msg)));
+    socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
 
     socket = socket.connect();
 
@@ -62,7 +64,7 @@ void main() async {
 
     socket.onError((e) async => errors.add(e));
 
-    socket.on('sentMessage', (msg) => messages.add(json.decode(msg)));
+    socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
 
     socket = socket.connect();
 
@@ -100,7 +102,7 @@ void main() async {
       });
 
       socket.onError((e) async => errors.add(e));
-      socket.on('sentMessage', (msg) => messages.add(json.decode(msg)));
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
       socket = socket.connect();
 
       await wait();
@@ -128,7 +130,7 @@ void main() async {
       });
 
       socket.onError((e) async => errors.add(e));
-      socket.on('sentMessage', (msg) => messages.add(json.decode(msg)));
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
 
       socket = socket.connect();
 
@@ -156,7 +158,7 @@ void main() async {
       });
 
       socket.onError((e) async => errors.add(e));
-      socket.on('sentMessage', (msg) => messages.add(json.decode(msg)));
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
 
       socket = socket.connect();
 

@@ -176,6 +176,7 @@ class CosmicChatHandler {
   }
 
   void sendMessage(Socket client, CosmicChatMessage msg) {
-    client.emit('sentMessage', json.encode(msg.outputMap()));
+    // Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
+    client.emit('sentMessage', utf8.encode(json.encode(msg.outputMap())));
   }
 }
