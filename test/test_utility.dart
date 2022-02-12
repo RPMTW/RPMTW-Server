@@ -47,10 +47,11 @@ class TestUttily {
   static Future<void> setUpAll({bool isServer = true}) {
     return Future.sync(() async {
       kTestMode = true;
+      Parser parser = const TestEnvParser();
       if (isServer) {
-        await server.run(envParser: const TestEnvParser());
+        await server.run(envParser: parser);
       } else {
-        await Data.init(envParser: const TestEnvParser());
+        await Data.init(envParser: parser);
       }
     });
   }
