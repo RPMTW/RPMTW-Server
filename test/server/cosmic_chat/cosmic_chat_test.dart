@@ -97,6 +97,10 @@ void main() async {
       expect(data['avatarUrl'], contains(minecraftUUID));
       expect(data['userType'], "minecraft");
     });
+    test("view message (invalid uuid)", () async {
+      final response = await get(Uri.parse(host + '/cosmic-chat/view/test'));
+      expect(response.statusCode, 400);
+    });
   });
 
   test("send message by rpmtw account", () async {
