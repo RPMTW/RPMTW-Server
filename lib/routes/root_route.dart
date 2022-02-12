@@ -24,12 +24,7 @@ class RootRoute implements BaseRoute {
     });
 
     router.get('/ip', (Request req) async {
-      try {
-        return ResponseExtension.success(data: {"ip": req.ip});
-      } catch (e) {
-        logger.e(e);
-        return ResponseExtension.internalServerError();
-      }
+      return ResponseExtension.success(data: {"ip": req.ip});
     });
 
     return router;
