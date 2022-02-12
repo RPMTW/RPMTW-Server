@@ -16,8 +16,8 @@ HttpServer? server;
 
 void main(List<String> args) => run();
 
-Future<void> run() async {
-  Data.init();
+Future<void> run({Parser? envParser}) async {
+  Data.init(envParser: envParser);
   loggerNoStack.i("connecting to database");
   await DataBase.init();
   final InternetAddress ip = InternetAddress.anyIPv4;

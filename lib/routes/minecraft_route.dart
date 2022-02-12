@@ -12,7 +12,6 @@ import 'package:rpmtw_server/utilities/messages.dart';
 import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'package:rpmtw_server/routes/root_route.dart';
 
 class MinecraftRoute implements BaseRoute {
   @override

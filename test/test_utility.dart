@@ -28,13 +28,29 @@ extension TestDataExtension on TestData {
   Uint8List getFileBytes() => getFile().readAsBytesSync();
 }
 
+class TestEnvParser extends Parser {
+  const TestEnvParser();
+
+  @override
+  Map<String, String> parse(Iterable<String> lines) {
+    Map<String, String> map = super.parse(lines);
+    String secretKey = TestUttily.secretKey;
+    map['DATA_BASE_SecretKey'] = secretKey;
+    map['COSMIC_CHAT_DISCORD_SecretKey'] = secretKey;
+    return map;
+  }
+}
+
 class TestUttily {
+  static String get secretKey => "testSecretKey";
+
   static Future<void> setUpAll({bool isServer = true}) {
     return Future.sync(() async {
       kTestMode = true;
-      env['DATA_BASE_SecretKey'] = "testSecretKey";
       if (isServer) {
-        await server.run();
+        await server.run(envParser: const TestEnvParser());
+      } else {
+        await Data.init(envParser: const TestEnvParser());
       }
     });
   }

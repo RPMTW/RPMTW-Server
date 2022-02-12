@@ -10,7 +10,6 @@ import 'package:rpmtw_server/utilities/extension.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'base_route.dart';
-import 'root_route.dart';
 
 class AuthRoute implements BaseRoute {
   @override

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:rpmtw_server/database/models/auth/user.dart';
+import 'package:rpmtw_server/utilities/data.dart';
 import 'package:shelf/shelf.dart';
 
 class ResponseExtension {
@@ -77,4 +79,39 @@ extension StringCasingExtension on String {
   }
 
   bool toBool() => this == "true";
+}
+
+extension RequestUserExtension on Request {
+  String get ip {
+    String? xForwardedFor = headers['X-Forwarded-For'];
+    if (xForwardedFor != null && kTestMode) {
+      return xForwardedFor;
+    } else {
+      String? cfIP = headers['CF-Connecting-IP'];
+      if (cfIP != null) {
+        return cfIP;
+      }
+
+      HttpConnectionInfo connectionInfo =
+          context['shelf.io.connection_info'] as HttpConnectionInfo;
+      InternetAddress internetAddress = connectionInfo.remoteAddress;
+      return internetAddress.address;
+    }
+  }
+
+  bool isAuthenticated() {
+    return context['isAuthenticated'] == true && context['user'] is User;
+  }
+
+  User? get user {
+    try {
+      return context['user'] as User;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> get data async {
+    return json.decode(await readAsString());
+  }
 }

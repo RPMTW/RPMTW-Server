@@ -22,8 +22,8 @@ class _LogFilter extends LogFilter {
 }
 
 class Data {
-  static Future<void> init() async {
-    load();
+  static Future<void> init({Parser? envParser}) async {
+    load(".env", envParser ?? const Parser());
   }
 }
 

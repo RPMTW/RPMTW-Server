@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
 
 env: 
   CurseForge_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
