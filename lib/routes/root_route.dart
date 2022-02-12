@@ -4,7 +4,6 @@ import 'package:rpmtw_server/routes/minecraft_route.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-import '../utilities/data.dart';
 import '../utilities/extension.dart';
 import 'base_route.dart';
 import 'package:rpmtw_server/routes/auth_route.dart';
