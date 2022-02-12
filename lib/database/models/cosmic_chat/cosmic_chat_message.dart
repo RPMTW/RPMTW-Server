@@ -1,9 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/models/base_models.dart';
+import 'package:rpmtw_server/database/models/index_fields.dart';
 
 class CosmicChatMessage extends BaseModels {
+  static const String collectionName = "cosmic_chat_message";
+  static const List<IndexFields> indexFields = [
+    IndexFields("sentAt", unique: false),
+    IndexFields("ip", unique: false),
+  ];
+
   /// Username (not a nickname, may be the username of RPMTW account, Minecraft account or Discord account)
   final String username;
 
@@ -131,6 +139,9 @@ class CosmicChatMessage extends BaseModels {
         ip.hashCode ^
         userType.hashCode;
   }
+
+  static Future<CosmicChatMessage?> getByUUID(String uuid) async =>
+      DataBase.instance.getModelByUUID<CosmicChatMessage>(uuid);
 }
 
 enum CosmicChatUserType {

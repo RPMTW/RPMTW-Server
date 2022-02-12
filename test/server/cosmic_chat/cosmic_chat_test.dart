@@ -54,34 +54,51 @@ void main() async {
     expect(errors.first.toLowerCase(), contains('unauthorized'));
     expect(messages.isEmpty, true);
   });
-  test("send message by minecraft account", () async {
+  group("send message by minecraft account", () {
     final String minecraftUUID = "977e69fb-0b15-40bf-b25e-4718485bf72f";
-    List<String> errors = [];
-    List<Map> messages = [];
-    socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
+    late final String messageUUID;
 
-    socket.onConnect((_) async {
-      await wait();
-      socket.emit('clientMessage', json.encode({"message": message}));
+    test("send message", () async {
+      List<String> errors = [];
+      List<Map> messages = [];
+      socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
+
+      socket.onConnect((_) async {
+        await wait();
+        socket.emit('clientMessage', json.encode({"message": message}));
+      });
+
+      socket.onError((e) async => errors.add(e));
+
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+      socket = socket.connect();
+
+      await wait(scale: 1.5);
+
+      expect(errors.isEmpty, true);
+      expect(messages.isEmpty, false);
+      expect(messages.first['message'], message);
+      expect(messages.first['username'], contains("SiongSng"));
+      expect(messages.first['nickname'], null);
+      expect(messages.first['avatarUrl'], contains(minecraftUUID));
+      expect(messages.first['userType'], "minecraft");
+      expect(messages.length, 1);
+      messageUUID = messages.first['uuid'];
     });
-
-    socket.onError((e) async => errors.add(e));
-
-    socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
-
-    socket = socket.connect();
-
-    await wait(scale: 1.5);
-
-    expect(errors.isEmpty, true);
-    expect(messages.isEmpty, false);
-    expect(messages.first['message'], message);
-    expect(messages.first['username'], contains("SiongSng"));
-    expect(messages.first['nickname'], null);
-    expect(messages.first['avatarUrl'], contains(minecraftUUID));
-    expect(messages.first['userType'], "minecraft");
-    expect(messages.length, 1);
+    test("view message", () async {
+      final response =
+          await get(Uri.parse(host + '/cosmic-chat/view/$messageUUID'));
+      Map data = json.decode(response.body)['data'];
+      expect(response.statusCode, 200);
+      expect(data['message'], message);
+      expect(data['username'], contains("SiongSng"));
+      expect(data['nickname'], null);
+      expect(data['avatarUrl'], contains(minecraftUUID));
+      expect(data['userType'], "minecraft");
+    });
   });
+
   test("send message by rpmtw account", () async {
     /// Create a new rpmtw account
     final _response = await post(Uri.parse(host + '/auth/user/create'),
