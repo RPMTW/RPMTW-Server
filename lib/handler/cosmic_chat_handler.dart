@@ -104,7 +104,7 @@ class CosmicChatHandler {
 
           if (userUUID != null) {
             avatar =
-                "https://${kTestMode ? "0.0.0.0:8080" : "api.rpmtw.com:2096"}/storage/$userUUID/download";
+                "${kTestMode ? "http://0.0.0.0:8080" : "https://api.rpmtw.com:2096"}/storage/$userUUID/download";
           } else if (minecraftUUID != null) {
             avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
           }

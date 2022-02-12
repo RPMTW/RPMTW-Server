@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:http/http.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:test/test.dart';
@@ -8,6 +9,7 @@ import '../../test_utility.dart';
 
 void main() async {
   final cosmicChatHost = 'http://localhost:2087';
+  final host = 'http://0.0.0.0:8080';
   final baseOption =
       OptionBuilder().setTransports(['websocket']).disableAutoConnect();
   io.Socket socket = io.io(cosmicChatHost, baseOption.build());
@@ -51,7 +53,7 @@ void main() async {
     expect(errors.first, contains('Unauthorized'));
     expect(messages.isEmpty, true);
   });
-  test("send message", () async {
+  test("send message by minecraft account", () async {
     final String minecraftUUID = "977e69fb-0b15-40bf-b25e-4718485bf72f";
     List<String> errors = [];
     List<Map> messages = [];
@@ -79,7 +81,45 @@ void main() async {
     expect(messages.first['userType'], "minecraft");
     expect(messages.length, 1);
   });
+  test("send message by rpmtw account", () async {
+    /// Create a new rpmtw account
+    final _response = await post(Uri.parse(host + '/auth/user/create'),
+        body: json.encode({
+          "password": "testPassword1234",
+          "email": "test@gmail.com",
+          "username": "test",
+        }),
+        headers: {'Content-Type': 'application/json'});
+    Map _body = json.decode(_response.body)['data'];
+    String userToken = _body['token'];
+    String userUUID = _body['uuid'];
 
+    List<String> errors = [];
+    List<Map> messages = [];
+    socket.opts!["extraHeaders"] = {"rpmtw_auth_token": userToken};
+
+    socket.onConnect((_) async {
+      await wait();
+      socket.emit('clientMessage', json.encode({"message": message}));
+    });
+
+    socket.onError((e) async => errors.add(e));
+
+    socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+    socket = socket.connect();
+
+    await wait(scale: 1.5);
+
+    expect(errors.isEmpty, true);
+    expect(messages.isEmpty, false);
+    expect(messages.first['message'], message);
+    expect(messages.first['username'], contains("test"));
+    expect(messages.first['nickname'], null);
+    expect(messages.first['avatarUrl'], "$host/storage/$userUUID/download");
+    expect(messages.first['userType'], "rpmtw");
+    expect(messages.length, 1);
+  });
   group("send message form discord", () {
     final String username = "SiongSng";
     final String nickname = "菘菘";
