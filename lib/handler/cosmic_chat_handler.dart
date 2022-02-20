@@ -94,7 +94,7 @@ class CosmicChatHandler {
         if (!isInit()) return;
         if (!isAuthenticated()) return client.error('Unauthorized');
 
-        Map data = json.decode(_data.toString());
+        Map data = json.decode(utf8.decode((_data as List).cast<int>()));
         String? message = data['message'];
 
         if (message != null && message.isNotEmpty) {

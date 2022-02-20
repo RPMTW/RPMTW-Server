@@ -35,13 +35,15 @@ void main() async {
   Map decodeMessage(List<dynamic> message) =>
       json.decode(utf8.decode(List<int>.from(message)));
 
+  List<int> encodeMessage(Map message) => utf8.encode(json.encode(message));
+
   test("send message (unauthorized)", () async {
     List<String> errors = [];
     List<Map> messages = [];
 
     socket.onConnect((_) async {
       await wait();
-      socket.emit('clientMessage', json.encode({"message": message}));
+      socket.emit('clientMessage', encodeMessage({"message": message}));
     });
 
     socket.onError((e) async => errors.add(e));
@@ -65,7 +67,7 @@ void main() async {
 
       socket.onConnect((_) async {
         await wait();
-        socket.emit('clientMessage', json.encode({"message": message}));
+        socket.emit('clientMessage', encodeMessage({"message": message}));
       });
 
       socket.onError((e) async => errors.add(e));
@@ -74,7 +76,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 1.5);
+      await wait(scale: 2);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -122,7 +124,7 @@ void main() async {
 
     socket.onConnect((_) async {
       await wait();
-      socket.emit('clientMessage', json.encode({"message": message}));
+      socket.emit('clientMessage', encodeMessage({"message": message}));
     });
 
     socket.onError((e) async => errors.add(e));
@@ -149,7 +151,7 @@ void main() async {
 
     socket.onConnect((_) async {
       await wait();
-      socket.emit('clientMessage', json.encode({"message": message}));
+      socket.emit('clientMessage', encodeMessage({"message": message}));
     });
 
     socket.onError((e) async => errors.add(e));
