@@ -30,6 +30,9 @@ class CosmicChatMessage extends BaseModels {
 
   final CosmicChatUserType userType;
 
+  /// Reply message uuid
+  final String? replyMessageUUID;
+
   const CosmicChatMessage({
     required String uuid,
     required this.username,
@@ -39,6 +42,7 @@ class CosmicChatMessage extends BaseModels {
     required this.sentAt,
     required this.ip,
     required this.userType,
+    this.replyMessageUUID,
   }) : super(uuid: uuid);
 
   CosmicChatMessage copyWith({
@@ -50,6 +54,7 @@ class CosmicChatMessage extends BaseModels {
     DateTime? sentAt,
     InternetAddress? ip,
     CosmicChatUserType? userType,
+    String? replyMessageUUID,
   }) {
     return CosmicChatMessage(
       uuid: uuid ?? this.uuid,
@@ -60,6 +65,7 @@ class CosmicChatMessage extends BaseModels {
       sentAt: sentAt ?? this.sentAt,
       ip: ip ?? this.ip,
       userType: userType ?? this.userType,
+      replyMessageUUID: replyMessageUUID ?? this.replyMessageUUID,
     );
   }
 
@@ -74,6 +80,7 @@ class CosmicChatMessage extends BaseModels {
       'sentAt': sentAt.millisecondsSinceEpoch,
       'ip': ip.address,
       'userType': userType.name,
+      'replyMessageUUID': replyMessageUUID,
     };
   }
 
@@ -87,6 +94,7 @@ class CosmicChatMessage extends BaseModels {
       'avatarUrl': avatarUrl,
       'sentAt': sentAt.millisecondsSinceEpoch,
       'userType': userType.name,
+      'replyMessageUUID': replyMessageUUID,
     };
   }
 
@@ -100,6 +108,7 @@ class CosmicChatMessage extends BaseModels {
       sentAt: DateTime.fromMillisecondsSinceEpoch(map['sentAt']),
       ip: InternetAddress(map['ip']),
       userType: CosmicChatUserType.values.byName(map['userType']),
+      replyMessageUUID: map['replyMessageUUID'],
     );
   }
 
@@ -110,7 +119,7 @@ class CosmicChatMessage extends BaseModels {
 
   @override
   String toString() {
-    return 'CosmicChatMessage(uuid: $uuid, username: $username, message: $message, nickname: $nickname, avatarUrl: $avatarUrl, sentAt: $sentAt, ip: $ip, userType: $userType)';
+    return 'CosmicChatMessage(uuid: $uuid, username: $username, message: $message, nickname: $nickname, avatarUrl: $avatarUrl, sentAt: $sentAt, ip: $ip, userType: $userType, replyMessageUUID: $replyMessageUUID)';
   }
 
   @override
@@ -125,7 +134,8 @@ class CosmicChatMessage extends BaseModels {
         other.avatarUrl == avatarUrl &&
         other.sentAt == sentAt &&
         other.ip == ip &&
-        other.userType == userType;
+        other.userType == userType &&
+        other.replyMessageUUID == replyMessageUUID;
   }
 
   @override
@@ -137,7 +147,8 @@ class CosmicChatMessage extends BaseModels {
         avatarUrl.hashCode ^
         sentAt.hashCode ^
         ip.hashCode ^
-        userType.hashCode;
+        userType.hashCode ^
+        replyMessageUUID.hashCode;
   }
 
   static Future<CosmicChatMessage?> getByUUID(String uuid) async =>

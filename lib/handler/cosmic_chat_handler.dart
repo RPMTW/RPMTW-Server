@@ -92,7 +92,7 @@ class CosmicChatHandler {
         initCheckList[1] = true;
       }
 
-      client.on('clientMessage', (_data) {
+      client.on('clientMessage', (_data) async {
         /// The server has not completed the initialization process and therefore does not process the message.
         if (!isInit()) return;
         if (!isAuthenticated()) return client.error('Unauthorized');
@@ -103,6 +103,8 @@ class CosmicChatHandler {
         if (message != null && message.isNotEmpty) {
           String username = user?.username ?? minecraftUsername!;
           String? userUUID = user?.uuid;
+          String? nickname = data['nickname'];
+          String? replyMessageUUID = data['replyMessageUUID'];
 
           if (user?.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
             username = "RPMTW 維護者兼創辦人";
@@ -117,17 +119,26 @@ class CosmicChatHandler {
             avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
           }
 
+          if (replyMessageUUID != null) {
+            CosmicChatMessage? replyMessage =
+                await CosmicChatMessage.getByUUID(replyMessageUUID);
+            if (replyMessage == null) {
+              return client.error('Invalid reply message UUID');
+            }
+          }
+
           CosmicChatMessage msg = CosmicChatMessage(
               uuid: Uuid().v4(),
               username: username,
               message: message,
-              nickname: data['nickname'],
+              nickname: nickname,
               avatarUrl: avatar,
               sentAt: DateTime.now(),
               ip: client.request.connectionInfo!.remoteAddress,
               userType: user != null
                   ? CosmicChatUserType.rpmtw
-                  : CosmicChatUserType.minecraft);
+                  : CosmicChatUserType.minecraft,
+              replyMessageUUID: replyMessageUUID);
           sendMessage(client, msg);
         }
       });
@@ -149,13 +160,14 @@ class CosmicChatHandler {
 
       /// Verify that the message is sent by the [RPMTW Discord Bot](https://github.com/RPMTW/RPMTW-Discord-Bot) and not a forged message from someone else.
       if (!isValid) return;
-      client.on("discordMessage", (_data) {
+      client.on("discordMessage", (_data) async {
         Map data = json.decode(utf8.decode(List<int>.from(_data)));
 
         String? message = data['message'];
         String? username = data['username'];
         String? avatarUrl = data['avatarUrl'];
         String? nickname = data['nickname'];
+        String? replyMessageUUID = data['replyMessageUUID'];
 
         if (message == null ||
             message.isEmpty ||
@@ -163,6 +175,14 @@ class CosmicChatHandler {
             username.isEmpty ||
             avatarUrl == null ||
             avatarUrl.isEmpty) return client.error('Invalid discord message');
+
+        if (replyMessageUUID != null) {
+          CosmicChatMessage? replyMessage =
+              await CosmicChatMessage.getByUUID(replyMessageUUID);
+          if (replyMessage == null) {
+            return client.error('Invalid reply message UUID');
+          }
+        }
 
         CosmicChatMessage msg = CosmicChatMessage(
             uuid: Uuid().v4(),
@@ -172,7 +192,8 @@ class CosmicChatHandler {
             avatarUrl: avatarUrl,
             sentAt: DateTime.now(),
             ip: client.request.connectionInfo!.remoteAddress,
-            userType: CosmicChatUserType.discord);
+            userType: CosmicChatUserType.discord,
+            replyMessageUUID: replyMessageUUID);
         sendMessage(client, msg);
       });
     } catch (e, stackTrace) {

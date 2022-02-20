@@ -103,6 +103,60 @@ void main() async {
       final response = await get(Uri.parse(host + '/cosmic-chat/view/test'));
       expect(response.statusCode, 400);
     });
+    test("reply message", () async {
+      List<String> errors = [];
+      List<Map> messages = [];
+      socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
+
+      socket.onConnect((_) async {
+        await wait();
+        socket.emit(
+            'clientMessage',
+            encodeMessage(
+                {"message": message, "replyMessageUUID": messageUUID}));
+      });
+
+      socket.onError((e) async => errors.add(e));
+
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+      socket = socket.connect();
+
+      await wait(scale: 2);
+
+      expect(errors.isEmpty, true);
+      expect(messages.isEmpty, false);
+      expect(messages.first['message'], message);
+      expect(messages.first['username'], contains("SiongSng"));
+      expect(messages.first['nickname'], null);
+      expect(messages.first['avatarUrl'], contains(minecraftUUID));
+      expect(messages.first['userType'], "minecraft");
+      expect(messages.first['replyMessageUUID'], messageUUID);
+      expect(messages.length, 1);
+    });
+    test("reply message (invalid uuid)", () async {
+      List<String> errors = [];
+      List<Map> messages = [];
+      socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
+
+      socket.onConnect((_) async {
+        await wait();
+        socket.emit('clientMessage',
+            encodeMessage({"message": message, "replyMessageUUID": "test"}));
+      });
+
+      socket.onError((e) async => errors.add(e));
+
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+      socket = socket.connect();
+
+      await wait(scale: 2);
+
+      expect(errors.isEmpty, false);
+      expect(errors.first, contains('Invalid'));
+      expect(messages.isEmpty, true);
+    });
     test("get info (socket not connect)", () async {
       final response = await get(Uri.parse(host + '/cosmic-chat/info'));
       Map data = json.decode(response.body)['data'];
@@ -187,13 +241,14 @@ void main() async {
     expect(errors.first.toLowerCase(), contains("token"));
     expect(messages.isEmpty, true);
   });
-  group("send message form discord", () {
+  group("discord", () {
     final String username = "SiongSng";
     final String nickname = "菘菘";
     final String avatarUrl =
         "https://cdn.discordapp.com/avatars/645588343228334080/f56a0b0223d5f32b902edcb362d08a5d.png";
+    late final String messageUUID;
 
-    test("(unauthorized)", () async {
+    test("send message (unauthorized)", () async {
       List<String> errors = [];
       List<Map> messages = [];
 
@@ -217,7 +272,7 @@ void main() async {
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, true);
     });
-    test("(invalid message)", () async {
+    test("send message (invalid message)", () async {
       List<String> errors = [];
       List<Map> messages = [];
       socket.opts!["extraHeaders"] = {
@@ -245,7 +300,7 @@ void main() async {
       expect(errors.first.toLowerCase(), contains('invalid'));
       expect(messages.isEmpty, true);
     });
-    test("(valid message)", () async {
+    test("send message", () async {
       List<String> errors = [];
       List<Map> messages = [];
       socket.opts!["extraHeaders"] = {
@@ -277,6 +332,72 @@ void main() async {
       expect(messages.first['avatarUrl'], avatarUrl);
       expect(messages.first['userType'], "discord");
       expect(messages.length, 1);
+
+      messageUUID = messages.first['uuid'];
+    });
+    test("reply message", () async {
+      List<String> errors = [];
+      List<Map> messages = [];
+      socket.opts!["extraHeaders"] = {
+        "discord_secretKey": TestUttily.secretKey
+      };
+
+      socket.onConnect((_) async {
+        socket.emit(
+            'discordMessage',
+            utf8.encode(json.encode({
+              "message": message,
+              "username": username,
+              "nickname": nickname,
+              "avatarUrl": avatarUrl,
+              "replyMessageUUID": messageUUID
+            })));
+      });
+
+      socket.onError((e) async => errors.add(e));
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+      socket = socket.connect();
+
+      await wait();
+      expect(errors.isEmpty, true);
+      expect(messages.isNotEmpty, true);
+      expect(messages.first['message'], message);
+      expect(messages.first['username'], username);
+      expect(messages.first['nickname'], nickname);
+      expect(messages.first['avatarUrl'], avatarUrl);
+      expect(messages.first['userType'], "discord");
+      expect(messages.first['replyMessageUUID'], messageUUID);
+      expect(messages.length, 1);
+    });
+    test("reply message (invalid uuid)", () async {
+      List<String> errors = [];
+      List<Map> messages = [];
+      socket.opts!["extraHeaders"] = {
+        "discord_secretKey": TestUttily.secretKey
+      };
+
+      socket.onConnect((_) async {
+        socket.emit(
+            'discordMessage',
+            utf8.encode(json.encode({
+              "message": message,
+              "username": username,
+              "nickname": nickname,
+              "avatarUrl": avatarUrl,
+              "replyMessageUUID": "test"
+            })));
+      });
+
+      socket.onError((e) async => errors.add(e));
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+      socket = socket.connect();
+
+      await wait();
+      expect(errors.isEmpty, false);
+      expect(errors.first, contains('Invalid'));
+      expect(messages.isEmpty, true);
     });
   });
 }
