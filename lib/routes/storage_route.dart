@@ -16,70 +16,53 @@ class StorageRoute implements BaseRoute {
   Router get router {
     final Router router = Router();
 
-    router.post("/create", (Request req) async {
-      try {
-        Stream<List<int>> stream = req.read();
-        String contentType = req.headers["content-type"] ??
-            req.headers["Content-Type"] ??
-            "application/octet-stream";
+    router.postRoute("/create", (Request req) async {
+      Stream<List<int>> stream = req.read();
+      String contentType = req.headers["content-type"] ??
+          req.headers["Content-Type"] ??
+          "application/octet-stream";
 
-        Storage storage = Storage(
-            type: StorageType.temp,
-            contentType: contentType,
-            uuid: Uuid().v4(),
-            createAt: DateTime.now().toUtc().millisecondsSinceEpoch);
-        GridIn gridIn =
-            DataBase.instance.gridFS.createFile(stream, storage.uuid);
-        ByteSize size = ByteSize.FromBytes(req.contentLength!);
-        if (size.MegaBytes > 8) {
-          // 限制最大檔案大小為 8 MB
-          return ResponseExtension.badRequest(
-              message: "File size is too large");
-        }
-        await gridIn.save();
-        await storage.insert();
-
-        return ResponseExtension.success(data: storage.outputMap());
-      } catch (e, stack) {
-        logger.e(e, null, stack);
-        return ResponseExtension.badRequest();
+      Storage storage = Storage(
+          type: StorageType.temp,
+          contentType: contentType,
+          uuid: Uuid().v4(),
+          createAt: DateTime.now().toUtc().millisecondsSinceEpoch);
+      GridIn gridIn = DataBase.instance.gridFS.createFile(stream, storage.uuid);
+      ByteSize size = ByteSize.FromBytes(req.contentLength!);
+      if (size.MegaBytes > 8) {
+        // 限制最大檔案大小為 8 MB
+        return ResponseExtension.badRequest(message: "File size is too large");
       }
+      await gridIn.save();
+      await storage.insert();
+
+      return ResponseExtension.success(data: storage.outputMap());
     });
 
-    router.get("/<uuid>", (Request req) async {
-      try {
-        String uuid = req.params['uuid']!;
-        Storage? storage = await Storage.getByUUID(uuid);
-        if (storage == null) {
-          return ResponseExtension.notFound();
-        }
-        return ResponseExtension.success(data: storage.outputMap());
-      } catch (e, stack) {
-        logger.e(e, null, stack);
-        return ResponseExtension.badRequest();
+    router.getRoute("/<uuid>", (Request req) async {
+      String uuid = req.params['uuid']!;
+      Storage? storage = await Storage.getByUUID(uuid);
+      if (storage == null) {
+        return ResponseExtension.notFound();
       }
+      return ResponseExtension.success(data: storage.outputMap());
     });
 
-    router.get("/<uuid>/download", (Request req) async {
-      try {
-        String uuid = req.params['uuid']!;
-        Storage? storage = await Storage.getByUUID(uuid);
-        if (storage == null) {
-          return ResponseExtension.notFound("Storage not found");
-        }
-
-        Uint8List? bytes = await storage.readAsBytes();
-        if (bytes == null) {
-          return ResponseExtension.notFound();
-        }
-
-        return Response.ok(bytes, headers: {
-          "Content-Type": storage.contentType,
-        });
-      } catch (e, stack) {
-        logger.e(e, null, stack);
-        return ResponseExtension.badRequest();
+    router.getRoute("/<uuid>/download", (Request req) async {
+      String uuid = req.params['uuid']!;
+      Storage? storage = await Storage.getByUUID(uuid);
+      if (storage == null) {
+        return ResponseExtension.notFound("Storage not found");
       }
+
+      Uint8List? bytes = await storage.readAsBytes();
+      if (bytes == null) {
+        return ResponseExtension.notFound();
+      }
+
+      return Response.ok(bytes, headers: {
+        "Content-Type": storage.contentType,
+      });
     });
 
     return router;

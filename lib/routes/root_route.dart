@@ -20,11 +20,11 @@ class RootRoute implements BaseRoute {
     router.mount('/curseforge/', CurseForgeRoute().router);
     router.mount('/cosmic-chat/', CosmicChatRoute().router);
 
-    router.get('/', (Request req) async {
+    router.getRoute('/', (Request req) async {
       return ResponseExtension.success(data: {"message": "Hello RPMTW World"});
     });
 
-    router.get('/ip', (Request req) async {
+    router.getRoute('/ip', (Request req) async {
       return ResponseExtension.success(data: {"ip": req.ip});
     });
 

@@ -108,9 +108,9 @@ class UserViewCountFilter {
   }
 
   static void clearUserViewCountFilter(DateTime time) {
-    /// 刪除超過一小時的資料
+    // Delete records from two hours ago
     _filters.removeWhere(
-      (f) => f.createdAt.isBefore(time.subtract(Duration(hours: 1))),
+      (f) => f.createdAt.isBefore(time.subtract(Duration(hours: 2))),
     );
   }
 }

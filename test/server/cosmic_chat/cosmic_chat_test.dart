@@ -103,6 +103,26 @@ void main() async {
       final response = await get(Uri.parse(host + '/cosmic-chat/view/test'));
       expect(response.statusCode, 400);
     });
+    test("get info (socket not connect)", () async {
+      final response = await get(Uri.parse(host + '/cosmic-chat/info'));
+      Map data = json.decode(response.body)['data'];
+      expect(response.statusCode, 200);
+      expect(data["onlineUsers"], 0);
+      expect(data["protocolVersion"], 1);
+    });
+
+    test("get info (socket connected)", () async {
+      socket.onConnect((data) async {
+        final response = await get(Uri.parse(host + '/cosmic-chat/info'));
+        Map data = json.decode(response.body)['data'];
+        expect(response.statusCode, 200);
+        expect(data["onlineUsers"], 1);
+        expect(data["protocolVersion"], 1);
+      });
+
+      socket = socket.connect();
+      await wait();
+    });
   });
 
   test("send message by rpmtw account", () async {

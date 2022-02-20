@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:shelf/shelf.dart';
+import 'package:shelf_router/shelf_router.dart';
 
 class ResponseExtension {
   static const Map<String, String> _baseHeaders = {
@@ -113,5 +114,32 @@ extension RequestUserExtension on Request {
 
   Future<Map<String, dynamic>> get data async {
     return json.decode(await readAsString());
+  }
+}
+
+extension RouterExtension on Router {
+  void addRoute(String verb, String route, Function handler) {
+    Future<Response> _handler(Request request) async {
+      try {
+        return handler(request);
+      } catch (e, stack) {
+        logger.e(e, null, stack);
+        return ResponseExtension.badRequest();
+      }
+    }
+
+    add(verb, route, _handler);
+  }
+
+  void getRoute(String route, Function handler) {
+    addRoute('GET', route, handler);
+  }
+
+  void postRoute(String route, Function handler) {
+    addRoute('POST', route, handler);
+  }
+
+  void patchRoute(String route, Function handler) {
+    addRoute('PATCH', route, handler);
   }
 }

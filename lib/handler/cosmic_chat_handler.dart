@@ -15,6 +15,9 @@ class CosmicChatHandler {
 
   static Server get io => _io;
 
+  /// Number of online users.
+  static int get onlineUsers => _io.sockets.sockets.length;
+
   Future<void> init() async {
     /// 2087 is cloudflare supported proxy https port
     int port = int.parse(env['COSMIC_CHAT_PORT'] ?? '2087');
