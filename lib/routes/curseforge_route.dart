@@ -43,7 +43,11 @@ class CurseForgeRoute implements BaseRoute {
               headers: headers, body: await req.readAsString());
         }
 
-        return ResponseExtension.success(data: json.decode(response.body));
+        if (response.statusCode == 200) {
+          return ResponseExtension.success(data: json.decode(response.body));
+        } else {
+          return ResponseExtension.badRequest();
+        }
       } catch (e, stack) {
         logger.e(e, null, stack);
         return ResponseExtension.badRequest();

@@ -22,7 +22,7 @@ class CosmicChatRoute implements BaseRoute {
       return ResponseExtension.success(data: message.outputMap());
     });
 
-    router.postRoute("/info", (Request req) async {
+    router.getRoute("/info", (Request req) async {
       int online = CosmicChatHandler.onlineUsers;
       CosmicChatInfo info =
           CosmicChatInfo(onlineUsers: online, protocolVersion: 1);
