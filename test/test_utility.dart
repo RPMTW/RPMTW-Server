@@ -49,7 +49,7 @@ class TestUttily {
       kTestMode = true;
       Parser parser = const TestEnvParser();
       if (isServer) {
-        await server.run(envParser: parser);
+        await server.main(["RPMTW_SERVER_TEST_MODE=TRUE"]);
       } else {
         await Data.init(envParser: parser);
       }

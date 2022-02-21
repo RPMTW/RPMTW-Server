@@ -12,9 +12,18 @@ import 'package:shelf/shelf_io.dart';
 import 'package:shelf_cors_headers/shelf_cors_headers.dart';
 import 'package:shelf_rate_limiter/shelf_rate_limiter.dart';
 
+import '../test/test_utility.dart';
+
 HttpServer? server;
 
-void main(List<String> args) => run();
+Future<void> main(List<String> args) async {
+  if (args.contains("RPMTW_SERVER_TEST_MODE=TRUE")) {
+    kTestMode = true;
+    await run(envParser: const TestEnvParser());
+  } else {
+    await run();
+  }
+}
 
 Future<void> run({Parser? envParser}) async {
   Data.init(envParser: envParser);
