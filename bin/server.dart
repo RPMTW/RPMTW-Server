@@ -18,6 +18,7 @@ HttpServer? server;
 
 Future<void> main(List<String> args) async {
   if (args.contains("RPMTW_SERVER_TEST_MODE=TRUE")) {
+    loggerNoStack.i("Enabled test mode");
     kTestMode = true;
     await run(envParser: const TestEnvParser());
   } else {
