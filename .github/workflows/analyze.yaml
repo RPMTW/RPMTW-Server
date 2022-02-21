@@ -22,7 +22,7 @@ jobs:
       # https://dart.dev/get-dart/archive
       - uses: dart-lang/setup-dart@v1.3
         with:
-          sdk: 2.16.0-134.5.beta
+          sdk: 2.16.1
       - name: Install dependencies
         run: |
           dart pub get
