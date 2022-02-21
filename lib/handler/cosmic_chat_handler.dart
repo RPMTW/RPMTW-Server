@@ -50,6 +50,7 @@ class CosmicChatHandler {
           client.handshake?['headers']?['rpmtw_auth_token']?[0];
       final String? minecraftUUID =
           client.handshake?['headers']?['minecraft_uuid']?[0];
+
       String? minecraftUsername;
       bool minecraftUUIDValid = false;
       User? user;
@@ -133,7 +134,7 @@ class CosmicChatHandler {
               message: message,
               nickname: nickname,
               avatarUrl: avatar,
-              sentAt: DateTime.now(),
+              sentAt: DateTime.now().toUtc(),
               ip: client.request.connectionInfo!.remoteAddress,
               userType: user != null
                   ? CosmicChatUserType.rpmtw
@@ -190,7 +191,7 @@ class CosmicChatHandler {
             message: message,
             nickname: nickname,
             avatarUrl: avatarUrl,
-            sentAt: DateTime.now(),
+            sentAt: DateTime.now().toUtc(),
             ip: client.request.connectionInfo!.remoteAddress,
             userType: CosmicChatUserType.discord,
             replyMessageUUID: replyMessageUUID);

@@ -22,7 +22,7 @@ class CosmicChatMessage extends BaseModels {
 
   final String avatarUrl;
 
-  /// message sent time
+  /// message sent time (UTC+0)
   final DateTime sentAt;
 
   /// IP address of the sender of the message (not public)
