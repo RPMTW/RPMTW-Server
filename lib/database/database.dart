@@ -103,6 +103,9 @@ class DataBase {
 
     _mongoDB = await Db.create(url);
     await _mongoDB.open();
+    if (kTestMode) {
+      await _mongoDB.drop(); // Drop test database
+    }
     _instance = await DataBase._open();
     loggerNoStack.i("Successfully connected to the database");
   }

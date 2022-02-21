@@ -58,7 +58,6 @@ class TestUttily {
 
   static Future<void> tearDownAll() {
     return Future.sync(() async {
-      await DataBase.instance.db.drop(); // 刪除測試用資料庫
       await server.server?.close(force: true); // 關閉伺服器
       await CosmicChatHandler.io.close(); // 關閉宇宙通訊伺服器
     });
