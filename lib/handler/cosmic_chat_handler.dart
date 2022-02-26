@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart';
 import 'package:socket_io/socket_io.dart';
 
@@ -45,11 +46,15 @@ class CosmicChatHandler {
 
   void clientMessageHandler(Socket client) {
     try {
-      List<bool> initCheckList = List<bool>.generate(2, (index) => false);
-      final String? token =
-          client.handshake?['headers']?['rpmtw_auth_token']?[0];
-      final String? minecraftUUID =
-          client.handshake?['headers']?['minecraft_uuid']?[0];
+      List<bool> initCheckList = List<bool>.generate(3, (index) => false);
+      Map<String, dynamic> headers = {};
+      client.request.headers.forEach((name, values) {
+        headers[name] = values;
+      });
+      final String? token = headers['rpmtw_auth_token']?[0];
+      final String? minecraftUUID = headers['minecraft_uuid']?[0];
+      final InternetAddress ip = InternetAddress(headers['CF-Connecting-IP'] ??
+          client.request.connectionInfo!.remoteAddress.address);
 
       String? minecraftUsername;
       bool minecraftUUIDValid = false;
@@ -72,10 +77,6 @@ class CosmicChatHandler {
         initCheckList[0] = true;
       }
 
-      bool isInit() => initCheckList.reduce((a, b) => a && b);
-      bool isAuthenticated() =>
-          user != null || (minecraftUUIDValid && minecraftUsername != null);
-
       if (minecraftUUID != null) {
         /// Verify that the minecraft account exists
         http
@@ -93,6 +94,18 @@ class CosmicChatHandler {
         initCheckList[1] = true;
       }
 
+      BanInfo? banInfo;
+      fetch() async {
+        banInfo = await BanInfo.getByIP(ip.address);
+        initCheckList[2] = true;
+      }
+
+      fetch();
+
+      bool isInit() => initCheckList.reduce((a, b) => a && b);
+      bool isAuthenticated() =>
+          user != null || (minecraftUUIDValid && minecraftUsername != null);
+
       client.on('clientMessage', (_data) async {
         final List dataList = _data as List;
         late final List bytes =
@@ -103,6 +116,11 @@ class CosmicChatHandler {
         /// The server has not completed the initialization process and therefore does not process the message.
         if (!isInit()) return;
         if (!isAuthenticated()) return client.error('Unauthorized');
+        if (banInfo != null) {
+          return ack?.call(json.encode({
+            "status": "banned",
+          }));
+        }
 
         Map data = json.decode(utf8.decode((bytes).cast<int>()));
         String? message = data['message'];
@@ -141,7 +159,7 @@ class CosmicChatHandler {
               nickname: nickname,
               avatarUrl: avatar,
               sentAt: DateTime.now().toUtc(),
-              ip: client.request.connectionInfo!.remoteAddress,
+              ip: ip,
               userType: user != null
                   ? CosmicChatUserType.rpmtw
                   : CosmicChatUserType.minecraft,

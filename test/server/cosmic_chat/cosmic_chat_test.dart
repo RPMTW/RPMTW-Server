@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:http/http.dart';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:test/test.dart';
@@ -85,7 +87,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3);
+      await wait(scale: 3.5);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -97,6 +99,44 @@ void main() async {
       expect(messages.length, 1);
       expect(response!["status"], "success");
       messageUUID = messages.first['uuid'];
+    });
+    test("send message (banned)", () async {
+      List<String> errors = [];
+      List<Map> messages = [];
+      Map? response;
+      socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
+
+      String ip = "127.0.0.1";
+
+      /// 暫時手動新增一個測試用假資料
+      BanInfo _info = BanInfo(
+          ip: ip,
+          reason: "Sending fraudulent messages in cosmic chat",
+          userUUID: [],
+          uuid: Uuid().v4());
+      await _info.insert();
+
+      socket.onConnect((_) async {
+        await wait();
+        socket.emitWithAck('clientMessage', encodeMessage({"message": message}),
+            ack: (_response) {
+          response = json.decode(_response.toString());
+        });
+      });
+
+      socket.onError((e) async => errors.add(e));
+
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+      socket = socket.connect();
+
+      await wait(scale: 3.5);
+
+      expect(errors.isEmpty, true);
+      expect(messages.isEmpty, true);
+      expect(response!["status"], "banned");
+
+      await _info.delete();
     });
     test("view message", () async {
       final response =
@@ -136,7 +176,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3);
+      await wait(scale: 3.5);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
