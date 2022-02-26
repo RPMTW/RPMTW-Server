@@ -136,7 +136,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 2);
+      await wait(scale: 3);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -231,7 +231,7 @@ void main() async {
 
     socket = socket.connect();
 
-    await wait(scale: 1.5);
+    await wait(scale: 2);
 
     expect(errors.isEmpty, true);
     expect(messages.isEmpty, false);
