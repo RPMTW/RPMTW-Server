@@ -94,11 +94,17 @@ class CosmicChatHandler {
       }
 
       client.on('clientMessage', (_data) async {
+        final List dataList = _data as List;
+        late final List bytes =
+            dataList.first is List ? dataList.first : dataList;
+        late final Function? ack =
+            dataList.last is Function ? dataList.last : null;
+
         /// The server has not completed the initialization process and therefore does not process the message.
         if (!isInit()) return;
         if (!isAuthenticated()) return client.error('Unauthorized');
 
-        Map data = json.decode(utf8.decode((_data as List).cast<int>()));
+        Map data = json.decode(utf8.decode((bytes).cast<int>()));
         String? message = data['message'];
 
         if (message != null && message.isNotEmpty) {
@@ -141,6 +147,7 @@ class CosmicChatHandler {
                   : CosmicChatUserType.minecraft,
               replyMessageUUID: replyMessageUUID);
           sendMessage(client, msg);
+          ack?.call(json.encode({"status": "success"}));
         }
       });
     } catch (e, stackTrace) {

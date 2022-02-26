@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:dotenv/dotenv.dart';
 import 'package:path/path.dart';
-import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/handler/cosmic_chat_handler.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import '../bin/server.dart' as server;

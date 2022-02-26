@@ -40,10 +40,14 @@ void main() async {
   test("send message (unauthorized)", () async {
     List<String> errors = [];
     List<Map> messages = [];
+    Map? response;
 
     socket.onConnect((_) async {
       await wait();
-      socket.emit('clientMessage', encodeMessage({"message": message}));
+      socket.emitWithAck('clientMessage', encodeMessage({"message": message}),
+          ack: (_response) {
+        response = json.decode(_response.toString());
+      });
     });
 
     socket.onError((e) async => errors.add(e));
@@ -55,6 +59,7 @@ void main() async {
 
     expect(errors.first.toLowerCase(), contains('unauthorized'));
     expect(messages.isEmpty, true);
+    expect(response, null);
   });
   group("send message by minecraft account", () {
     final String minecraftUUID = "977e69fb-0b15-40bf-b25e-4718485bf72f";
@@ -63,11 +68,15 @@ void main() async {
     test("send message", () async {
       List<String> errors = [];
       List<Map> messages = [];
+      Map? response;
       socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
 
       socket.onConnect((_) async {
         await wait();
-        socket.emit('clientMessage', encodeMessage({"message": message}));
+        socket.emitWithAck('clientMessage', encodeMessage({"message": message}),
+            ack: (_response) {
+          response = json.decode(_response.toString());
+        });
       });
 
       socket.onError((e) async => errors.add(e));
@@ -76,7 +85,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 2);
+      await wait(scale: 3);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -86,6 +95,7 @@ void main() async {
       expect(messages.first['avatarUrl'], contains(minecraftUUID));
       expect(messages.first['userType'], "minecraft");
       expect(messages.length, 1);
+      expect(response!["status"], "success");
       messageUUID = messages.first['uuid'];
     });
     test("view message", () async {
@@ -106,14 +116,18 @@ void main() async {
     test("reply message", () async {
       List<String> errors = [];
       List<Map> messages = [];
+      Map? response;
       socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
 
       socket.onConnect((_) async {
         await wait();
-        socket.emit(
+        socket.emitWithAck(
             'clientMessage',
             encodeMessage(
-                {"message": message, "replyMessageUUID": messageUUID}));
+                {"message": message, "replyMessageUUID": messageUUID}),
+            ack: (_response) {
+          response = json.decode(_response.toString());
+        });
       });
 
       socket.onError((e) async => errors.add(e));
@@ -133,16 +147,21 @@ void main() async {
       expect(messages.first['userType'], "minecraft");
       expect(messages.first['replyMessageUUID'], messageUUID);
       expect(messages.length, 1);
+      expect(response!["status"], "success");
     });
     test("reply message (invalid uuid)", () async {
       List<String> errors = [];
       List<Map> messages = [];
+      Map? response;
       socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
 
       socket.onConnect((_) async {
         await wait();
-        socket.emit('clientMessage',
-            encodeMessage({"message": message, "replyMessageUUID": "test"}));
+        socket.emitWithAck('clientMessage',
+            encodeMessage({"message": message, "replyMessageUUID": "test"}),
+            ack: (_response) {
+          response = json.decode(_response.toString());
+        });
       });
 
       socket.onError((e) async => errors.add(e));
@@ -156,6 +175,7 @@ void main() async {
       expect(errors.isEmpty, false);
       expect(errors.first, contains('Invalid'));
       expect(messages.isEmpty, true);
+      expect(response, null);
     });
     test("get info (socket not connect)", () async {
       final response = await get(Uri.parse(host + '/cosmic-chat/info'));
@@ -194,11 +214,15 @@ void main() async {
 
     List<String> errors = [];
     List<Map> messages = [];
+    Map? response;
     socket.opts!["extraHeaders"] = {"rpmtw_auth_token": userToken};
 
     socket.onConnect((_) async {
       await wait();
-      socket.emit('clientMessage', encodeMessage({"message": message}));
+      socket.emitWithAck('clientMessage', encodeMessage({"message": message}),
+          ack: (_response) {
+        response = json.decode(_response.toString());
+      });
     });
 
     socket.onError((e) async => errors.add(e));
@@ -217,15 +241,20 @@ void main() async {
     expect(messages.first['avatarUrl'], "$host/storage/$userUUID/download");
     expect(messages.first['userType'], "rpmtw");
     expect(messages.length, 1);
+    expect(response!["status"], "success");
   });
   test("send message by rpmtw account (invalid token)", () async {
     List<String> errors = [];
     List<Map> messages = [];
     socket.opts!["extraHeaders"] = {"rpmtw_auth_token": "test"};
+    Map? response;
 
     socket.onConnect((_) async {
       await wait();
-      socket.emit('clientMessage', encodeMessage({"message": message}));
+      socket.emitWithAck('clientMessage', encodeMessage({"message": message}),
+          ack: (_response) {
+        response = json.decode(_response.toString());
+      });
     });
 
     socket.onError((e) async => errors.add(e));
@@ -240,6 +269,7 @@ void main() async {
     expect(errors.first.toLowerCase(), contains("invalid"));
     expect(errors.first.toLowerCase(), contains("token"));
     expect(messages.isEmpty, true);
+    expect(response, null);
   });
   group("discord", () {
     final String username = "SiongSng";
