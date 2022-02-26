@@ -18,5 +18,7 @@ COPY --from=build /app/bin/server /app/bin/
 
 # Start server.
 EXPOSE 8080
+EXPOSE 2096
+# For cosmic chat server
 EXPOSE 2087
 CMD ["/app/bin/server"]

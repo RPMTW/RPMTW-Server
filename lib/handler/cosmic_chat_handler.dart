@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart';
+import 'package:rpmtw_server/utilities/scam_detection.dart';
 import 'package:socket_io/socket_io.dart';
 
 import 'package:rpmtw_server/database/models/auth/user.dart';
@@ -164,8 +165,7 @@ class CosmicChatHandler {
                   ? CosmicChatUserType.rpmtw
                   : CosmicChatUserType.minecraft,
               replyMessageUUID: replyMessageUUID);
-          sendMessage(client, msg);
-          ack?.call(json.encode({"status": "success"}));
+          sendMessage(client, msg, ack: ack);
         }
       });
     } catch (e, stackTrace) {
@@ -230,10 +230,19 @@ class CosmicChatHandler {
     }
   }
 
-  Future<void> sendMessage(Socket client, CosmicChatMessage msg) async {
+  Future<void> sendMessage(Socket client, CosmicChatMessage msg,
+      {Function? ack}) async {
+    bool phishing = ScamDetection.detection(msg.message);
+    /// Detect phishing
+    if (phishing) {
+      return ack?.call(json.encode({
+        "status": "phishing",
+      }));
+    }
     await msg.insert();
 
     /// Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
     client.emit('sentMessage', utf8.encode(json.encode(msg.outputMap())));
+    ack?.call(json.encode({"status": "success"}));
   }
 }
