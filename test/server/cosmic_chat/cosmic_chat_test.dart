@@ -40,7 +40,6 @@ void main() async {
   List<int> encodeMessage(Map message) => utf8.encode(json.encode(message));
 
   test("send message (unauthorized)", () async {
-    List<String> errors = [];
     List<Map> messages = [];
     Map? response;
 
@@ -52,16 +51,14 @@ void main() async {
       });
     });
 
-    socket.onError((e) async => errors.add(e));
     socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
 
     socket = socket.connect();
 
     await wait(scale: 1.5);
 
-    expect(errors.first.toLowerCase(), contains('unauthorized'));
     expect(messages.isEmpty, true);
-    expect(response, null);
+    expect(response!["status"], contains('unauthorized'));
   });
   group("send message by minecraft account", () {
     final String minecraftUUID = "977e69fb-0b15-40bf-b25e-4718485bf72f";
@@ -338,7 +335,7 @@ void main() async {
     expect(errors.first.toLowerCase(), contains("invalid"));
     expect(errors.first.toLowerCase(), contains("token"));
     expect(messages.isEmpty, true);
-    expect(response, null);
+    expect(response!["status"], contains("unauthorized"));
   });
   group("discord", () {
     final String username = "SiongSng";
@@ -348,7 +345,6 @@ void main() async {
     late final String messageUUID;
 
     test("send message (unauthorized)", () async {
-      List<String> errors = [];
       List<Map> messages = [];
 
       socket.onConnect((_) async {
@@ -362,13 +358,10 @@ void main() async {
             })));
       });
 
-      socket.onError((e) async => errors.add(e));
       socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
       socket = socket.connect();
 
       await wait();
-      // No errors are thrown for the "discordMessage" event in order to reduce server load.
-      expect(errors.isEmpty, true);
       expect(messages.isEmpty, true);
     });
     test("send message (invalid message)", () async {

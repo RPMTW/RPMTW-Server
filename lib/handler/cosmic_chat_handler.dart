@@ -116,7 +116,11 @@ class CosmicChatHandler {
 
         /// The server has not completed the initialization process and therefore does not process the message.
         if (!isInit()) return;
-        if (!isAuthenticated()) return client.error('Unauthorized');
+        if (!isAuthenticated()) {
+          return ack?.call(json.encode({
+            "status": "unauthorized",
+          }));
+        }
         if (banInfo != null) {
           return ack?.call(json.encode({
             "status": "banned",
@@ -165,7 +169,7 @@ class CosmicChatHandler {
                   ? CosmicChatUserType.rpmtw
                   : CosmicChatUserType.minecraft,
               replyMessageUUID: replyMessageUUID);
-          sendMessage(client, msg, ack: ack);
+          sendMessage(msg, ack: ack);
         }
       });
     } catch (e, stackTrace) {
@@ -220,7 +224,7 @@ class CosmicChatHandler {
             ip: client.request.connectionInfo!.remoteAddress,
             userType: CosmicChatUserType.discord,
             replyMessageUUID: replyMessageUUID);
-        sendMessage(client, msg);
+        sendMessage(msg);
       });
     } catch (e, stackTrace) {
       logger.e(
@@ -230,19 +234,20 @@ class CosmicChatHandler {
     }
   }
 
-  Future<void> sendMessage(Socket client, CosmicChatMessage msg,
-      {Function? ack}) async {
+  Future<void> sendMessage(CosmicChatMessage msg, {Function? ack}) async {
     bool phishing = ScamDetection.detection(msg.message);
+
     /// Detect phishing
     if (phishing) {
       return ack?.call(json.encode({
         "status": "phishing",
       }));
-    }
-    await msg.insert();
+    } else {
+      await msg.insert();
 
-    /// Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
-    client.emit('sentMessage', utf8.encode(json.encode(msg.outputMap())));
-    ack?.call(json.encode({"status": "success"}));
+      /// Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
+      io.emit('sentMessage', utf8.encode(json.encode(msg.outputMap())));
+      ack?.call(json.encode({"status": "success"}));
+    }
   }
 }
