@@ -46,10 +46,9 @@ class Storage extends BaseModels {
     return Uint8List.fromList(await byteStream.toBytes());
   }
 
-  Storage copyWith(
-      {String? uuid, String? contentType, StorageType? type, int? createAt}) {
+  Storage copyWith({String? contentType, StorageType? type, int? createAt}) {
     return Storage(
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       contentType: contentType ?? this.contentType,
       type: type ?? this.type,
       createAt: createAt ?? this.createAt,

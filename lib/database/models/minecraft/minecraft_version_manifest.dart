@@ -23,12 +23,11 @@ class MinecraftVersionManifest extends BaseModels {
 
   MinecraftVersionManifest copyWith({
     _Manifest? manifest,
-    String? uuid,
     DateTime? lastUpdated,
   }) {
     return MinecraftVersionManifest(
       manifest: manifest ?? this.manifest,
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       lastUpdated: lastUpdated ?? this.lastUpdated,
     );
   }

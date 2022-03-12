@@ -28,7 +28,6 @@ class User extends BaseModels {
   }) : super(uuid: uuid);
 
   User copyWith({
-    String? uuid,
     String? username,
     String? email,
     bool? emailVerified,
@@ -37,7 +36,7 @@ class User extends BaseModels {
     List<String>? loginIPs,
   }) {
     return User(
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       username: username ?? this.username,
       email: email ?? this.email,
       emailVerified: emailVerified ?? this.emailVerified,

@@ -46,7 +46,6 @@ class CosmicChatMessage extends BaseModels {
   }) : super(uuid: uuid);
 
   CosmicChatMessage copyWith({
-    String? uuid,
     String? username,
     String? message,
     String? nickname,
@@ -57,7 +56,7 @@ class CosmicChatMessage extends BaseModels {
     String? replyMessageUUID,
   }) {
     return CosmicChatMessage(
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       username: username ?? this.username,
       message: message ?? this.message,
       nickname: nickname ?? this.nickname,

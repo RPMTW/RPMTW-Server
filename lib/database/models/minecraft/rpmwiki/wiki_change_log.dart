@@ -48,7 +48,6 @@ class WikiChangeLog extends BaseModels {
     Map<String, dynamic>? changedData,
     String? userUUID,
     DateTime? time,
-    String? uuid,
   }) {
     return WikiChangeLog(
       changelog: changelog ?? this.changelog,
@@ -57,7 +56,7 @@ class WikiChangeLog extends BaseModels {
       changedData: changedData ?? this.changedData,
       userUUID: userUUID ?? this.userUUID,
       time: time ?? this.time,
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
     );
   }
 

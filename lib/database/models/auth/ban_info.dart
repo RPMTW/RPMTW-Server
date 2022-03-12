@@ -32,13 +32,12 @@ class BanInfo extends BaseModels {
     String? ip,
     String? reason,
     List<String>? userUUID,
-    String? uuid,
   }) {
     return BanInfo(
       ip: ip ?? this.ip,
       reason: reason ?? this.reason,
       userUUID: userUUID ?? this.userUUID,
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
     );
   }
 

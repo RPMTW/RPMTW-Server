@@ -23,7 +23,7 @@ class MinecraftMod extends BaseModels {
   /// 模組的名稱 (尚未翻譯的原始名稱)
   final String name;
 
-  /// 模組描述 (尚未翻譯的原始描述)
+  /// 模組描述
   final String? description;
 
   /// 模組 ID (例如 rpmtw_update_mod )
@@ -81,7 +81,6 @@ class MinecraftMod extends BaseModels {
       : super(uuid: uuid);
 
   MinecraftMod copyWith({
-    String? uuid,
     String? name,
     String? description,
     String? id,
@@ -98,7 +97,7 @@ class MinecraftMod extends BaseModels {
     int? viewCount,
   }) {
     return MinecraftMod(
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       name: name ?? this.name,
       description: description ?? this.description,
       id: id ?? this.id,

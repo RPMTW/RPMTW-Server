@@ -9,6 +9,7 @@ import 'package:rpmtw_server/database/models/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import 'package:rpmtw_server/database/models/translate/translation.dart';
 
 import '../utilities/data.dart';
 import 'models/auth/user.dart';
@@ -43,7 +44,8 @@ class DataBase {
       BanInfo.collectionName,
       MinecraftVersionManifest.collectionName,
       WikiChangeLog.collectionName,
-      CosmicChatMessage.collectionName
+      CosmicChatMessage.collectionName,
+      Translation.collectionName
     ];
 
     List<List<IndexFields>> indexFields = [
@@ -54,7 +56,8 @@ class DataBase {
       BanInfo.indexFields,
       MinecraftVersionManifest.indexFields,
       WikiChangeLog.indexFields,
-      CosmicChatMessage.indexFields
+      CosmicChatMessage.indexFields,
+      Translation.indexFields
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -119,7 +122,8 @@ class DataBase {
       "BanInfo": collectionList[4],
       "MinecraftVersionManifest": collectionList[5],
       "WikiChangeLog": collectionList[6],
-      "CosmicChatMessage": collectionList[7]
+      "CosmicChatMessage": collectionList[7],
+      "Translation": collectionList[8]
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -134,7 +138,8 @@ class DataBase {
       "BanInfo": BanInfo.fromMap,
       "MinecraftVersionManifest": MinecraftVersionManifest.fromMap,
       "WikiChangeLog": WikiChangeLog.fromMap,
-      "CosmicChatMessage": CosmicChatMessage.fromMap
+      "CosmicChatMessage": CosmicChatMessage.fromMap,
+      "Translation": Translation.fromMap
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;

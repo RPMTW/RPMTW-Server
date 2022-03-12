@@ -39,13 +39,12 @@ class AuthCode extends BaseModels {
   AuthCode copyWith({
     int? code,
     DateTime? expiresAt,
-    String? uuid,
     String? email,
   }) {
     return AuthCode(
       code: code ?? this.code,
       expiresAt: expiresAt ?? this.expiresAt,
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       email: email ?? this.email,
     );
   }
