@@ -18,12 +18,16 @@ class Translation extends BaseModels {
   /// Translated text
   final String content;
 
-  /// [User] UUID of the translator
+  /// Uuid of translator
   final String translatorUUID;
 
   final List<TranslationVote> votes;
 
   final Locale language;
+
+  Future<User?> get translator {
+    return User.getByUUID(translatorUUID);
+  }
 
   const Translation(
       {required this.content,
@@ -32,10 +36,6 @@ class Translation extends BaseModels {
       required this.language,
       required String uuid})
       : super(uuid: uuid);
-
-  Future<User?> get translator {
-    return User.getByUUID(translatorUUID);
-  }
 
   Translation copyWith({
     String? content,
