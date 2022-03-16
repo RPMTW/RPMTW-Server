@@ -23,6 +23,7 @@ class Translation extends BaseModels {
 
   final List<TranslationVote> votes;
 
+  /// Language of translation
   final Locale language;
 
   Future<User?> get translator {

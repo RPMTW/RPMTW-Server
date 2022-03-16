@@ -4,7 +4,10 @@ class TranslationVote {
   final TranslationVoteType type;
   final String userUUID;
 
-  TranslationVote(this.type, this.userUUID);
+  bool get isUpVote => type == TranslationVoteType.up;
+  bool get isDownVote => type == TranslationVoteType.down;
+
+  const TranslationVote(this.type, this.userUUID);
 
   @override
   bool operator ==(Object other) {

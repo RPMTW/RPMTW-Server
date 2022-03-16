@@ -5,12 +5,14 @@ import 'package:collection/collection.dart';
 import 'package:rpmtw_server/database/models/base_models.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
 
+/// Represents the source language file in a text format.
 class SourceFile extends BaseModels {
   final String path;
   final SourceFileType type;
 
   /// [SourceText] uuid list
   final List<String> sources;
+
   const SourceFile(
       {required String uuid,
       required this.path,
@@ -84,6 +86,7 @@ enum SourceFileType {
   minecraftLang,
   patchouli,
 
-  /// 
-  customText
+  /// Plain text format
+  /// Each line of text is a source entry, and the key in the source entry uses the md5 hash value of the source content
+  plainText
 }
