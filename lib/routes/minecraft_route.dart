@@ -6,6 +6,7 @@ import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.d
 import 'package:rpmtw_server/database/models/storage/storage.dart';
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
+import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:rpmtw_server/utilities/extension.dart';
 import 'package:rpmtw_server/utilities/messages.dart';
@@ -24,25 +25,24 @@ class MinecraftRoute implements BaseRoute {
           Utility.validateRequiredFields(data, ["name", "supportVersions"]);
 
       if (!validateFields) {
-        return ResponseExtension.badRequest(
-            message: Messages.missingRequiredFields);
+        return APIResponse.badRequest(message: Messages.missingRequiredFields);
       }
 
       ModRequestBodyParsedResult result =
           await MinecraftHeader.parseModRequestBody(data);
 
       if (result.name == null || result.name!.isEmpty) {
-        return ResponseExtension.badRequest(message: "Invalid mod name");
+        return APIResponse.badRequest(message: "Invalid mod name");
       }
 
       if (result.supportVersions == null || result.supportVersions!.isEmpty) {
-        return ResponseExtension.badRequest(message: "Invalid game version");
+        return APIResponse.badRequest(message: "Invalid game version");
       }
 
       if (result.imageStorageUUID != null) {
         Storage? storage = await Storage.getByUUID(result.imageStorageUUID!);
         if (storage == null) {
-          return ResponseExtension.badRequest(message: "Invalid image storage");
+          return APIResponse.badRequest(message: "Invalid image storage");
         }
         if (storage.type == StorageType.temp) {
           storage = storage.copyWith(type: StorageType.general);
@@ -62,7 +62,7 @@ class MinecraftRoute implements BaseRoute {
 
       await changeLog.insert();
 
-      return ResponseExtension.success(data: mod.outputMap());
+      return APIResponse.success(data: mod.outputMap());
     });
 
     router.patchRoute("/mod/edit/<uuid>", (Request req) async {
@@ -71,7 +71,7 @@ class MinecraftRoute implements BaseRoute {
       MinecraftMod? mod = await MinecraftMod.getByUUID(req.params["uuid"]!);
 
       if (mod == null) {
-        return ResponseExtension.badRequest(message: "Mod not found");
+        return APIResponse.badRequest(message: "Mod not found");
       }
 
       ModRequestBodyParsedResult result =
@@ -82,7 +82,7 @@ class MinecraftRoute implements BaseRoute {
       if (result.imageStorageUUID != null) {
         Storage? storage = await Storage.getByUUID(result.imageStorageUUID!);
         if (storage == null) {
-          return ResponseExtension.badRequest(message: "Invalid image storage");
+          return APIResponse.badRequest(message: "Invalid image storage");
         }
         if (storage.type == StorageType.temp) {
           storage = storage.copyWith(type: StorageType.general);
@@ -121,22 +121,21 @@ class MinecraftRoute implements BaseRoute {
       await mod.update();
       await changeLog.insert();
 
-      return ResponseExtension.success(data: mod.outputMap());
+      return APIResponse.success(data: mod.outputMap());
     });
 
     router.getRoute("/mod/view/<uuid>", (Request req) async {
       bool validateFields =
           Utility.validateRequiredFields(req.params, ["uuid"]);
       if (!validateFields) {
-        return ResponseExtension.badRequest(
-            message: Messages.missingRequiredFields);
+        return APIResponse.badRequest(message: Messages.missingRequiredFields);
       }
 
       String uuid = req.params['uuid']!;
       MinecraftMod? mod;
       mod = await MinecraftMod.getByUUID(uuid);
       if (mod == null) {
-        return ResponseExtension.notFound("Minecraft mod not found");
+        return APIResponse.notFound("Minecraft mod not found");
       }
 
       String? _recordViewCount = req.url.queryParameters['recordViewCount'];
@@ -151,7 +150,7 @@ class MinecraftRoute implements BaseRoute {
         await mod.update();
       }
 
-      return ResponseExtension.success(data: mod.outputMap());
+      return APIResponse.success(data: mod.outputMap());
     });
 
     router.getRoute("/mod/search", (Request req) async {
@@ -165,7 +164,7 @@ class MinecraftRoute implements BaseRoute {
       List<MinecraftMod> mods = await MinecraftHeader.searchMods(
           filter: filter, limit: limit, skip: skip, sort: sort);
 
-      return ResponseExtension.success(data: {
+      return APIResponse.success(data: {
         if (limit != null) "limit": (limit > 50) ? 50 : limit,
         if (skip != null) "skip": skip,
         "mods": mods.map((e) => e.outputMap()).toList()
@@ -182,7 +181,7 @@ class MinecraftRoute implements BaseRoute {
                   // 僅輸出正式版
                   .where((v) => v.type == MinecraftVersionType.release)
                   .toList()));
-      return ResponseExtension.success(data: manifest.outputMap());
+      return APIResponse.success(data: manifest.outputMap());
     });
 
     router.getRoute("/changelog", (Request req) async {
@@ -200,7 +199,7 @@ class MinecraftRoute implements BaseRoute {
         changelogsMap.add(await log.output());
       }
 
-      return ResponseExtension.success(data: {
+      return APIResponse.success(data: {
         if (limit != null) "limit": (limit > 50) ? 50 : limit,
         if (skip != null) "skip": skip,
         "changelogs": changelogsMap

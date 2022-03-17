@@ -5,6 +5,7 @@ import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/storage/storage.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
+import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/extension.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -21,15 +22,13 @@ class AuthRoute implements BaseRoute {
       final passwordValidatedResult = AuthHandler.validatePassword(password);
       if (!passwordValidatedResult.isValid) {
         // 密碼驗證失敗
-        return ResponseExtension.badRequest(
-            message: passwordValidatedResult.message);
+        return APIResponse.badRequest(message: passwordValidatedResult.message);
       }
       String email = data['email'];
       // 驗證電子郵件格式
       final emailValidatedResult = await AuthHandler.validateEmail(email);
       if (!emailValidatedResult.isValid) {
-        return ResponseExtension.badRequest(
-            message: emailValidatedResult.message);
+        return APIResponse.badRequest(message: emailValidatedResult.message);
       }
       DBCrypt dbCrypt = DBCrypt();
       String salt =
@@ -50,7 +49,7 @@ class AuthRoute implements BaseRoute {
       if (avatarStorageUUID != null) {
         Storage? storage = await Storage.getByUUID(avatarStorageUUID);
         if (storage == null) {
-          return ResponseExtension.notFound('Avatar Storage not found');
+          return APIResponse.notFound('Avatar Storage not found');
         }
         if (storage.type == StorageType.temp) {
           //將暫存檔案改為一般檔案
@@ -65,8 +64,8 @@ class AuthRoute implements BaseRoute {
       output['token'] = AuthHandler.generateAuthToken(user.uuid);
       AuthCode code = await AuthHandler.generateAuthCode(user.email, user.uuid);
       bool successful = await AuthHandler.sendVerifyEmail(email, code.code);
-      if (!successful) ResponseExtension.internalServerError();
-      return ResponseExtension.success(data: output);
+      if (!successful) APIResponse.internalServerError();
+      return APIResponse.success(data: output);
     });
 
     router.getRoute("/user/<uuid>", (Request req) async {
@@ -78,18 +77,18 @@ class AuthRoute implements BaseRoute {
         user = await User.getByUUID(uuid);
       }
       if (user == null) {
-        return ResponseExtension.notFound("User not found");
+        return APIResponse.notFound("User not found");
       }
-      return ResponseExtension.success(data: user.outputMap());
+      return APIResponse.success(data: user.outputMap());
     });
 
     router.getRoute("/user/get-by-email/<email>", (Request req) async {
       String email = req.params['email']!;
       User? user = await User.getByEmail(email);
       if (user == null) {
-        return ResponseExtension.notFound("User not found");
+        return APIResponse.notFound("User not found");
       }
-      return ResponseExtension.success(data: user.outputMap());
+      return APIResponse.success(data: user.outputMap());
     });
 
     /// 更新使用者資訊
@@ -102,7 +101,7 @@ class AuthRoute implements BaseRoute {
         user = await User.getByUUID(uuid);
       }
       if (user == null) {
-        return ResponseExtension.notFound("User not found");
+        return APIResponse.notFound("User not found");
       }
       User newUser = user;
       Map data = await req.data;
@@ -111,7 +110,7 @@ class AuthRoute implements BaseRoute {
       bool isAuthenticated = req.isAuthenticated() ||
           AuthHandler.checkPassword(password!, newUser.passwordHash);
       if (!isAuthenticated) {
-        return ResponseExtension.unauthorized();
+        return APIResponse.unauthorized();
       }
 
       String? newPassword = data['newPassword'];
@@ -125,7 +124,7 @@ class AuthRoute implements BaseRoute {
             AuthHandler.validatePassword(newPassword);
         if (!passwordValidatedResult.isValid) {
           // 密碼驗證失敗
-          return ResponseExtension.badRequest(
+          return APIResponse.badRequest(
               message: passwordValidatedResult.message);
         }
         DBCrypt dbCrypt = DBCrypt();
@@ -137,8 +136,7 @@ class AuthRoute implements BaseRoute {
         // 使用者想要修改電子郵件
         final emailValidatedResult = await AuthHandler.validateEmail(email);
         if (!emailValidatedResult.isValid) {
-          return ResponseExtension.badRequest(
-              message: emailValidatedResult.message);
+          return APIResponse.badRequest(message: emailValidatedResult.message);
         }
         newUser = newUser.copyWith(email: email);
       }
@@ -150,7 +148,7 @@ class AuthRoute implements BaseRoute {
         // 使用者想要修改帳號圖片
         Storage? storage = await Storage.getByUUID(avatarStorageUUID);
         if (storage == null) {
-          return ResponseExtension.notFound('Avatar Storage not found');
+          return APIResponse.notFound('Avatar Storage not found');
         }
         if (storage.type == StorageType.temp) {
           //將暫存檔案改為一般檔案
@@ -164,7 +162,7 @@ class AuthRoute implements BaseRoute {
         // 如果資料變更才儲存至資料庫
         await newUser.update();
       }
-      return ResponseExtension.success(data: newUser.outputMap());
+      return APIResponse.success(data: newUser.outputMap());
     });
 
     /*
@@ -185,23 +183,23 @@ class AuthRoute implements BaseRoute {
       String password = data['password'];
       User? user = await User.getByUUID(uuid);
       if (user == null) {
-        return ResponseExtension.notFound("User not found");
+        return APIResponse.notFound("User not found");
       }
       bool checkPassword =
           AuthHandler.checkPassword(password, user.passwordHash);
       if (!checkPassword) {
-        return ResponseExtension.badRequest(message: "Password is incorrect");
+        return APIResponse.badRequest(message: "Password is incorrect");
       }
       Map output = user.outputMap();
       output['token'] = AuthHandler.generateAuthToken(user.uuid);
-      return ResponseExtension.success(data: output);
+      return APIResponse.success(data: output);
     });
 
     router.getRoute("/valid-password", (Request req) async {
       Map<String, dynamic> queryParameters = req.requestedUri.queryParameters;
       String password = queryParameters['password']!;
       final validatedResult = AuthHandler.validatePassword(password);
-      return ResponseExtension.success(data: validatedResult.toMap());
+      return APIResponse.success(data: validatedResult.toMap());
     });
 
     router.getRoute("/valid-auth-code", (Request req) async {
@@ -209,7 +207,7 @@ class AuthRoute implements BaseRoute {
       int authCode = int.parse(queryParameters['authCode']!);
       String email = queryParameters['email']!;
       bool isValid = await AuthHandler.validateAuthCode(email, authCode);
-      return ResponseExtension.success(data: {
+      return APIResponse.success(data: {
         'isValid': isValid,
       });
     });

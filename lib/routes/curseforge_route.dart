@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:rpmtw_server/routes/base_route.dart';
+import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
-import 'package:rpmtw_server/utilities/extension.dart';
 import 'package:rpmtw_server/utilities/messages.dart';
 import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
@@ -23,7 +23,7 @@ class CurseForgeRoute implements BaseRoute {
             Utility.validateRequiredFields(queryParameters, ["path"]);
 
         if (!validateFields) {
-          return ResponseExtension.badRequest(
+          return APIResponse.badRequest(
               message: Messages.missingRequiredFields);
         }
 
@@ -44,13 +44,13 @@ class CurseForgeRoute implements BaseRoute {
         }
 
         if (response.statusCode == 200) {
-          return ResponseExtension.success(data: json.decode(response.body));
+          return APIResponse.success(data: json.decode(response.body));
         } else {
-          return ResponseExtension.badRequest();
+          return APIResponse.badRequest();
         }
       } catch (e, stack) {
         logger.e(e, null, stack);
-        return ResponseExtension.badRequest();
+        return APIResponse.badRequest();
       }
     });
 

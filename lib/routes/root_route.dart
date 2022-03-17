@@ -1,6 +1,7 @@
 import 'package:rpmtw_server/routes/cosmic_chat_route.dart';
 import 'package:rpmtw_server/routes/curseforge_route.dart';
 import 'package:rpmtw_server/routes/minecraft_route.dart';
+import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -21,11 +22,11 @@ class RootRoute implements BaseRoute {
     router.mount('/cosmic-chat/', CosmicChatRoute().router);
 
     router.getRoute('/', (Request req) async {
-      return ResponseExtension.success(data: {"message": "Hello RPMTW World"});
+      return APIResponse.success(data: {"message": "Hello RPMTW World"});
     });
 
     router.getRoute('/ip', (Request req) async {
-      return ResponseExtension.success(data: {"ip": req.ip});
+      return APIResponse.success(data: {"ip": req.ip});
     });
 
     return router;

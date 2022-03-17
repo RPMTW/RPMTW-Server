@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:byte_size/byte_size.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:shelf/shelf.dart';
 // ignore: implementation_imports
 import 'package:shelf_router/src/router.dart';
@@ -30,33 +31,33 @@ class StorageRoute implements BaseRoute {
       ByteSize size = ByteSize.FromBytes(req.contentLength!);
       if (size.MegaBytes > 8) {
         // 限制最大檔案大小為 8 MB
-        return ResponseExtension.badRequest(message: "File size is too large");
+        return APIResponse.badRequest(message: "File size is too large");
       }
       await gridIn.save();
       await storage.insert();
 
-      return ResponseExtension.success(data: storage.outputMap());
+      return APIResponse.success(data: storage.outputMap());
     });
 
     router.getRoute("/<uuid>", (Request req) async {
       String uuid = req.params['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
-        return ResponseExtension.notFound();
+        return APIResponse.notFound();
       }
-      return ResponseExtension.success(data: storage.outputMap());
+      return APIResponse.success(data: storage.outputMap());
     });
 
     router.getRoute("/<uuid>/download", (Request req) async {
       String uuid = req.params['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
-        return ResponseExtension.notFound("Storage not found");
+        return APIResponse.notFound("Storage not found");
       }
 
       Uint8List? bytes = await storage.readAsBytes();
       if (bytes == null) {
-        return ResponseExtension.notFound();
+        return APIResponse.notFound();
       }
 
       return Response.ok(bytes, headers: {
