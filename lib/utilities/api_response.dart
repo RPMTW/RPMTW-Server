@@ -21,11 +21,14 @@ class APIResponse {
       badRequest(message: Messages.missingRequiredFields);
 
   static Response success({required dynamic data}) {
-    assert(data is Map || data is List,
-        "Data must be a Map or List, but it is ${data.runtimeType}");
+    assert(data is Map || data is List || data == null,
+        "Data must be a Map or List or null, but it is ${data.runtimeType}");
     return Response(HttpStatus.ok,
-        body: json.encode(
-            {'status': HttpStatus.ok, 'message': 'success', 'data': data}),
+        body: json.encode({
+          'status': HttpStatus.ok,
+          'message': 'success',
+          if (data != null) 'data': data
+        }),
         headers: _baseHeaders);
   }
 

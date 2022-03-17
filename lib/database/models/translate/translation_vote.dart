@@ -1,7 +1,6 @@
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/models/base_models.dart';
 import 'package:rpmtw_server/database/models/index_fields.dart';
-import 'package:rpmtw_server/database/models/translate/translation.dart';
 
 class TranslationVote extends BaseModels {
   static const String collectionName = "translation_votes";
@@ -39,6 +38,7 @@ class TranslationVote extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
+      'uuid': uuid,
       'type': type.name,
       'translationUUID': translationUUID,
       'userUUID': userUUID,
@@ -67,6 +67,9 @@ class TranslationVote extends BaseModels {
   @override
   int get hashCode =>
       type.hashCode ^ translationUUID.hashCode ^ userUUID.hashCode;
+
+  static Future<TranslationVote?> getByUUID(String uuid) async =>
+      DataBase.instance.getModelByUUID<TranslationVote>(uuid);
 
   static Future<List<TranslationVote>> getByTranslationUUID(
           String uuid) async =>

@@ -17,8 +17,8 @@ class TranslateRoute implements APIRoute {
     /// Add translation vote
     router.postRoute("/vote", (Request req) async {
       final Map<String, dynamic> data = await req.data;
-      final bool validateFields = Utility.validateRequiredFields(
-          data, ["translationUUID", "type"]);
+      final bool validateFields =
+          Utility.validateRequiredFields(data, ["translationUUID", "type"]);
       final User user = req.user!;
 
       if (!validateFields) {
@@ -54,8 +54,29 @@ class TranslateRoute implements APIRoute {
 
     /// Cancel translation vote
     router.deleteRoute("/vote", (Request req) async {
-      // TODO: Implement cancel vote
-      throw UnimplementedError();
+      final Map<String, dynamic> data = await req.data;
+      final bool validateFields =
+          Utility.validateRequiredFields(data, ["uuid"]);
+      final User user = req.user!;
+
+      if (!validateFields) {
+        return APIResponse.missingRequiredFields();
+      }
+
+      final String uuid = data["uuid"]!;
+
+      TranslationVote? vote = await TranslationVote.getByUUID(uuid);
+      if (vote == null) {
+        return APIResponse.notFound("Translation vote not found");
+      }
+
+      if (vote.userUUID != user.uuid) {
+        return APIResponse.badRequest(message: "You can't cancel this vote");
+      }
+
+      await vote.delete();
+
+      return APIResponse.success(data: null);
     });
 
     return router;

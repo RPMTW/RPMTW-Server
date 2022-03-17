@@ -12,6 +12,7 @@ void main() async {
   final String mockTranslationUUID = "0d87bd04-d957-4e7c-a9b7-5eb0bb3a40c1";
   late final String token;
   late final String userUUID;
+  late final String translationVoteUUID;
 
   setUpAll(() {
     return Future.sync(() async {
@@ -57,5 +58,20 @@ void main() async {
     expect(data["type"], type);
     expect(data["translationUUID"], mockTranslationUUID);
     expect(data["userUUID"], userUUID);
+
+    translationVoteUUID = data["uuid"];
+  });
+
+  test("cancel translation vote", () async {
+    final response = await delete(Uri.parse(host + '/translate/vote'),
+        body: json.encode({"uuid": translationVoteUUID}),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 200);
+    expect(responseJson["message"], "success");
   });
 }
