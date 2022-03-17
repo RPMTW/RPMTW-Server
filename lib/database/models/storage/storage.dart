@@ -67,7 +67,7 @@ class Storage extends BaseModels {
 
   factory Storage.fromMap(Map<String, dynamic> map) {
     return Storage(
-        uuid: map['uuid'] ?? '',
+        uuid: map['uuid'],
         contentType: map['contentType'],
         type: StorageType.values.byName(map['type'] ?? 'temp'),
         createAt:

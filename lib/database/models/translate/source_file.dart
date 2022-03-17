@@ -10,7 +10,7 @@ class SourceFile extends BaseModels {
   final String path;
   final SourceFileType type;
 
-  /// [SourceText] uuid list
+  /// [SourceText] included in the file.
   final List<String> sources;
 
   const SourceFile(

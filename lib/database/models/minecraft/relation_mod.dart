@@ -37,7 +37,7 @@ class RelationMod {
 
   factory RelationMod.fromMap(Map<String, dynamic> map) {
     return RelationMod(
-      modUUID: map['modUUID'] ?? '',
+      modUUID: map['modUUID'],
       condition: map['condition'],
       type: RelationType.values.byName(map['type']),
     );

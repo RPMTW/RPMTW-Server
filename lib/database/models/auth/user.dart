@@ -72,11 +72,11 @@ class User extends BaseModels {
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      uuid: map['uuid'] ?? '',
+      uuid: map['uuid'],
       username: map['username'],
       email: map['email'],
       emailVerified: map['emailVerified'] ?? false,
-      passwordHash: map['passwordHash'] ?? '',
+      passwordHash: map['passwordHash'],
       avatarStorageUUID: map['avatarStorageUUID'],
       loginIPs: List<String>.from(map['loginIPs'] ?? []),
     );

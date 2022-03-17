@@ -110,10 +110,10 @@ class WikiChangeLog extends BaseModels {
     return WikiChangeLog(
       changelog: map['changelog'],
       type: WikiChangeLogType.values.byName(map['type']),
-      dataUUID: map['dataUUID'] ?? '',
+      dataUUID: map['dataUUID'],
       changedData:
           map['changedData'] != null ? json.decode(map['changedData']) : {},
-      userUUID: map['userUUID'] ?? '',
+      userUUID: map['userUUID'],
       time: DateTime.fromMillisecondsSinceEpoch(map['time']),
       uuid: map['uuid'],
     );

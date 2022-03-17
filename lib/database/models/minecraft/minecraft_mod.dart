@@ -139,7 +139,7 @@ class MinecraftMod extends BaseModels {
   factory MinecraftMod.fromMap(Map<String, dynamic> map) {
     return MinecraftMod(
       uuid: map['uuid'] as String,
-      name: map['name'] ?? '',
+      name: map['name'],
       description: map['description'],
       id: map['id'],
       supportVersions: List<MinecraftVersion>.from(

@@ -53,8 +53,8 @@ class BanInfo extends BaseModels {
 
   factory BanInfo.fromMap(Map<String, dynamic> map) {
     return BanInfo(
-      ip: map['ip'] ?? '',
-      reason: map['reason'] ?? '',
+      ip: map['ip'],
+      reason: map['reason'],
       userUUID: List<String>.from(map['userUUID']),
       uuid: map['uuid']!,
     );
