@@ -9,12 +9,11 @@ import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:rpmtw_server/utilities/extension.dart';
-import 'package:rpmtw_server/utilities/messages.dart';
 import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class MinecraftRoute implements BaseRoute {
+class MinecraftRoute implements APIRoute {
   @override
   Router get router {
     final Router router = Router();
@@ -25,7 +24,7 @@ class MinecraftRoute implements BaseRoute {
           Utility.validateRequiredFields(data, ["name", "supportVersions"]);
 
       if (!validateFields) {
-        return APIResponse.badRequest(message: Messages.missingRequiredFields);
+        return APIResponse.missingRequiredFields();
       }
 
       ModRequestBodyParsedResult result =
@@ -128,7 +127,7 @@ class MinecraftRoute implements BaseRoute {
       bool validateFields =
           Utility.validateRequiredFields(req.params, ["uuid"]);
       if (!validateFields) {
-        return APIResponse.badRequest(message: Messages.missingRequiredFields);
+        return APIResponse.missingRequiredFields();
       }
 
       String uuid = req.params['uuid']!;

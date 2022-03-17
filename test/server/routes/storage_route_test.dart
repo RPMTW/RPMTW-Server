@@ -5,7 +5,8 @@ import 'package:test/test.dart';
 import '../../test_utility.dart';
 
 void main() async {
-  final host = 'http://0.0.0.0:8080';
+  final host = TestUttily.host;
+  
   setUpAll(() {
     return TestUttily.setUpAll();
   });

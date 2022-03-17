@@ -11,7 +11,7 @@ import '../database/models/storage/storage.dart';
 import '../utilities/extension.dart';
 import 'base_route.dart';
 
-class StorageRoute implements BaseRoute {
+class StorageRoute implements APIRoute {
   @override
   Router get router {
     final Router router = Router();

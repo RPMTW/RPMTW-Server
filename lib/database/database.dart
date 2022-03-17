@@ -10,6 +10,7 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
 import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
 import 'package:rpmtw_server/database/models/translate/translation.dart';
+import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 
 import '../utilities/data.dart';
 import 'models/auth/user.dart';
@@ -45,7 +46,8 @@ class DataBase {
       MinecraftVersionManifest.collectionName,
       WikiChangeLog.collectionName,
       CosmicChatMessage.collectionName,
-      Translation.collectionName
+      Translation.collectionName,
+      TranslationVote.collectionName,
     ];
 
     List<List<IndexFields>> indexFields = [
@@ -57,7 +59,8 @@ class DataBase {
       MinecraftVersionManifest.indexFields,
       WikiChangeLog.indexFields,
       CosmicChatMessage.indexFields,
-      Translation.indexFields
+      Translation.indexFields,
+      TranslationVote.indexFields,
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -123,7 +126,8 @@ class DataBase {
       "MinecraftVersionManifest": collectionList[5],
       "WikiChangeLog": collectionList[6],
       "CosmicChatMessage": collectionList[7],
-      "Translation": collectionList[8]
+      "Translation": collectionList[8],
+      "TranslationVote": collectionList[9],
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -139,7 +143,8 @@ class DataBase {
       "MinecraftVersionManifest": MinecraftVersionManifest.fromMap,
       "WikiChangeLog": WikiChangeLog.fromMap,
       "CosmicChatMessage": CosmicChatMessage.fromMap,
-      "Translation": Translation.fromMap
+      "Translation": Translation.fromMap,
+      "TranslationVote": TranslationVote.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;
@@ -157,6 +162,14 @@ class DataBase {
     if (map == null) return null;
 
     return getModelByMap<T>(map);
+  }
+
+  Future<List<T>> getModelsByField<T extends BaseModels>(
+      String fieldName, dynamic value) async {
+    List<Map<String, dynamic>>? list =
+        await getCollection<T>().find(where.eq(fieldName, value)).toList();
+
+    return list.map((m) => getModelByMap<T>(m)).toList();
   }
 
   Future<WriteResult> insertOneModel<T extends BaseModels>(T model,

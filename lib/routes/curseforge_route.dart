@@ -5,12 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
-import 'package:rpmtw_server/utilities/messages.dart';
 import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class CurseForgeRoute implements BaseRoute {
+class CurseForgeRoute implements APIRoute {
   @override
   Router get router {
     final Router router = Router();
@@ -23,8 +22,7 @@ class CurseForgeRoute implements BaseRoute {
             Utility.validateRequiredFields(queryParameters, ["path"]);
 
         if (!validateFields) {
-          return APIResponse.badRequest(
-              message: Messages.missingRequiredFields);
+          return APIResponse.missingRequiredFields();
         }
 
         final Uri url =

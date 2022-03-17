@@ -28,7 +28,7 @@ extension StringCasingExtension on String {
   bool toBool() => this == "true";
 }
 
-extension RequestUserExtension on Request {
+extension RequestExtension on Request {
   String get ip {
     String? xForwardedFor = headers['X-Forwarded-For'];
     if (xForwardedFor != null && kTestMode) {
@@ -63,11 +63,13 @@ extension RequestUserExtension on Request {
   }
 }
 
+typedef RouteHandler = Future<Response> Function(Request req);
+
 extension RouterExtension on Router {
-  void addRoute(String verb, String route, Function handler) {
+  void addRoute(String verb, String route, RouteHandler handler) {
     Future<Response> _handler(Request request) async {
       try {
-        return handler(request);
+        return await handler(request);
       } catch (e, stack) {
         logger.e(e, null, stack);
         return APIResponse.badRequest();
@@ -77,15 +79,19 @@ extension RouterExtension on Router {
     add(verb, route, _handler);
   }
 
-  void getRoute(String route, Function handler) {
+  void getRoute(String route, RouteHandler handler) {
     addRoute('GET', route, handler);
   }
 
-  void postRoute(String route, Function handler) {
+  void postRoute(String route, RouteHandler handler) {
     addRoute('POST', route, handler);
   }
 
-  void patchRoute(String route, Function handler) {
+  void patchRoute(String route, RouteHandler handler) {
     addRoute('PATCH', route, handler);
+  }
+
+  void deleteRoute(String route, RouteHandler handler) {
+    addRoute('DELETE', route, handler);
   }
 }

@@ -7,7 +7,7 @@ import 'package:rpmtw_server/utilities/extension.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-class CosmicChatRoute implements BaseRoute {
+class CosmicChatRoute implements APIRoute {
   @override
   Router get router {
     final Router router = Router();

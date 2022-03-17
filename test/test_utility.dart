@@ -41,6 +41,7 @@ class TestEnvParser extends Parser {
 }
 
 class TestUttily {
+  static final String host = 'http://localhost:8080';
   static String get secretKey => "testSecretKey";
 
   static Future<void> setUpAll({bool isServer = true}) {

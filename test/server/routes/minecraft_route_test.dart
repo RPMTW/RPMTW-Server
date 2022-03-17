@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 import '../../test_utility.dart';
 
 void main() async {
-  final host = 'http://0.0.0.0:8080';
+  final host = TestUttily.host;
 
   setUpAll(() {
     return TestUttily.setUpAll();
@@ -47,7 +47,7 @@ void main() async {
     });
 
     test("create mod", () async {
-      /// 由於建立 Minecraft 模組需要驗證使用者，因此先建立一個使用者帳號
+      /// Because the creation of the Minecraft mod requires authentication, a test user account is created.
       final _response = await post(Uri.parse(host + '/auth/user/create'),
           body: json.encode({
             "password": "testPassword1234",

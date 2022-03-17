@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:rpmtw_server/utilities/messages.dart';
 import 'package:shelf/shelf.dart';
 import 'dart:io';
 
@@ -15,6 +16,9 @@ class APIResponse {
             'message': message,
           }),
           headers: _baseHeaders);
+
+  static Response missingRequiredFields() =>
+      badRequest(message: Messages.missingRequiredFields);
 
   static Response success({required dynamic data}) {
     assert(data is Map || data is List,

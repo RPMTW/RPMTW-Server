@@ -11,7 +11,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'base_route.dart';
 
-class AuthRoute implements BaseRoute {
+class AuthRoute implements APIRoute {
   @override
   Router get router {
     final Router router = Router();

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:collection/collection.dart';
 import 'package:intl/locale.dart';
+import 'package:rpmtw_server/database/database.dart';
 
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/base_models.dart';
@@ -21,8 +22,6 @@ class Translation extends BaseModels {
   /// Uuid of translator
   final String translatorUUID;
 
-  final List<TranslationVote> votes;
-
   /// Language of translation
   final Locale language;
 
@@ -30,10 +29,13 @@ class Translation extends BaseModels {
     return User.getByUUID(translatorUUID);
   }
 
+  Future<List<TranslationVote>> get votes {
+    return TranslationVote.getByTranslationUUID(uuid);
+  }
+
   const Translation(
       {required this.content,
       required this.translatorUUID,
-      required this.votes,
       required this.language,
       required String uuid})
       : super(uuid: uuid);
@@ -41,13 +43,11 @@ class Translation extends BaseModels {
   Translation copyWith({
     String? content,
     String? translatorUUID,
-    List<TranslationVote>? votes,
   }) {
     return Translation(
       uuid: uuid,
       content: content ?? this.content,
       translatorUUID: translatorUUID ?? this.translatorUUID,
-      votes: votes ?? this.votes,
       language: language,
     );
   }
@@ -58,7 +58,6 @@ class Translation extends BaseModels {
       'uuid': uuid,
       'content': content,
       'translatorUUID': translatorUUID,
-      'votes': votes.map((x) => x.toMap()).toList(),
       'language': language.toLanguageTag()
     };
   }
@@ -68,8 +67,6 @@ class Translation extends BaseModels {
       uuid: map['uuid'],
       content: map['content'],
       translatorUUID: map['translatorUUID'],
-      votes: List<TranslationVote>.from(
-          map['votes']?.map((x) => TranslationVote.fromMap(x))),
       language: Locale.parse(map['language']),
     );
   }
@@ -92,4 +89,7 @@ class Translation extends BaseModels {
       translatorUUID.hashCode ^
       votes.hashCode ^
       language.hashCode;
+
+  static Future<Translation?> getByUUID(String uuid) async =>
+      DataBase.instance.getModelByUUID<Translation>(uuid);
 }

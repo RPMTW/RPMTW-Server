@@ -36,22 +36,30 @@ class AuthHandler {
           return Future.sync(() async {
             String path = request.url.path;
 
-            List<AuthorizationPath> needAuthorizationPaths = [
-              AuthorizationPath("auth/user/me"),
-              AuthorizationPath("auth/user/me/update"),
-              AuthorizationPath("minecraft/mod/create"),
-              AuthorizationPath("minecraft/mod/edit", startsWith: true)
+            List<_AuthPath> needAuthorizationPaths = [
+              _AuthPath("auth/user/me", method: "GET"),
+              _AuthPath("auth/user/me/update", method: "POST"),
+              _AuthPath("minecraft/mod/create", method: "POST"),
+              _AuthPath("minecraft/mod/edit",
+                  method: "PATCH", startsWith: true),
+              _AuthPath("translate/vote", method: "POST"),
+              _AuthPath("translate/vote", method: "DELETE"),
             ];
 
-            if (needAuthorizationPaths.any((_path) => _path.startsWith
-                ? path.startsWith(_path.path)
-                : path == _path.path)) {
+            bool needAuth = needAuthorizationPaths.any((_path) =>
+                _path.startsWith
+                    ? path.startsWith(_path.path)
+                    : path == _path.path && request.method == _path.method);
+
+            if (needAuth) {
               String? token = request.headers['Authorization']
                   ?.toString()
                   .replaceAll('Bearer ', '');
+
               if (token == null) {
                 return APIResponse.unauthorized();
               }
+
               try {
                 User? user = await User.getByToken(token);
                 String clientIP = request.ip;
@@ -211,7 +219,7 @@ class AuthHandler {
 Thank you for registering for an account on this site. Below is the verification code to complete registration for this account, which will expire in 30 minutes.<br>
 感謝您註冊本網站的帳號，下方是完成註冊此帳號的驗證碼，此驗證碼將於 30 分鐘後失效。
 
-<h1>${authCode.toString()}<br></h1>
+<h1 style="color:orange">${authCode.toString()}<br></h1>
 
 You are receiving this email to verify that the account is registered by you and that you can use the RPMTW account after verification.<br>
 If you have not requested an RPMTW account, please ignore this email.<br><br>
@@ -306,8 +314,10 @@ class _EmailValidatedResult extends _BaseValidatedResult {
       : super(isValid, code, message);
 }
 
-class AuthorizationPath {
+class _AuthPath {
   final String path;
   final bool startsWith;
-  AuthorizationPath(this.path, {this.startsWith = false});
+  final String method;
+
+  _AuthPath(this.path, {this.startsWith = false, required this.method});
 }
