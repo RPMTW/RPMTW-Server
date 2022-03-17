@@ -64,16 +64,6 @@ class ModSourceInfo extends BaseModels {
     );
   }
 
-  String toJson() => json.encode(toMap());
-
-  factory ModSourceInfo.fromJson(String source) =>
-      ModSourceInfo.fromMap(json.decode(source));
-
-  @override
-  String toString() {
-    return 'ModSourceInfo(uuid: $uuid, namespace: $namespace, modUUID: $modUUID, files: $files, patchouliAddons: $patchouliAddons)';
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

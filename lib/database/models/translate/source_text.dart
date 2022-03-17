@@ -59,16 +59,6 @@ class SourceText extends BaseModels {
     );
   }
 
-  String toJson() => json.encode(toMap());
-
-  factory SourceText.fromJson(String source) =>
-      SourceText.fromMap(json.decode(source));
-
-  @override
-  String toString() {
-    return 'SourceText(uuid: $uuid, source: $source, gameVersion: $gameVersion, key: $key, translations: $translations)';
-  }
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

@@ -34,11 +34,6 @@ class TranslationVote {
       map['userUUID'],
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory TranslationVote.fromJson(String source) =>
-      TranslationVote.fromMap(json.decode(source));
 }
 
 enum TranslationVoteType { up, down }

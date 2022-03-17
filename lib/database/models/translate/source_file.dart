@@ -52,15 +52,6 @@ class SourceFile extends BaseModels {
     );
   }
 
-  String toJson() => json.encode(toMap());
-
-  factory SourceFile.fromJson(String source) =>
-      SourceFile.fromMap(json.decode(source));
-
-  @override
-  String toString() =>
-      'SourceFile(uuid: $uuid, path: $path, type: $type, sources: $sources)';
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;

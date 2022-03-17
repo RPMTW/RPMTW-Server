@@ -74,15 +74,6 @@ class Translation extends BaseModels {
     );
   }
 
-  String toJson() => json.encode(toMap());
-
-  factory Translation.fromJson(String source) =>
-      Translation.fromMap(json.decode(source));
-
-  @override
-  String toString() =>
-      'Translation(content: $content, translatorUUID: $translatorUUID, votes: $votes, language: $language)';
-
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
