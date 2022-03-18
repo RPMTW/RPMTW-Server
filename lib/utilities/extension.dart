@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -63,13 +64,27 @@ extension RequestExtension on Request {
   }
 }
 
-typedef RouteHandler = Future<Response> Function(Request req);
+typedef RouteHandler = Future<Response> Function(Request req, RouteData data);
 
 extension RouterExtension on Router {
-  void addRoute(String verb, String route, RouteHandler handler) {
+  void addRoute(String verb, String route, RouteHandler handler,
+      List<String> requiredFields) {
     Future<Response> _handler(Request request) async {
       try {
-        return await handler(request);
+        final Map<String, dynamic> fields = request.params.isEmpty
+            ? request.method == "GET"
+                ? request.requestedUri.queryParameters
+                : await request.data
+            : request.params;
+
+        final bool validateFields =
+            Utility.validateRequiredFields(fields, requiredFields);
+
+        if (!validateFields) {
+          return APIResponse.missingRequiredFields();
+        } else {
+          return await handler(request, RouteData(fields: fields));
+        }
       } catch (e, stack) {
         logger.e(e, null, stack);
         return APIResponse.badRequest();
@@ -79,19 +94,29 @@ extension RouterExtension on Router {
     add(verb, route, _handler);
   }
 
-  void getRoute(String route, RouteHandler handler) {
-    addRoute('GET', route, handler);
+  void getRoute(String route, RouteHandler handler,
+      {List<String> requiredFields = const []}) {
+    return addRoute('GET', route, handler, requiredFields);
   }
 
-  void postRoute(String route, RouteHandler handler) {
-    addRoute('POST', route, handler);
+  void postRoute(String route, RouteHandler handler,
+      {List<String> requiredFields = const []}) {
+    return addRoute('POST', route, handler, requiredFields);
   }
 
-  void patchRoute(String route, RouteHandler handler) {
-    addRoute('PATCH', route, handler);
+  void patchRoute(String route, RouteHandler handler,
+      {List<String> requiredFields = const []}) {
+    return addRoute('PATCH', route, handler, requiredFields);
   }
 
-  void deleteRoute(String route, RouteHandler handler) {
-    addRoute('DELETE', route, handler);
+  void deleteRoute(String route, RouteHandler handler,
+      {List<String> requiredFields = const []}) {
+    return addRoute('DELETE', route, handler, requiredFields);
   }
+}
+
+class RouteData {
+  final Map<String, dynamic> fields;
+
+  RouteData({required this.fields});
 }

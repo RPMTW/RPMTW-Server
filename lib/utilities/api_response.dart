@@ -23,6 +23,7 @@ class APIResponse {
   static Response success({required dynamic data}) {
     assert(data is Map || data is List || data == null,
         "Data must be a Map or List or null, but it is ${data.runtimeType}");
+
     return Response(HttpStatus.ok,
         body: json.encode({
           'status': HttpStatus.ok,
@@ -47,6 +48,7 @@ class APIResponse {
             'message': message,
           }),
           headers: _baseHeaders);
+
   static Response notFound([String message = 'Not Found']) =>
       Response(HttpStatus.notFound,
           body: json.encode({

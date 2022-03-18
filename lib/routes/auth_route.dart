@@ -7,7 +7,6 @@ import 'package:rpmtw_server/database/models/storage/storage.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/extension.dart';
-import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 import 'base_route.dart';
 
@@ -16,15 +15,14 @@ class AuthRoute implements APIRoute {
   Router get router {
     final Router router = Router();
 
-    router.postRoute('/user/create', (Request req) async {
-      Map<String, dynamic> data = await req.data;
-      String password = data['password'];
+    router.postRoute('/user/create', (req, data) async {
+      String password = data.fields['password'];
       final passwordValidatedResult = AuthHandler.validatePassword(password);
       if (!passwordValidatedResult.isValid) {
         // 密碼驗證失敗
         return APIResponse.badRequest(message: passwordValidatedResult.message);
       }
-      String email = data['email'];
+      String email = data.fields['email'];
       // 驗證電子郵件格式
       final emailValidatedResult = await AuthHandler.validateEmail(email);
       if (!emailValidatedResult.isValid) {
@@ -36,9 +34,9 @@ class AuthRoute implements APIRoute {
       String hash = dbCrypt.hashpw(password, salt); //使用加鹽算法將明文密碼生成為雜湊值
 
       User user = User(
-          username: data['username'],
+          username: data.fields['username'],
           email: email,
-          avatarStorageUUID: data['avatarStorageUUID'],
+          avatarStorageUUID: data.fields['avatarStorageUUID'],
           emailVerified: false,
           passwordHash: hash,
           uuid: Uuid().v4(),
@@ -65,11 +63,12 @@ class AuthRoute implements APIRoute {
       AuthCode code = await AuthHandler.generateAuthCode(user.email, user.uuid);
       bool successful = await AuthHandler.sendVerifyEmail(email, code.code);
       if (!successful) APIResponse.internalServerError();
-      return APIResponse.success(data: output);
-    });
 
-    router.getRoute("/user/<uuid>", (Request req) async {
-      String uuid = req.params['uuid']!;
+      return APIResponse.success(data: output);
+    }, requiredFields: ["password", "email", "username"]);
+
+    router.getRoute("/user/<uuid>", (req, data) async {
+      String uuid = data.fields['uuid']!;
       User? user;
       if (uuid == "me") {
         user = req.user;
@@ -82,8 +81,8 @@ class AuthRoute implements APIRoute {
       return APIResponse.success(data: user.outputMap());
     });
 
-    router.getRoute("/user/get-by-email/<email>", (Request req) async {
-      String email = req.params['email']!;
+    router.getRoute("/user/get-by-email/<email>", (req, data) async {
+      String email = data.fields['email']!;
       User? user = await User.getByEmail(email);
       if (user == null) {
         return APIResponse.notFound("User not found");
@@ -92,8 +91,8 @@ class AuthRoute implements APIRoute {
     });
 
     /// 更新使用者資訊
-    router.postRoute("/user/<uuid>/update", (Request req) async {
-      String uuid = req.params['uuid']!;
+    router.postRoute("/user/<uuid>/update", (req, data) async {
+      String uuid = data.fields['uuid']!;
       User? user;
       if (uuid == "me") {
         user = req.user;
@@ -104,8 +103,7 @@ class AuthRoute implements APIRoute {
         return APIResponse.notFound("User not found");
       }
       User newUser = user;
-      Map data = await req.data;
-      String? password = data['password'];
+      String? password = data.fields['password'];
 
       bool isAuthenticated = req.isAuthenticated() ||
           AuthHandler.checkPassword(password!, newUser.passwordHash);
@@ -113,10 +111,10 @@ class AuthRoute implements APIRoute {
         return APIResponse.unauthorized();
       }
 
-      String? newPassword = data['newPassword'];
-      String? email = data['newEmail'];
-      String? username = data['newUsername'];
-      String? avatarStorageUUID = data['newAvatarStorageUUID'];
+      String? newPassword = data.fields['newPassword'];
+      String? email = data.fields['newEmail'];
+      String? username = data.fields['newUsername'];
+      String? avatarStorageUUID = data.fields['newAvatarStorageUUID'];
 
       if (newPassword != null) {
         // 使用者想要修改密碼
@@ -176,11 +174,9 @@ class AuthRoute implements APIRoute {
       "password": "test"
     } 
     */
-    router.postRoute("/get-token", (Request req) async {
-      Map<String, dynamic> data = await req.data;
-
-      String uuid = data['uuid'];
-      String password = data['password'];
+    router.postRoute("/get-token", (req, data) async {
+      String uuid = data.fields['uuid'];
+      String password = data.fields['password'];
       User? user = await User.getByUUID(uuid);
       if (user == null) {
         return APIResponse.notFound("User not found");
@@ -193,24 +189,22 @@ class AuthRoute implements APIRoute {
       Map output = user.outputMap();
       output['token'] = AuthHandler.generateAuthToken(user.uuid);
       return APIResponse.success(data: output);
-    });
+    }, requiredFields: ["uuid", "password"]);
 
-    router.getRoute("/valid-password", (Request req) async {
-      Map<String, dynamic> queryParameters = req.requestedUri.queryParameters;
-      String password = queryParameters['password']!;
+    router.getRoute("/valid-password", (req, data) async {
+      String password = data.fields['password']!;
       final validatedResult = AuthHandler.validatePassword(password);
       return APIResponse.success(data: validatedResult.toMap());
-    });
+    }, requiredFields: ["password"]);
 
-    router.getRoute("/valid-auth-code", (Request req) async {
-      Map<String, dynamic> queryParameters = req.requestedUri.queryParameters;
-      int authCode = int.parse(queryParameters['authCode']!);
-      String email = queryParameters['email']!;
+    router.getRoute("/valid-auth-code", (req, data) async {
+      int authCode = int.parse(data.fields['authCode']!);
+      String email = data.fields['email']!;
       bool isValid = await AuthHandler.validateAuthCode(email, authCode);
       return APIResponse.success(data: {
         'isValid': isValid,
       });
-    });
+    }, requiredFields: ["authCode", "email"]);
 
     return router;
   }

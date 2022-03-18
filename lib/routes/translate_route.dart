@@ -5,8 +5,6 @@ import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/extension.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
-import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 class TranslateRoute implements APIRoute {
@@ -14,20 +12,19 @@ class TranslateRoute implements APIRoute {
   Router get router {
     final Router router = Router();
 
+    router.getRoute("/vote", (req, data) async {
+      final String translationUUID = data.fields["translationUUID"];
+
+      throw UnimplementedError();
+    }, requiredFields: ["translationUUID"]);
+
     /// Add translation vote
-    router.postRoute("/vote", (Request req) async {
-      final Map<String, dynamic> data = await req.data;
-      final bool validateFields =
-          Utility.validateRequiredFields(data, ["translationUUID", "type"]);
+    router.postRoute("/vote", (req, data) async {
       final User user = req.user!;
 
-      if (!validateFields) {
-        return APIResponse.missingRequiredFields();
-      }
-
-      final String translationUUID = data["translationUUID"]!;
+      final String translationUUID = data.fields["translationUUID"]!;
       final TranslationVoteType type =
-          TranslationVoteType.values.byName(data["type"]!);
+          TranslationVoteType.values.byName(data.fields["type"]!);
 
       final Translation? translation =
           await Translation.getByUUID(translationUUID);
@@ -50,20 +47,13 @@ class TranslateRoute implements APIRoute {
 
       await vote.insert();
       return APIResponse.success(data: vote.outputMap());
-    });
+    }, requiredFields: ["translationUUID", "type"]);
 
     /// Cancel translation vote
-    router.deleteRoute("/vote", (Request req) async {
-      final Map<String, dynamic> data = await req.data;
-      final bool validateFields =
-          Utility.validateRequiredFields(data, ["uuid"]);
+    router.deleteRoute("/vote", (req, data) async {
       final User user = req.user!;
 
-      if (!validateFields) {
-        return APIResponse.missingRequiredFields();
-      }
-
-      final String uuid = data["uuid"]!;
+      final String uuid = data.fields["uuid"]!;
 
       TranslationVote? vote = await TranslationVote.getByUUID(uuid);
       if (vote == null) {
@@ -77,7 +67,7 @@ class TranslateRoute implements APIRoute {
       await vote.delete();
 
       return APIResponse.success(data: null);
-    });
+    }, requiredFields: ["uuid"]);
 
     return router;
   }

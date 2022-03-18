@@ -9,8 +9,6 @@ import 'package:rpmtw_server/routes/base_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:rpmtw_server/utilities/extension.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
-import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 class MinecraftRoute implements APIRoute {
@@ -18,17 +16,9 @@ class MinecraftRoute implements APIRoute {
   Router get router {
     final Router router = Router();
 
-    router.postRoute("/mod/create", (Request req) async {
-      Map<String, dynamic> data = await req.data;
-      bool validateFields =
-          Utility.validateRequiredFields(data, ["name", "supportVersions"]);
-
-      if (!validateFields) {
-        return APIResponse.missingRequiredFields();
-      }
-
+    router.postRoute("/mod/create", (req, data) async {
       ModRequestBodyParsedResult result =
-          await MinecraftHeader.parseModRequestBody(data);
+          await MinecraftHeader.parseModRequestBody(data.fields);
 
       if (result.name == null || result.name!.isEmpty) {
         return APIResponse.badRequest(message: "Invalid mod name");
@@ -62,19 +52,17 @@ class MinecraftRoute implements APIRoute {
       await changeLog.insert();
 
       return APIResponse.success(data: mod.outputMap());
-    });
+    }, requiredFields: ["name", "supportVersions"]);
 
-    router.patchRoute("/mod/edit/<uuid>", (Request req) async {
-      Map<String, dynamic> data = await req.data;
-
-      MinecraftMod? mod = await MinecraftMod.getByUUID(req.params["uuid"]!);
+    router.patchRoute("/mod/edit/<uuid>", (req, data) async {
+      MinecraftMod? mod = await MinecraftMod.getByUUID(data.fields["uuid"]!);
 
       if (mod == null) {
         return APIResponse.badRequest(message: "Mod not found");
       }
 
       ModRequestBodyParsedResult result =
-          await MinecraftHeader.parseModRequestBody(data);
+          await MinecraftHeader.parseModRequestBody(data.fields);
 
       DateTime time = DateTime.now().toUtc();
 
@@ -110,7 +98,7 @@ class MinecraftRoute implements APIRoute {
 
       WikiChangeLog changeLog = WikiChangeLog(
           uuid: Uuid().v4(),
-          changelog: data["changelog"],
+          changelog: data.fields["changelog"],
           type: WikiChangeLogType.editedMod,
           dataUUID: mod.uuid,
           changedData: mod.toMap(),
@@ -123,21 +111,15 @@ class MinecraftRoute implements APIRoute {
       return APIResponse.success(data: mod.outputMap());
     });
 
-    router.getRoute("/mod/view/<uuid>", (Request req) async {
-      bool validateFields =
-          Utility.validateRequiredFields(req.params, ["uuid"]);
-      if (!validateFields) {
-        return APIResponse.missingRequiredFields();
-      }
-
-      String uuid = req.params['uuid']!;
+    router.getRoute("/mod/view/<uuid>", (req, data) async {
+      String uuid = data.fields['uuid']!;
       MinecraftMod? mod;
       mod = await MinecraftMod.getByUUID(uuid);
       if (mod == null) {
         return APIResponse.notFound("Minecraft mod not found");
       }
 
-      String? _recordViewCount = req.url.queryParameters['recordViewCount'];
+      String? _recordViewCount = data.fields['recordViewCount'];
       bool recordViewCount =
           _recordViewCount == null ? false : _recordViewCount.toBool();
 
@@ -152,13 +134,14 @@ class MinecraftRoute implements APIRoute {
       return APIResponse.success(data: mod.outputMap());
     });
 
-    router.getRoute("/mod/search", (Request req) async {
-      Map<String, dynamic> query = req.url.queryParameters;
+    router.getRoute("/mod/search", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
 
-      String? filter = query['filter'];
-      int? limit = query['limit'] != null ? int.tryParse(query['limit']) : null;
-      int? skip = query['skip'] != null ? int.tryParse(query['skip']) : null;
-      int sort = query['sort'] != null ? int.tryParse(query['sort']) ?? 0 : 0;
+      String? filter = fields['filter'];
+      int? limit =
+          fields['limit'] != null ? int.tryParse(fields['limit']) : null;
+      int? skip = fields['skip'] != null ? int.tryParse(fields['skip']) : null;
+      int sort = fields['sort'] != null ? int.tryParse(fields['sort']) ?? 0 : 0;
 
       List<MinecraftMod> mods = await MinecraftHeader.searchMods(
           filter: filter, limit: limit, skip: skip, sort: sort);
@@ -171,7 +154,7 @@ class MinecraftRoute implements APIRoute {
     });
 
     /// 從資料庫快取中取得 Minecraft 版本資訊
-    router.getRoute("/versions", (Request req) async {
+    router.getRoute("/versions", (req, data) async {
       MinecraftVersionManifest manifest =
           await MinecraftVersionManifest.getFromCache();
       manifest.copyWith(
@@ -183,13 +166,14 @@ class MinecraftRoute implements APIRoute {
       return APIResponse.success(data: manifest.outputMap());
     });
 
-    router.getRoute("/changelog", (Request req) async {
-      Map<String, dynamic> query = req.url.queryParameters;
+    router.getRoute("/changelog", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
 
-      int? limit = query['limit'] != null ? int.tryParse(query['limit']) : null;
-      int? skip = query['skip'] != null ? int.tryParse(query['skip']) : null;
-      String? dataUUID = query['dataUUID'];
-      String? userUUID = query['userUUID'];
+      int? limit =
+          fields['limit'] != null ? int.tryParse(fields['limit']) : null;
+      int? skip = fields['skip'] != null ? int.tryParse(fields['skip']) : null;
+      String? dataUUID = fields['dataUUID'];
+      String? userUUID = fields['userUUID'];
 
       List<WikiChangeLog> changelogs = await MinecraftHeader.filterChangelogs(
           limit: limit, skip: skip, dataUUID: dataUUID, userUUID: userUUID);

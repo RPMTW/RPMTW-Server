@@ -16,7 +16,7 @@ class StorageRoute implements APIRoute {
   Router get router {
     final Router router = Router();
 
-    router.postRoute("/create", (Request req) async {
+    router.postRoute("/create", (req, data) async {
       Stream<List<int>> stream = req.read();
       String contentType = req.headers["content-type"] ??
           req.headers["Content-Type"] ??
@@ -39,8 +39,8 @@ class StorageRoute implements APIRoute {
       return APIResponse.success(data: storage.outputMap());
     });
 
-    router.getRoute("/<uuid>", (Request req) async {
-      String uuid = req.params['uuid']!;
+    router.getRoute("/<uuid>", (req, data) async {
+      String uuid = data.fields['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
         return APIResponse.notFound();
@@ -48,8 +48,8 @@ class StorageRoute implements APIRoute {
       return APIResponse.success(data: storage.outputMap());
     });
 
-    router.getRoute("/<uuid>/download", (Request req) async {
-      String uuid = req.params['uuid']!;
+    router.getRoute("/<uuid>/download", (req, data) async {
+      String uuid = data.fields['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
         return APIResponse.notFound("Storage not found");

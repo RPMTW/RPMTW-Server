@@ -3,7 +3,6 @@ import 'package:rpmtw_server/routes/curseforge_route.dart';
 import 'package:rpmtw_server/routes/minecraft_route.dart';
 import 'package:rpmtw_server/routes/translate_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
-import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import '../utilities/extension.dart';
@@ -23,11 +22,11 @@ class RootRoute implements APIRoute {
     router.mount('/cosmic-chat/', CosmicChatRoute().router);
     router.mount('/translate/', TranslateRoute().router);
 
-    router.getRoute('/', (Request req) async {
+    router.getRoute('/', (req, data) async {
       return APIResponse.success(data: {"message": "Hello RPMTW World"});
     });
 
-    router.getRoute('/ip', (Request req) async {
+    router.getRoute('/ip', (req, data) async {
       return APIResponse.success(data: {"ip": req.ip});
     });
 
