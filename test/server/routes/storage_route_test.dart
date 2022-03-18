@@ -37,6 +37,7 @@ void main() async {
   test("create storage (file too large)", () async {
     final response = await post(Uri.parse(host + "/storage/create"),
         body: utf8.encode(
+            // Generate a large file (About 8 MB)
             List.generate(780000, (index) => storageContent).join()),
         headers: {"Content-Type": "text/plain"});
     Map responseJson = json.decode(response.body);

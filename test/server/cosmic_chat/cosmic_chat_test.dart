@@ -55,7 +55,7 @@ void main() async {
 
     socket = socket.connect();
 
-    await wait(scale: 1.5);
+    await wait(scale: 2);
 
     expect(messages.isEmpty, true);
     expect(response!["status"], contains('unauthorized'));
