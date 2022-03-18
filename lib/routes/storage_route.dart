@@ -17,9 +17,8 @@ class StorageRoute implements APIRoute {
     final Router router = Router();
 
     router.postRoute("/create", (req, data) async {
-      String contentType = req.headers["content-type"] ??
-          req.headers["Content-Type"] ??
-          "application/octet-stream";
+      String contentType =
+          req.headers["content-type"] ?? "application/octet-stream";
 
       Storage storage = Storage(
           type: StorageType.temp,
@@ -55,10 +54,7 @@ class StorageRoute implements APIRoute {
         return APIResponse.modelNotFound<Storage>();
       }
 
-      Uint8List? bytes = await storage.readAsBytes();
-      if (bytes == null) {
-        return APIResponse.notFound();
-      }
+      Uint8List bytes = await storage.readAsBytes();
 
       return Response.ok(bytes, headers: {
         "Content-Type": storage.contentType,

@@ -28,10 +28,13 @@ class Storage extends BaseModels {
       required this.createAt})
       : super(uuid: uuid);
 
-  Future<Uint8List?> readAsBytes() async {
+  Future<Uint8List> readAsBytes() async {
     GridFS fs = DataBase.instance.gridFS;
     GridOut? gridOut = await fs.getFile(uuid);
-    if (gridOut == null) return null;
+    if (gridOut == null) {
+      throw Exception("Storage file not found");
+    }
+    
     List<Map<String, dynamic>> chunks = await (fs.chunks
         .find(where.eq('files_id', gridOut.id).sortBy('n'))
         .toList());
