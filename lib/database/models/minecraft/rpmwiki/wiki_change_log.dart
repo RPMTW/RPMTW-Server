@@ -6,7 +6,7 @@ import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 
-class WikiChangeLog extends BaseModels {
+class WikiChangeLog extends BaseModel {
   static const String collectionName = "rpmwiki_wiki_change_log";
   static const List<IndexFields> indexFields = [
     IndexFields("userUUID", unique: false),

@@ -5,7 +5,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 
-class CosmicChatMessage extends BaseModels {
+class CosmicChatMessage extends BaseModel {
   static const String collectionName = "cosmic_chat_message";
   static const List<IndexFields> indexFields = [
     IndexFields("sentAt", unique: false),

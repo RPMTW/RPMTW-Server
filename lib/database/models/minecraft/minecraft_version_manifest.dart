@@ -8,7 +8,7 @@ import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 
-class MinecraftVersionManifest extends BaseModels {
+class MinecraftVersionManifest extends BaseModel {
   static const String collectionName = "minecraft_version_manifest";
   static const List<IndexFields> indexFields = [
     IndexFields("lastUpdated"),

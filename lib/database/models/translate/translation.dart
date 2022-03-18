@@ -7,7 +7,7 @@ import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 
-class Translation extends BaseModels {
+class Translation extends BaseModel {
   static const String collectionName = "translations";
   static const List<IndexFields> indexFields = [
     IndexFields("translatorUUID", unique: false),

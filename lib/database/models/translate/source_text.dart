@@ -3,7 +3,7 @@ import "package:collection/collection.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 
-class SourceText extends BaseModels {
+class SourceText extends BaseModel {
   final String source;
 
   final List<MinecraftVersion> gameVersion;

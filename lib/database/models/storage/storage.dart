@@ -7,7 +7,7 @@ import "package:rpmtw_server/database/models/index_fields.dart";
 import "../../database.dart";
 import "../base_models.dart";
 
-class Storage extends BaseModels {
+class Storage extends BaseModel {
   static const String collectionName = "storages";
   static const List<IndexFields> indexFields = [
     IndexFields("createAt", unique: false),

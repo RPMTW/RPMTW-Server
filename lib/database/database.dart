@@ -116,7 +116,7 @@ class DataBase {
     loggerNoStack.i("Successfully connected to the database");
   }
 
-  DbCollection getCollection<T extends BaseModels>([String? runtimeType]) {
+  DbCollection getCollection<T extends BaseModel>([String? runtimeType]) {
     Map<String, DbCollection> modelTypeMap = {
       "User": collectionList[0],
       "Storage": collectionList[1],
@@ -133,7 +133,7 @@ class DataBase {
     return modelTypeMap[runtimeType ?? T.toString()]!;
   }
 
-  T getModelByMap<T extends BaseModels>(Map<String, dynamic> map) {
+  T getModelByMap<T extends BaseModel>(Map<String, dynamic> map) {
     Map<String, T Function(Map<String, dynamic>)> modelTypeMap = {
       "User": User.fromMap,
       "Storage": Storage.fromMap,
@@ -151,10 +151,10 @@ class DataBase {
     return factory(map);
   }
 
-  Future<T?> getModelByUUID<T extends BaseModels>(String uuid) =>
+  Future<T?> getModelByUUID<T extends BaseModel>(String uuid) =>
       getModelByField<T>("uuid", uuid);
 
-  Future<T?> getModelByField<T extends BaseModels>(
+  Future<T?> getModelByField<T extends BaseModel>(
       String fieldName, dynamic value) async {
     Map<String, dynamic>? map =
         await getCollection<T>().findOne(where.eq(fieldName, value));
@@ -164,7 +164,7 @@ class DataBase {
     return getModelByMap<T>(map);
   }
 
-  Future<List<T>> getModelsByField<T extends BaseModels>(
+  Future<List<T>> getModelsByField<T extends BaseModel>(
       String fieldName, dynamic value) async {
     List<Map<String, dynamic>>? list =
         await getCollection<T>().find(where.eq(fieldName, value)).toList();
@@ -172,7 +172,7 @@ class DataBase {
     return list.map((m) => getModelByMap<T>(m)).toList();
   }
 
-  Future<WriteResult> insertOneModel<T extends BaseModels>(T model,
+  Future<WriteResult> insertOneModel<T extends BaseModel>(T model,
       {WriteConcern? writeConcern, bool? bypassDocumentValidation}) async {
     WriteResult result = await getCollection<T>(model.runtimeType.toString())
         .insertOne(model.toMap(),
@@ -183,7 +183,7 @@ class DataBase {
     return result;
   }
 
-  Future<WriteResult> replaceOneModel<T extends BaseModels>(T model,
+  Future<WriteResult> replaceOneModel<T extends BaseModel>(T model,
       {WriteConcern? writeConcern,
       CollationOptions? collation,
       String? hint,
@@ -203,7 +203,7 @@ class DataBase {
     return result;
   }
 
-  Future<WriteResult> deleteOneModel<T extends BaseModels>(T model,
+  Future<WriteResult> deleteOneModel<T extends BaseModel>(T model,
       {WriteConcern? writeConcern,
       CollationOptions? collation,
       String? hint,
@@ -335,7 +335,7 @@ class InsertModelException implements Exception {
 }
 
 extension WriteResultExtension on WriteResult {
-  void exceptionHandler<T extends BaseModels>(T model) {
+  void exceptionHandler<T extends BaseModel>(T model) {
     if (!success) {
       throw InsertModelException(T.toString(),
           writeError?.errmsg ?? writeConcernError?.errmsg ?? errmsg);

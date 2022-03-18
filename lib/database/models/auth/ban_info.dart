@@ -6,7 +6,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 
-class BanInfo extends BaseModels {
+class BanInfo extends BaseModel {
   static const String collectionName = "ban_infos";
   static const List<IndexFields> indexFields = [
     IndexFields("ip"),

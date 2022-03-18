@@ -5,7 +5,7 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
-class ModSourceInfo extends BaseModels {
+class ModSourceInfo extends BaseModel {
   /// Namespace of the mod
   final String namespace;
 

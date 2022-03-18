@@ -6,7 +6,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 
-class AuthCode extends BaseModels {
+class AuthCode extends BaseModel {
   static const String collectionName = "auth_codes";
   static const List<IndexFields> indexFields = [
     IndexFields("code"),

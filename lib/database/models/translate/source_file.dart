@@ -4,7 +4,7 @@ import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 /// Represents the source language file in a text format.
-class SourceFile extends BaseModels {
+class SourceFile extends BaseModel {
   final String path;
   final SourceFileType type;
 

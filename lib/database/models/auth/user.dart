@@ -6,7 +6,7 @@ import "package:rpmtw_server/handler/auth_handler.dart";
 
 import "../base_models.dart";
 
-class User extends BaseModels {
+class User extends BaseModel {
   static const String collectionName = "users";
   static const List<IndexFields> indexFields = [IndexFields("email")];
 
