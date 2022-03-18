@@ -23,8 +23,19 @@ extension StringCasingExtension on String {
       .map((str) => str.toCapitalized())
       .join(" ");
 
-  String toUpperCaseWithSpace() =>
-      split(RegExp("[A-Z]")).map((str) => str.toUpperCase()).join(" ");
+  String toTitleCaseWithSpace() {
+    RegExp regExp = RegExp("[A-Z]");
+    List<int> matches = regExp.allMatches(this).map((e) => e.start).toList();
+
+    return splitMapJoin(regExp, onMatch: ((match) {
+      String str = match.input.substring(match.start, match.end);
+      if (matches.indexOf(match.start) == 0) {
+        return str;
+      } else {
+        return " ${str.toLowerCase()}";
+      }
+    }));
+  }
 
   bool get isEnglish {
     RegExp regExp = RegExp(r'\w+\s*$');

@@ -59,7 +59,7 @@ class APIResponse {
           headers: _baseHeaders);
 
   static Response modelNotFound<T>({String? modelName}) =>
-      notFound("${modelName ?? T.toString().toUpperCaseWithSpace()} not found");
+      notFound("${modelName ?? T.toString().toTitleCaseWithSpace()} not found");
 
   static Response banned({required String reason}) =>
       Response(HttpStatus.forbidden,
