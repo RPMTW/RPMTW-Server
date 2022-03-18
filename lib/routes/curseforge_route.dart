@@ -1,20 +1,20 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:dotenv/dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'package:rpmtw_server/routes/base_route.dart';
-import 'package:rpmtw_server/utilities/api_response.dart';
-import 'package:rpmtw_server/utilities/data.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
-import 'package:shelf/shelf.dart';
-import 'package:shelf_router/shelf_router.dart';
+import "package:dotenv/dotenv.dart";
+import "package:http/http.dart" as http;
+import "package:rpmtw_server/routes/base_route.dart";
+import "package:rpmtw_server/utilities/api_response.dart";
+import "package:rpmtw_server/utilities/data.dart";
+import "package:rpmtw_server/utilities/utility.dart";
+import "package:shelf/shelf.dart";
+import "package:shelf_router/shelf_router.dart";
 
 class CurseForgeRoute implements APIRoute {
   @override
   Router get router {
     final Router router = Router();
 
-    router.all('/', (Request req) async {
+    router.all("/", (Request req) async {
       try {
         final Map<String, String> queryParameters = req.url.queryParameters;
 
@@ -26,7 +26,7 @@ class CurseForgeRoute implements APIRoute {
         }
 
         final Uri url =
-            Uri.parse("https://api.curseforge.com/${queryParameters['path']}");
+            Uri.parse("https://api.curseforge.com/${queryParameters["path"]}");
         final Map<String, String> headers = {
           "x-api-key": env["CurseForge_API_KEY"]!.replaceAll("\\", ""),
           "content-type": "application/json"

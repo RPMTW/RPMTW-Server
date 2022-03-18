@@ -1,4 +1,4 @@
-import 'dart:convert';
+import "dart:convert";
 
 class ModIntegrationPlatform {
   final String? curseForgeID;
@@ -24,15 +24,15 @@ class ModIntegrationPlatform {
 
   Map<String, dynamic> toMap() {
     return {
-      'curseForgeID': curseForgeID,
-      'modrinthID': modrinthID,
+      "curseForgeID": curseForgeID,
+      "modrinthID": modrinthID,
     };
   }
 
   factory ModIntegrationPlatform.fromMap(Map<String, dynamic> map) {
     return ModIntegrationPlatform(
-      curseForgeID: map['curseForgeID'],
-      modrinthID: map['modrinthID'],
+      curseForgeID: map["curseForgeID"],
+      modrinthID: map["modrinthID"],
     );
   }
 
@@ -43,7 +43,7 @@ class ModIntegrationPlatform {
 
   @override
   String toString() =>
-      'ModIntegration(curseForgeID: $curseForgeID, modrinthID: $modrinthID)';
+      "ModIntegration(curseForgeID: $curseForgeID, modrinthID: $modrinthID)";
 
   @override
   bool operator ==(Object other) {

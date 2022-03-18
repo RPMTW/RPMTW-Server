@@ -1,10 +1,10 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 
 class WikiChangeLog extends BaseModels {
   static const String collectionName = "rpmwiki_wiki_change_log";
@@ -63,13 +63,13 @@ class WikiChangeLog extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'changelog': changelog,
-      'type': type.name,
-      'dataUUID': dataUUID,
-      'changedData': json.encode(changedData),
-      'userUUID': userUUID,
-      'time': time.millisecondsSinceEpoch,
-      'uuid': uuid,
+      "changelog": changelog,
+      "type": type.name,
+      "dataUUID": dataUUID,
+      "changedData": json.encode(changedData),
+      "userUUID": userUUID,
+      "time": time.millisecondsSinceEpoch,
+      "uuid": uuid,
     };
   }
 
@@ -95,27 +95,27 @@ class WikiChangeLog extends BaseModels {
     }
 
     return {
-      'changelog': changelog,
-      'type': type.name,
-      'dataUUID': dataUUID,
-      'changedData': changedData,
-      'unchangedData': unchangedData,
-      'userUUID': userUUID,
-      'time': time.millisecondsSinceEpoch,
-      'uuid': uuid,
+      "changelog": changelog,
+      "type": type.name,
+      "dataUUID": dataUUID,
+      "changedData": changedData,
+      "unchangedData": unchangedData,
+      "userUUID": userUUID,
+      "time": time.millisecondsSinceEpoch,
+      "uuid": uuid,
     };
   }
 
   factory WikiChangeLog.fromMap(Map<String, dynamic> map) {
     return WikiChangeLog(
-      changelog: map['changelog'],
-      type: WikiChangeLogType.values.byName(map['type']),
-      dataUUID: map['dataUUID'],
+      changelog: map["changelog"],
+      type: WikiChangeLogType.values.byName(map["type"]),
+      dataUUID: map["dataUUID"],
       changedData:
-          map['changedData'] != null ? json.decode(map['changedData']) : {},
-      userUUID: map['userUUID'],
-      time: DateTime.fromMillisecondsSinceEpoch(map['time']),
-      uuid: map['uuid'],
+          map["changedData"] != null ? json.decode(map["changedData"]) : {},
+      userUUID: map["userUUID"],
+      time: DateTime.fromMillisecondsSinceEpoch(map["time"]),
+      uuid: map["uuid"],
     );
   }
 
@@ -126,7 +126,7 @@ class WikiChangeLog extends BaseModels {
 
   @override
   String toString() {
-    return 'WikiChangeLog(changelog: $changelog, type: $type, dataUUID: $dataUUID, changedData: $changedData, userUUID: $userUUID, time: $time, uuid: $uuid)';
+    return "WikiChangeLog(changelog: $changelog, type: $type, dataUUID: $dataUUID, changedData: $changedData, userUUID: $userUUID, time: $time, uuid: $uuid)";
   }
 
   @override

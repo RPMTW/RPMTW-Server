@@ -1,4 +1,4 @@
-import 'package:pub_semver/pub_semver.dart';
+import "package:pub_semver/pub_semver.dart";
 
 class Utility {
   /// 驗證請求資料完整性，如果不完整則為回傳 false，完整則回傳 true
@@ -49,7 +49,7 @@ class Utility {
       }
 
       /// 例如 21w44a
-      RegExp _ = RegExp(r'(?:(?<yy>\d\d)w(?<ww>\d\d)[a-z])');
+      RegExp _ = RegExp(r"(?:(?<yy>\d\d)w(?<ww>\d\d)[a-z])");
       if (_.hasMatch(sourceVersion)) {
         RegExpMatch match = _.allMatches(sourceVersion).toList().first;
 

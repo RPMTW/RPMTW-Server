@@ -1,6 +1,6 @@
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
 
 class TranslationVote extends BaseModels {
   static const String collectionName = "translation_votes";
@@ -36,19 +36,19 @@ class TranslationVote extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'type': type.name,
-      'translationUUID': translationUUID,
-      'userUUID': userUUID,
+      "uuid": uuid,
+      "type": type.name,
+      "translationUUID": translationUUID,
+      "userUUID": userUUID,
     };
   }
 
   factory TranslationVote.fromMap(Map<String, dynamic> map) {
     return TranslationVote(
-      uuid: map['uuid'],
-      type: TranslationVoteType.values.byName(map['type']),
-      translationUUID: map['translationUUID'] ?? '',
-      userUUID: map['userUUID'] ?? '',
+      uuid: map["uuid"],
+      type: TranslationVoteType.values.byName(map["type"]),
+      translationUUID: map["translationUUID"] ?? "",
+      userUUID: map["userUUID"] ?? "",
     );
   }
 

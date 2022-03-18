@@ -1,8 +1,8 @@
-import 'package:collection/collection.dart';
-import 'package:dotenv/dotenv.dart';
-import 'package:logger/logger.dart';
+import "package:collection/collection.dart";
+import "package:dotenv/dotenv.dart";
+import "package:logger/logger.dart";
 
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 
 Logger logger =
     Logger(printer: PrettyPrinter(colors: false), filter: _LogFilter());

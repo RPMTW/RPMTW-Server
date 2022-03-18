@@ -1,11 +1,11 @@
-import 'dart:io';
-import 'dart:typed_data';
+import "dart:io";
+import "dart:typed_data";
 
-import 'package:dotenv/dotenv.dart';
-import 'package:path/path.dart';
-import 'package:rpmtw_server/handler/cosmic_chat_handler.dart';
-import 'package:rpmtw_server/utilities/data.dart';
-import '../bin/server.dart' as server;
+import "package:dotenv/dotenv.dart";
+import "package:path/path.dart";
+import "package:rpmtw_server/handler/cosmic_chat_handler.dart";
+import "package:rpmtw_server/utilities/data.dart";
+import "../bin/server.dart" as server;
 
 enum TestData { versionManifest }
 
@@ -20,7 +20,7 @@ extension TestDataExtension on TestData {
   }
 
   File getFile() =>
-      File(join(Directory.current.path, 'test', 'data', toFileName()));
+      File(join(Directory.current.path, "test", "data", toFileName()));
 
   String getFileString() => getFile().readAsStringSync();
 
@@ -34,14 +34,14 @@ class TestEnvParser extends Parser {
   Map<String, String> parse(Iterable<String> lines) {
     Map<String, String> map = super.parse(lines);
     String secretKey = TestUttily.secretKey;
-    map['DATA_BASE_SecretKey'] = secretKey;
-    map['COSMIC_CHAT_DISCORD_SecretKey'] = secretKey;
+    map["DATA_BASE_SecretKey"] = secretKey;
+    map["COSMIC_CHAT_DISCORD_SecretKey"] = secretKey;
     return map;
   }
 }
 
 class TestUttily {
-  static final String host = 'http://localhost:8080';
+  static final String host = "http://localhost:8080";
   static String get secretKey => "testSecretKey";
 
   static Future<void> setUpAll({bool isServer = true}) {

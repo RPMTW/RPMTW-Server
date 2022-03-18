@@ -1,9 +1,9 @@
-import 'dart:convert';
-import 'dart:io';
+import "dart:convert";
+import "dart:io";
 
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
 
 class CosmicChatMessage extends BaseModels {
   static const String collectionName = "cosmic_chat_message";
@@ -71,43 +71,43 @@ class CosmicChatMessage extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'username': username,
-      'message': message,
-      'nickname': nickname,
-      'avatarUrl': avatarUrl,
-      'sentAt': sentAt.millisecondsSinceEpoch,
-      'ip': ip.address,
-      'userType': userType.name,
-      'replyMessageUUID': replyMessageUUID,
+      "uuid": uuid,
+      "username": username,
+      "message": message,
+      "nickname": nickname,
+      "avatarUrl": avatarUrl,
+      "sentAt": sentAt.millisecondsSinceEpoch,
+      "ip": ip.address,
+      "userType": userType.name,
+      "replyMessageUUID": replyMessageUUID,
     };
   }
 
   @override
   Map<String, dynamic> outputMap() {
     return {
-      'uuid': uuid,
-      'username': username,
-      'message': message,
-      'nickname': nickname,
-      'avatarUrl': avatarUrl,
-      'sentAt': sentAt.millisecondsSinceEpoch,
-      'userType': userType.name,
-      'replyMessageUUID': replyMessageUUID,
+      "uuid": uuid,
+      "username": username,
+      "message": message,
+      "nickname": nickname,
+      "avatarUrl": avatarUrl,
+      "sentAt": sentAt.millisecondsSinceEpoch,
+      "userType": userType.name,
+      "replyMessageUUID": replyMessageUUID,
     };
   }
 
   factory CosmicChatMessage.fromMap(Map<String, dynamic> map) {
     return CosmicChatMessage(
-      uuid: map['uuid'],
-      username: map['username'],
-      message: map['message'],
-      nickname: map['nickname'],
-      avatarUrl: map['avatarUrl'],
-      sentAt: DateTime.fromMillisecondsSinceEpoch(map['sentAt']),
-      ip: InternetAddress(map['ip']),
-      userType: CosmicChatUserType.values.byName(map['userType']),
-      replyMessageUUID: map['replyMessageUUID'],
+      uuid: map["uuid"],
+      username: map["username"],
+      message: map["message"],
+      nickname: map["nickname"],
+      avatarUrl: map["avatarUrl"],
+      sentAt: DateTime.fromMillisecondsSinceEpoch(map["sentAt"]),
+      ip: InternetAddress(map["ip"]),
+      userType: CosmicChatUserType.values.byName(map["userType"]),
+      replyMessageUUID: map["replyMessageUUID"],
     );
   }
 
@@ -118,7 +118,7 @@ class CosmicChatMessage extends BaseModels {
 
   @override
   String toString() {
-    return 'CosmicChatMessage(uuid: $uuid, username: $username, message: $message, nickname: $nickname, avatarUrl: $avatarUrl, sentAt: $sentAt, ip: $ip, userType: $userType, replyMessageUUID: $replyMessageUUID)';
+    return "CosmicChatMessage(uuid: $uuid, username: $username, message: $message, nickname: $nickname, avatarUrl: $avatarUrl, sentAt: $sentAt, ip: $ip, userType: $userType, replyMessageUUID: $replyMessageUUID)";
   }
 
   @override

@@ -1,21 +1,21 @@
-import 'dart:async';
+import "dart:async";
 
-import 'package:dotenv/dotenv.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
-import 'package:rpmtw_server/database/models/auth/ban_info.dart';
-import 'package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
-import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
-import 'package:rpmtw_server/database/models/translate/translation.dart';
-import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
+import "package:dotenv/dotenv.dart";
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/models/auth/auth_code_.dart";
+import "package:rpmtw_server/database/models/auth/ban_info.dart";
+import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
+import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
+import "package:rpmtw_server/database/models/translate/translation.dart";
+import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 
-import '../utilities/data.dart';
-import 'models/auth/user.dart';
-import 'models/base_models.dart';
-import 'models/storage/storage.dart';
+import "../utilities/data.dart";
+import "models/auth/user.dart";
+import "models/base_models.dart";
+import "models/storage/storage.dart";
 
 class DataBase {
   static late Db _mongoDB;
@@ -69,7 +69,7 @@ class DataBase {
       if (!collections.contains(name)) {
         await _mongoDB.createCollection(name);
         await _mongoDB.createIndex(name,
-            key: 'uuid', name: 'uuid', unique: true);
+            key: "uuid", name: "uuid", unique: true);
       }
 
       if (needCreateIndex) {
@@ -85,7 +85,7 @@ class DataBase {
 
       List<Map<String, dynamic>> indexes = await collection.getIndexes();
       List<String> indexFieldsName =
-          indexes.map((index) => index['name'] as String).toList();
+          indexes.map((index) => index["name"] as String).toList();
       List<IndexFields> _indexFields =
           indexFields[collectionNameList.indexOf(name)];
       await checkCollection(name, _indexFields,
@@ -104,7 +104,7 @@ class DataBase {
     if (kTestMode) {
       url = "mongodb://127.0.0.1:27017/test";
     } else {
-      url = env['DATA_BASE_URL'] ?? "mongodb://127.0.0.1:27017/rpmtw_data";
+      url = env["DATA_BASE_URL"] ?? "mongodb://127.0.0.1:27017/rpmtw_data";
     }
 
     _mongoDB = await Db.create(url);
@@ -190,7 +190,7 @@ class DataBase {
       Map<String, Object>? hintDocument}) async {
     WriteResult result =
         await getCollection<T>(model.runtimeType.toString()).replaceOne(
-      where.eq('uuid', model.uuid),
+      where.eq("uuid", model.uuid),
       model.toMap(),
       writeConcern: writeConcern,
       collation: collation,
@@ -210,7 +210,7 @@ class DataBase {
       Map<String, Object>? hintDocument}) async {
     WriteResult result =
         await getCollection<T>(model.runtimeType.toString()).deleteOne(
-      where.eq('uuid', model.uuid),
+      where.eq("uuid", model.uuid),
       writeConcern: writeConcern,
       collation: collation,
       hint: hint,
@@ -244,7 +244,7 @@ class DataBase {
     /// 檔案最多暫存一天
     SelectorBuilder selector = where
         .eq("type", StorageType.temp.name) // 檔案類型為暫存檔案
-        .and(where.lte('createAt',
+        .and(where.lte("createAt",
             time.subtract(Duration(days: 1)).millisecondsSinceEpoch));
     // 檔案建立時間為一天前
 
@@ -259,7 +259,7 @@ class DataBase {
       /// 刪除實際的二進位檔案
       await gridOut?.fs.files.deleteOne(gridOut.data);
       await gridOut?.fs.chunks
-          .deleteMany(where.eq('files_id', storage.uuid).sortBy('n'));
+          .deleteMany(where.eq("files_id", storage.uuid).sortBy("n"));
 
       /// 刪除儲存數據 model
       await storage.delete();
@@ -269,7 +269,7 @@ class DataBase {
   Future<void> _authCodeTimer(DateTime time) async {
     /// 驗證碼最多暫存 1 小時
     SelectorBuilder selector = where.lte(
-        'expiresAt', time.subtract(Duration(hours: 1)).millisecondsSinceEpoch);
+        "expiresAt", time.subtract(Duration(hours: 1)).millisecondsSinceEpoch);
     List<AuthCode> authCodeList = await getCollection<AuthCode>()
         .find(selector)
         .map((map) => AuthCode.fromMap(map))
@@ -283,7 +283,7 @@ class DataBase {
   Future<void> _minecraftVersionManifest(DateTime time) async {
     /// 每天更新一次 Minecraft 版本資訊
     int timeStamp = time.subtract(Duration(days: 1)).millisecondsSinceEpoch;
-    SelectorBuilder selector = where.gte('lastUpdated', timeStamp);
+    SelectorBuilder selector = where.gte("lastUpdated", timeStamp);
     DbCollection collection = getCollection<MinecraftVersionManifest>();
     List<Map<String, dynamic>> manifests =
         await collection.find(selector).toList();
@@ -291,7 +291,7 @@ class DataBase {
       ///如果為空則代表最後一次更新為一天前
 
       /// 刪除其他已經過期的資料
-      await collection.deleteMany(where.lte('lastUpdated', timeStamp));
+      await collection.deleteMany(where.lte("lastUpdated", timeStamp));
 
       ///從 Mojang API 取得 Minecraft 版本資訊
       MinecraftVersionManifest manifest =
@@ -308,7 +308,7 @@ class DataBase {
     /// 變更日誌超過指定時間後將刪除
     /// 變更日誌最多暫存 90 天 ( 約為三個月 )
     SelectorBuilder selector = where.lte(
-        'time', time.subtract(Duration(days: 90)).millisecondsSinceEpoch);
+        "time", time.subtract(Duration(days: 90)).millisecondsSinceEpoch);
     // 變更日誌建立時間為 90 天前
 
     List<WikiChangeLog> changelogs = await getCollection<WikiChangeLog>()

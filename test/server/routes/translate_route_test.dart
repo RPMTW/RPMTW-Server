@@ -1,12 +1,12 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:http/http.dart';
-import 'package:intl/locale.dart';
-import 'package:rpmtw_server/database/models/translate/translation.dart';
-import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
-import 'package:test/test.dart';
+import "package:http/http.dart";
+import "package:intl/locale.dart";
+import "package:rpmtw_server/database/models/translate/translation.dart";
+import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import "package:test/test.dart";
 
-import '../../test_utility.dart';
+import "../../test_utility.dart";
 
 void main() async {
   final host = TestUttily.host;
@@ -19,13 +19,13 @@ void main() async {
       await TestUttily.setUpAll();
 
       /// Create a test user account.
-      final _response = await post(Uri.parse(host + '/auth/user/create'),
+      final _response = await post(Uri.parse(host + "/auth/user/create"),
           body: json.encode({
             "password": "testPassword1234",
             "email": "test@gmail.com",
             "username": "test",
           }),
-          headers: {'Content-Type': 'application/json'});
+          headers: {"Content-Type": "application/json"});
       Map _body = json.decode(_response.body)["data"];
       token = _body["token"];
       userUUID = _body["uuid"];
@@ -45,12 +45,12 @@ void main() async {
 
   Future<String> createTestVote() async {
     final String type = "up";
-    final response = await post(Uri.parse(host + '/translate/vote'),
+    final response = await post(Uri.parse(host + "/translate/vote"),
         body:
             json.encode({"type": type, "translationUUID": mockTranslationUUID}),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
 
     return json.decode(response.body)["data"]["uuid"];
@@ -58,14 +58,14 @@ void main() async {
 
   test("add translation vote", () async {
     final String type = "up";
-    final response = await post(Uri.parse(host + '/translate/vote'),
+    final response = await post(Uri.parse(host + "/translate/vote"),
         body:
             json.encode({"type": type, "translationUUID": mockTranslationUUID}),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
-    Map data = json.decode(response.body)['data'];
+    Map data = json.decode(response.body)["data"];
 
     expect(response.statusCode, 200);
     expect(data["type"], type);
@@ -77,11 +77,11 @@ void main() async {
   });
 
   test("add translation vote (unknown translation uuid)", () async {
-    final response = await post(Uri.parse(host + '/translate/vote'),
+    final response = await post(Uri.parse(host + "/translate/vote"),
         body: json.encode({"type": "up", "translationUUID": "test"}),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
 
     Map responseJson = json.decode(response.body);
@@ -92,12 +92,12 @@ void main() async {
 
   test("add translation vote (already voted)", () async {
     String translationVoteUUID = await createTestVote();
-    final response = await post(Uri.parse(host + '/translate/vote'),
+    final response = await post(Uri.parse(host + "/translate/vote"),
         body:
             json.encode({"type": "up", "translationUUID": mockTranslationUUID}),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
     Map responseJson = json.decode(response.body);
 
@@ -112,11 +112,11 @@ void main() async {
     String translationVoteUUID = await createTestVote();
 
     final response = await get(
-        Uri.parse(host + '/translate/vote')
+        Uri.parse(host + "/translate/vote")
             .replace(queryParameters: {"translationUUID": mockTranslationUUID}),
-        headers: {'Content-Type': 'application/json'});
+        headers: {"Content-Type": "application/json"});
 
-    List<Map> data = json.decode(response.body)['data'].cast<Map>();
+    List<Map> data = json.decode(response.body)["data"].cast<Map>();
 
     expect(response.statusCode, 200);
     expect(data[0]["uuid"], translationVoteUUID);
@@ -127,9 +127,9 @@ void main() async {
 
   test("list translation vote (unknown translation uuid)", () async {
     final response = await get(
-        Uri.parse(host + '/translate/vote')
+        Uri.parse(host + "/translate/vote")
             .replace(queryParameters: {"translationUUID": "test"}),
-        headers: {'Content-Type': 'application/json'});
+        headers: {"Content-Type": "application/json"});
 
     Map responseJson = json.decode(response.body);
 
@@ -141,10 +141,10 @@ void main() async {
     String translationVoteUUID = await createTestVote();
 
     final response = await delete(
-        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
+        Uri.parse(host + "/translate/vote/$translationVoteUUID"),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
     Map responseJson = json.decode(response.body);
 
@@ -156,10 +156,10 @@ void main() async {
   });
 
   test("cancel translation vote (unknown translation vote uuid)", () async {
-    final response = await delete(Uri.parse(host + '/translate/vote/test'),
+    final response = await delete(Uri.parse(host + "/translate/vote/test"),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
     Map responseJson = json.decode(response.body);
 
@@ -171,20 +171,20 @@ void main() async {
     String translationVoteUUID = await createTestVote();
 
     /// Create a test user account.
-    final _response = await post(Uri.parse(host + '/auth/user/create'),
+    final _response = await post(Uri.parse(host + "/auth/user/create"),
         body: json.encode({
           "password": "testPassword1234",
           "email": "test2@gmail.com",
           "username": "test2",
         }),
-        headers: {'Content-Type': 'application/json'});
+        headers: {"Content-Type": "application/json"});
     String _token = json.decode(_response.body)["data"]["token"];
 
     final response = await delete(
-        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
+        Uri.parse(host + "/translate/vote/$translationVoteUUID"),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $_token"
         });
     Map responseJson = json.decode(response.body);
 
@@ -198,13 +198,13 @@ void main() async {
     String translationVoteUUID = await createTestVote();
 
     final response = await patch(
-        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
+        Uri.parse(host + "/translate/vote/$translationVoteUUID"),
         body: json.encode({
           "type": "down",
         }),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
     Map responseJson = json.decode(response.body);
 
@@ -216,13 +216,13 @@ void main() async {
   });
 
   test("edit translation vote (unknown translation vote uuid)", () async {
-    final response = await patch(Uri.parse(host + '/translate/vote/test'),
+    final response = await patch(Uri.parse(host + "/translate/vote/test"),
         body: json.encode({
           "type": "down",
         }),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
         });
     Map responseJson = json.decode(response.body);
 
@@ -234,23 +234,23 @@ void main() async {
     String translationVoteUUID = await createTestVote();
 
     /// Create a test user account.
-    final _response = await post(Uri.parse(host + '/auth/user/create'),
+    final _response = await post(Uri.parse(host + "/auth/user/create"),
         body: json.encode({
           "password": "testPassword1234",
           "email": "test3@gmail.com",
           "username": "test3",
         }),
-        headers: {'Content-Type': 'application/json'});
+        headers: {"Content-Type": "application/json"});
     String _token = json.decode(_response.body)["data"]["token"];
 
     final response = await patch(
-        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
+        Uri.parse(host + "/translate/vote/$translationVoteUUID"),
         body: json.encode({
           "type": "down",
         }),
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token'
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $_token"
         });
     Map responseJson = json.decode(response.body);
 

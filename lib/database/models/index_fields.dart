@@ -18,7 +18,7 @@ class IndexFields {
   }
 
   @override
-  String toString() => 'IndexFields(name: $name, unique: $unique)';
+  String toString() => "IndexFields(name: $name, unique: $unique)";
 
   @override
   bool operator ==(Object other) {

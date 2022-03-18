@@ -1,7 +1,7 @@
-import 'package:collection/collection.dart';
+import "package:collection/collection.dart";
 
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 
 class SourceText extends BaseModels {
   final String source;
@@ -38,22 +38,22 @@ class SourceText extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'source': source,
-      'gameVersion': gameVersion.map((x) => x.toMap()).toList(),
-      'key': key,
-      'translations': translations,
+      "uuid": uuid,
+      "source": source,
+      "gameVersion": gameVersion.map((x) => x.toMap()).toList(),
+      "key": key,
+      "translations": translations,
     };
   }
 
   factory SourceText.fromMap(Map<String, dynamic> map) {
     return SourceText(
-      uuid: map['uuid'],
-      source: map['source'],
+      uuid: map["uuid"],
+      source: map["source"],
       gameVersion: List<MinecraftVersion>.from(
-          map['gameVersion']?.map((x) => MinecraftVersion.fromMap(x))),
-      key: map['key'],
-      translations: List<String>.from(map['translations']),
+          map["gameVersion"]?.map((x) => MinecraftVersion.fromMap(x))),
+      key: map["key"],
+      translations: List<String>.from(map["translations"]),
     );
   }
 

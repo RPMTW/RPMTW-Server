@@ -1,14 +1,14 @@
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
-import 'package:collection/collection.dart';
-import 'package:rpmtw_server/handler/auth_handler.dart';
+import "package:dart_jsonwebtoken/dart_jsonwebtoken.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:collection/collection.dart";
+import "package:rpmtw_server/handler/auth_handler.dart";
 
-import '../base_models.dart';
+import "../base_models.dart";
 
 class User extends BaseModels {
-  static const String collectionName = 'users';
-  static const List<IndexFields> indexFields = [IndexFields('email')];
+  static const String collectionName = "users";
+  static const List<IndexFields> indexFields = [IndexFields("email")];
 
   final String username;
   final String email;
@@ -49,42 +49,42 @@ class User extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'username': username,
-      'email': email,
-      'emailVerified': emailVerified,
-      'passwordHash': passwordHash,
-      'avatarStorageUUID': avatarStorageUUID,
-      'loginIPs': loginIPs,
+      "uuid": uuid,
+      "username": username,
+      "email": email,
+      "emailVerified": emailVerified,
+      "passwordHash": passwordHash,
+      "avatarStorageUUID": avatarStorageUUID,
+      "loginIPs": loginIPs,
     };
   }
 
   @override
   Map<String, dynamic> outputMap() {
     return {
-      'uuid': uuid,
-      'username': username,
-      'email': email,
-      'emailVerified': emailVerified,
-      'avatarStorageUUID': avatarStorageUUID,
+      "uuid": uuid,
+      "username": username,
+      "email": email,
+      "emailVerified": emailVerified,
+      "avatarStorageUUID": avatarStorageUUID,
     };
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      uuid: map['uuid'],
-      username: map['username'],
-      email: map['email'],
-      emailVerified: map['emailVerified'] ?? false,
-      passwordHash: map['passwordHash'],
-      avatarStorageUUID: map['avatarStorageUUID'],
-      loginIPs: List<String>.from(map['loginIPs'] ?? []),
+      uuid: map["uuid"],
+      username: map["username"],
+      email: map["email"],
+      emailVerified: map["emailVerified"] ?? false,
+      passwordHash: map["passwordHash"],
+      avatarStorageUUID: map["avatarStorageUUID"],
+      loginIPs: List<String>.from(map["loginIPs"] ?? []),
     );
   }
 
   @override
   String toString() {
-    return 'User(uuid: $uuid, username: $username, email: $email,emailVerified: $emailVerified, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID, loginIPs: $loginIPs)';
+    return "User(uuid: $uuid, username: $username, email: $email,emailVerified: $emailVerified, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID, loginIPs: $loginIPs)";
   }
 
   @override
@@ -122,7 +122,7 @@ class User extends BaseModels {
   static Future<User?> getByToken(String token) async {
     JWT jwt = JWT.verify(token, AuthHandler.secretKey);
     Map<String, dynamic> payload = jwt.payload;
-    String uuid = payload['uuid'];
+    String uuid = payload["uuid"];
     return await DataBase.instance.getModelByUUID<User>(uuid);
   }
 }

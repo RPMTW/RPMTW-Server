@@ -1,4 +1,4 @@
-import 'dart:convert';
+import "dart:convert";
 
 class RelationMod {
   // 被串連的模組 UUID
@@ -29,17 +29,17 @@ class RelationMod {
 
   Map<String, dynamic> toMap() {
     return {
-      'modUUID': modUUID,
-      'condition': condition,
-      'type': type.name,
+      "modUUID": modUUID,
+      "condition": condition,
+      "type": type.name,
     };
   }
 
   factory RelationMod.fromMap(Map<String, dynamic> map) {
     return RelationMod(
-      modUUID: map['modUUID'],
-      condition: map['condition'],
-      type: RelationType.values.byName(map['type']),
+      modUUID: map["modUUID"],
+      condition: map["condition"],
+      type: RelationType.values.byName(map["type"]),
     );
   }
 
@@ -50,7 +50,7 @@ class RelationMod {
 
   @override
   String toString() =>
-      'RelationMod(modUUID: $modUUID, condition: $condition, type: $type)';
+      "RelationMod(modUUID: $modUUID, condition: $condition, type: $type)";
 
   @override
   bool operator ==(Object other) {

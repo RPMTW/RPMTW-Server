@@ -1,9 +1,9 @@
-import 'package:collection/collection.dart';
+import "package:collection/collection.dart";
 
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/database/models/translate/source_file.dart';
-import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
+import "package:rpmtw_server/database/models/translate/source_file.dart";
+import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 class ModSourceInfo extends BaseModels {
   /// Namespace of the mod
@@ -44,21 +44,21 @@ class ModSourceInfo extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'namespace': namespace,
-      'modUUID': modUUID,
-      'files': files,
-      'patchouliAddons': patchouliAddons,
+      "uuid": uuid,
+      "namespace": namespace,
+      "modUUID": modUUID,
+      "files": files,
+      "patchouliAddons": patchouliAddons,
     };
   }
 
   factory ModSourceInfo.fromMap(Map<String, dynamic> map) {
     return ModSourceInfo(
-      uuid: map['uuid'],
-      namespace: map['namespace'],
-      modUUID: map['modUUID'],
-      files: List<String>.from(map['files']),
-      patchouliAddons: List<String>.from(map['patchouliAddons']),
+      uuid: map["uuid"],
+      namespace: map["namespace"],
+      modUUID: map["modUUID"],
+      files: List<String>.from(map["files"]),
+      patchouliAddons: List<String>.from(map["patchouliAddons"]),
     );
   }
 

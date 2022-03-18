@@ -1,8 +1,8 @@
-import 'package:rpmtw_server/data/phishing_link.dart';
+import "package:rpmtw_server/data/phishing_link.dart";
 
 class ScamDetection {
   static final RegExp _urlRegex = RegExp(
-      r'(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?');
+      r"(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?");
 
   static bool detection(String message) {
     if (message.contains("https://") || message.contains("http://")) {

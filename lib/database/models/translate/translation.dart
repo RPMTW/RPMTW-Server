@@ -1,11 +1,11 @@
-import 'package:collection/collection.dart';
-import 'package:intl/locale.dart';
-import 'package:rpmtw_server/database/database.dart';
+import "package:collection/collection.dart";
+import "package:intl/locale.dart";
+import "package:rpmtw_server/database/database.dart";
 
-import 'package:rpmtw_server/database/models/auth/user.dart';
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
-import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
+import "package:rpmtw_server/database/models/auth/user.dart";
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 
 class Translation extends BaseModels {
   static const String collectionName = "translations";
@@ -53,19 +53,19 @@ class Translation extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'content': content,
-      'translatorUUID': translatorUUID,
-      'language': language.toLanguageTag()
+      "uuid": uuid,
+      "content": content,
+      "translatorUUID": translatorUUID,
+      "language": language.toLanguageTag()
     };
   }
 
   factory Translation.fromMap(Map<String, dynamic> map) {
     return Translation(
-      uuid: map['uuid'],
-      content: map['content'],
-      translatorUUID: map['translatorUUID'],
-      language: Locale.parse(map['language']),
+      uuid: map["uuid"],
+      content: map["content"],
+      translatorUUID: map["translatorUUID"],
+      language: Locale.parse(map["language"]),
     );
   }
 

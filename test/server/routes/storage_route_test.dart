@@ -75,4 +75,14 @@ void main() async {
     expect(response.statusCode, 200);
     expect(response.body, storageContent);
   });
+
+  test("download storage (unknown uuid)", () async {
+    final response = await get(
+      Uri.parse(host + "/storage/test/download"),
+    );
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 404);
+    expect(responseJson["message"], contains("not found"));
+  });
 }

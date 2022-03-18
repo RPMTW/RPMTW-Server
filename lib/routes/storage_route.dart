@@ -1,15 +1,15 @@
-import 'dart:typed_data';
+import "dart:typed_data";
 
-import 'package:byte_size/byte_size.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/utilities/api_response.dart';
-import 'package:shelf/shelf.dart';
+import "package:byte_size/byte_size.dart";
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/utilities/api_response.dart";
+import "package:shelf/shelf.dart";
 // ignore: implementation_imports
-import 'package:shelf_router/src/router.dart';
-import '../database/database.dart';
-import '../database/models/storage/storage.dart';
-import '../utilities/extension.dart';
-import 'base_route.dart';
+import "package:shelf_router/src/router.dart";
+import "../database/database.dart";
+import "../database/models/storage/storage.dart";
+import "../utilities/extension.dart";
+import "base_route.dart";
 
 class StorageRoute implements APIRoute {
   @override
@@ -39,7 +39,7 @@ class StorageRoute implements APIRoute {
     });
 
     router.getRoute("/<uuid>", (req, data) async {
-      String uuid = data.fields['uuid']!;
+      String uuid = data.fields["uuid"]!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
         return APIResponse.modelNotFound<Storage>();
@@ -48,7 +48,7 @@ class StorageRoute implements APIRoute {
     });
 
     router.getRoute("/<uuid>/download", (req, data) async {
-      String uuid = data.fields['uuid']!;
+      String uuid = data.fields["uuid"]!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
         return APIResponse.modelNotFound<Storage>();

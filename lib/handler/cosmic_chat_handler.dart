@@ -1,16 +1,16 @@
-import 'dart:convert';
-import 'dart:io';
+import "dart:convert";
+import "dart:io";
 
-import 'package:dotenv/dotenv.dart';
-import 'package:http/http.dart' as http;
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/models/auth/ban_info.dart';
-import 'package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart';
-import 'package:rpmtw_server/utilities/scam_detection.dart';
-import 'package:socket_io/socket_io.dart';
+import "package:dotenv/dotenv.dart";
+import "package:http/http.dart" as http;
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/models/auth/ban_info.dart";
+import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
+import "package:rpmtw_server/utilities/scam_detection.dart";
+import "package:socket_io/socket_io.dart";
 
-import 'package:rpmtw_server/database/models/auth/user.dart';
-import 'package:rpmtw_server/utilities/data.dart';
+import "package:rpmtw_server/database/models/auth/user.dart";
+import "package:rpmtw_server/utilities/data.dart";
 
 class CosmicChatHandler {
   static late final Server _io;
@@ -22,7 +22,7 @@ class CosmicChatHandler {
 
   Future<void> init() async {
     /// 2087 is cloudflare supported proxy https port
-    int port = int.parse(env['COSMIC_CHAT_PORT'] ?? '2087');
+    int port = int.parse(env["COSMIC_CHAT_PORT"] ?? "2087");
     _io = Server();
     final InternetAddress ip = InternetAddress.anyIPv4;
 
@@ -30,14 +30,14 @@ class CosmicChatHandler {
       eventHandler(io);
       await io.listen(port);
       loggerNoStack
-          .i('Cosmic Chat Server listening on port http://${ip.host}:$port');
+          .i("Cosmic Chat Server listening on port http://${ip.host}:$port");
     } catch (e) {
-      loggerNoStack.e('Cosmic Chat Server error: $e');
+      loggerNoStack.e("Cosmic Chat Server error: $e");
     }
   }
 
   void eventHandler(Server io) {
-    io.on('connection', (client) {
+    io.on("connection", (client) {
       if (client is Socket) {
         clientMessageHandler(client);
         discordMessageHandler(client);
@@ -52,9 +52,9 @@ class CosmicChatHandler {
       client.request.headers.forEach((name, values) {
         headers[name] = values;
       });
-      final String? token = headers['rpmtw_auth_token']?[0];
-      final String? minecraftUUID = headers['minecraft_uuid']?[0];
-      final InternetAddress ip = InternetAddress(headers['CF-Connecting-IP'] ??
+      final String? token = headers["rpmtw_auth_token"]?[0];
+      final String? minecraftUUID = headers["minecraft_uuid"]?[0];
+      final InternetAddress ip = InternetAddress(headers["CF-Connecting-IP"] ??
           client.request.connectionInfo!.remoteAddress.address);
 
       String? minecraftUsername;
@@ -87,7 +87,7 @@ class CosmicChatHandler {
           if (response.statusCode == 200) {
             Map data = json.decode(response.body);
             minecraftUUIDValid = true;
-            minecraftUsername = data['name'];
+            minecraftUsername = data["name"];
           }
           initCheckList[1] = true;
         });
@@ -107,7 +107,7 @@ class CosmicChatHandler {
       bool isAuthenticated() =>
           user != null || (minecraftUUIDValid && minecraftUsername != null);
 
-      client.on('clientMessage', (_data) async {
+      client.on("clientMessage", (_data) async {
         final List dataList = _data as List;
         late final List bytes =
             dataList.first is List ? dataList.first : dataList;
@@ -128,13 +128,13 @@ class CosmicChatHandler {
         }
 
         Map data = json.decode(utf8.decode((bytes).cast<int>()));
-        String? message = data['message'];
+        String? message = data["message"];
 
         if (message != null && message.isNotEmpty) {
           String username = user?.username ?? minecraftUsername!;
           String? userUUID = user?.uuid;
-          String? nickname = data['nickname'];
-          String? replyMessageUUID = data['replyMessageUUID'];
+          String? nickname = data["nickname"];
+          String? replyMessageUUID = data["replyMessageUUID"];
 
           if (user?.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
             username = "RPMTW 維護者兼創辦人";
@@ -153,7 +153,7 @@ class CosmicChatHandler {
             CosmicChatMessage? replyMessage =
                 await CosmicChatMessage.getByUUID(replyMessageUUID);
             if (replyMessage == null) {
-              return client.error('Invalid reply message UUID');
+              return client.error("Invalid reply message UUID");
             }
           }
 
@@ -174,7 +174,7 @@ class CosmicChatHandler {
       });
     } catch (e, stackTrace) {
       logger.e(
-          '[Cosmic Chat] Throwing errors when handling client messages: $e',
+          "[Cosmic Chat] Throwing errors when handling client messages: $e",
           null,
           stackTrace);
     }
@@ -183,9 +183,9 @@ class CosmicChatHandler {
   void discordMessageHandler(Socket client) {
     try {
       final String? clientDiscordSecretKey =
-          client.handshake?['headers']?['discord_secretKey']?[0];
+          client.handshake?["headers"]?["discord_secretKey"]?[0];
       final String serverDiscordSecretKey =
-          env['COSMIC_CHAT_DISCORD_SecretKey']!;
+          env["COSMIC_CHAT_DISCORD_SecretKey"]!;
       final bool isValid = clientDiscordSecretKey == serverDiscordSecretKey;
 
       /// Verify that the message is sent by the [RPMTW Discord Bot](https://github.com/RPMTW/RPMTW-Discord-Bot) and not a forged message from someone else.
@@ -193,24 +193,24 @@ class CosmicChatHandler {
       client.on("discordMessage", (_data) async {
         Map data = json.decode(utf8.decode(List<int>.from(_data)));
 
-        String? message = data['message'];
-        String? username = data['username'];
-        String? avatarUrl = data['avatarUrl'];
-        String? nickname = data['nickname'];
-        String? replyMessageUUID = data['replyMessageUUID'];
+        String? message = data["message"];
+        String? username = data["username"];
+        String? avatarUrl = data["avatarUrl"];
+        String? nickname = data["nickname"];
+        String? replyMessageUUID = data["replyMessageUUID"];
 
         if (message == null ||
             message.isEmpty ||
             username == null ||
             username.isEmpty ||
             avatarUrl == null ||
-            avatarUrl.isEmpty) return client.error('Invalid discord message');
+            avatarUrl.isEmpty) return client.error("Invalid discord message");
 
         if (replyMessageUUID != null) {
           CosmicChatMessage? replyMessage =
               await CosmicChatMessage.getByUUID(replyMessageUUID);
           if (replyMessage == null) {
-            return client.error('Invalid reply message UUID');
+            return client.error("Invalid reply message UUID");
           }
         }
 
@@ -228,7 +228,7 @@ class CosmicChatHandler {
       });
     } catch (e, stackTrace) {
       logger.e(
-          '[Cosmic Chat] Throwing errors when handling discord messages: $e',
+          "[Cosmic Chat] Throwing errors when handling discord messages: $e",
           null,
           stackTrace);
     }
@@ -246,7 +246,7 @@ class CosmicChatHandler {
       await msg.insert();
 
       /// Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
-      io.emit('sentMessage', utf8.encode(json.encode(msg.outputMap())));
+      io.emit("sentMessage", utf8.encode(json.encode(msg.outputMap())));
       ack?.call(json.encode({"status": "success"}));
     }
   }

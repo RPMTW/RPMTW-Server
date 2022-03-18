@@ -1,13 +1,13 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:collection/collection.dart';
-import 'package:rpmtw_server/database/database.dart';
+import "package:collection/collection.dart";
+import "package:rpmtw_server/database/database.dart";
 
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
 
 class BanInfo extends BaseModels {
-  static const String collectionName = 'ban_infos';
+  static const String collectionName = "ban_infos";
   static const List<IndexFields> indexFields = [
     IndexFields("ip"),
   ];
@@ -44,19 +44,19 @@ class BanInfo extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'ip': ip,
-      'reason': reason,
-      'userUUID': userUUID,
-      'uuid': uuid,
+      "ip": ip,
+      "reason": reason,
+      "userUUID": userUUID,
+      "uuid": uuid,
     };
   }
 
   factory BanInfo.fromMap(Map<String, dynamic> map) {
     return BanInfo(
-      ip: map['ip'],
-      reason: map['reason'],
-      userUUID: List<String>.from(map['userUUID']),
-      uuid: map['uuid']!,
+      ip: map["ip"],
+      reason: map["reason"],
+      userUUID: List<String>.from(map["userUUID"]),
+      uuid: map["uuid"]!,
     );
   }
 
@@ -67,7 +67,7 @@ class BanInfo extends BaseModels {
 
   @override
   String toString() =>
-      'BanInfo(ip: $ip, reason: $reason, userUUID: $userUUID, uuid: $uuid)';
+      "BanInfo(ip: $ip, reason: $reason, userUUID: $userUUID, uuid: $uuid)";
 
   @override
   bool operator ==(Object other) {

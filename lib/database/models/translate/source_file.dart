@@ -1,7 +1,7 @@
-import 'package:collection/collection.dart';
+import "package:collection/collection.dart";
 
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 /// Represents the source language file in a text format.
 class SourceFile extends BaseModels {
@@ -34,19 +34,19 @@ class SourceFile extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'path': path,
-      'type': type.name,
-      'sources': sources,
+      "uuid": uuid,
+      "path": path,
+      "type": type.name,
+      "sources": sources,
     };
   }
 
   factory SourceFile.fromMap(Map<String, dynamic> map) {
     return SourceFile(
-      uuid: map['uuid'],
-      path: map['path'],
-      type: SourceFileType.values.byName(map['type']),
-      sources: List<String>.from(map['sources']),
+      uuid: map["uuid"],
+      path: map["path"],
+      type: SourceFileType.values.byName(map["type"]),
+      sources: List<String>.from(map["sources"]),
     );
   }
 

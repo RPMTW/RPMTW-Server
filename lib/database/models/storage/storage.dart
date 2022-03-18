@@ -1,11 +1,11 @@
-import 'dart:typed_data';
+import "dart:typed_data";
 
-import 'package:http/http.dart' as http;
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:http/http.dart" as http;
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
 
-import '../../database.dart';
-import '../base_models.dart';
+import "../../database.dart";
+import "../base_models.dart";
 
 class Storage extends BaseModels {
   static const String collectionName = "storages";
@@ -36,12 +36,12 @@ class Storage extends BaseModels {
     }
     
     List<Map<String, dynamic>> chunks = await (fs.chunks
-        .find(where.eq('files_id', gridOut.id).sortBy('n'))
+        .find(where.eq("files_id", gridOut.id).sortBy("n"))
         .toList());
 
     List<List<int>> _chunks = [];
     for (Map<String, dynamic> chunk in chunks) {
-      final data = chunk['data'] as BsonBinary;
+      final data = chunk["data"] as BsonBinary;
       _chunks.add(data.byteList.toList());
     }
 
@@ -61,25 +61,25 @@ class Storage extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'contentType': contentType,
-      'type': type.name,
-      'createAt': createAt
+      "uuid": uuid,
+      "contentType": contentType,
+      "type": type.name,
+      "createAt": createAt
     };
   }
 
   factory Storage.fromMap(Map<String, dynamic> map) {
     return Storage(
-        uuid: map['uuid'],
-        contentType: map['contentType'],
-        type: StorageType.values.byName(map['type'] ?? 'temp'),
+        uuid: map["uuid"],
+        contentType: map["contentType"],
+        type: StorageType.values.byName(map["type"] ?? "temp"),
         createAt:
-            map['createAt'] ?? DateTime.now().toUtc().millisecondsSinceEpoch);
+            map["createAt"] ?? DateTime.now().toUtc().millisecondsSinceEpoch);
   }
 
   @override
   String toString() =>
-      'Storage(uuid: $uuid,contentType: $contentType, type: $type, createAt: $createAt)';
+      "Storage(uuid: $uuid,contentType: $contentType, type: $type, createAt: $createAt)";
 
   @override
   bool operator ==(Object other) {

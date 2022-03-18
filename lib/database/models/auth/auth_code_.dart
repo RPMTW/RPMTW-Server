@@ -1,13 +1,13 @@
-import 'dart:convert';
-import 'dart:math';
+import "dart:convert";
+import "dart:math";
 
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/base_models.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
 
 class AuthCode extends BaseModels {
-  static const String collectionName = 'auth_codes';
+  static const String collectionName = "auth_codes";
   static const List<IndexFields> indexFields = [
     IndexFields("code"),
     IndexFields("expiresAt", unique: false)
@@ -52,19 +52,19 @@ class AuthCode extends BaseModels {
   @override
   Map<String, dynamic> toMap() {
     return {
-      'code': code,
-      'expiresAt': expiresAt.millisecondsSinceEpoch,
-      'uuid': uuid,
-      'email': email,
+      "code": code,
+      "expiresAt": expiresAt.millisecondsSinceEpoch,
+      "uuid": uuid,
+      "email": email,
     };
   }
 
   factory AuthCode.fromMap(Map<String, dynamic> map) {
     return AuthCode(
-      code: map['code']?.toInt() ?? 0,
-      expiresAt: DateTime.fromMillisecondsSinceEpoch(map['expiresAt']),
-      uuid: map['uuid'],
-      email: map['email'],
+      code: map["code"]?.toInt() ?? 0,
+      expiresAt: DateTime.fromMillisecondsSinceEpoch(map["expiresAt"]),
+      uuid: map["uuid"],
+      email: map["email"],
     );
   }
 
@@ -75,7 +75,7 @@ class AuthCode extends BaseModels {
 
   @override
   String toString() =>
-      'AuthCode(code: $code, expiresAt: $expiresAt, uuid: $uuid, email: $email)';
+      "AuthCode(code: $code, expiresAt: $expiresAt, uuid: $uuid, email: $email)";
 
   @override
   bool operator ==(Object other) {

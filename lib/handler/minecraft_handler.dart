@@ -1,48 +1,48 @@
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
-import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
-import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
-import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
-import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
+import "package:rpmtw_server/database/models/minecraft/relation_mod.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
+import "package:rpmtw_server/database/models/minecraft/mod_integration.dart";
+import "package:rpmtw_server/database/models/minecraft/mod_side.dart";
+import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
 
 class MinecraftHeader {
   static Future<ModRequestBodyParsedResult> parseModRequestBody(
       Map<String, dynamic> body) async {
-    String? name = body['name'];
+    String? name = body["name"];
 
     List<MinecraftVersion> allVersions =
         (await MinecraftVersionManifest.getFromCache()).manifest.versions;
     List<MinecraftVersion>? supportedVersions;
     try {
-      supportedVersions = List<MinecraftVersion>.from(body['supportVersions']
+      supportedVersions = List<MinecraftVersion>.from(body["supportVersions"]
           ?.map((x) => allVersions.firstWhere((e) => e.id == x)));
     } catch (e) {
       supportedVersions = null;
     }
 
-    String? id = body['id'];
-    String? description = body['description'];
-    List<RelationMod>? relationMods = body['relationMods'] != null
+    String? id = body["id"];
+    String? description = body["description"];
+    List<RelationMod>? relationMods = body["relationMods"] != null
         ? List<RelationMod>.from(
-            body['relationMods']!.map((x) => RelationMod.fromMap(x)))
+            body["relationMods"]!.map((x) => RelationMod.fromMap(x)))
         : null;
-    ModIntegrationPlatform? integration = body['integration'] != null
-        ? ModIntegrationPlatform.fromMap(body['integration'])
+    ModIntegrationPlatform? integration = body["integration"] != null
+        ? ModIntegrationPlatform.fromMap(body["integration"])
         : null;
-    List<ModSide>? side = body['side'] != null
+    List<ModSide>? side = body["side"] != null
         ? List<ModSide>.from(
-            body['side']!.map((x) => ModSide.fromMap(x)).toList())
+            body["side"]!.map((x) => ModSide.fromMap(x)).toList())
         : null;
-    List<ModLoader>? loader = body['loader'] != null
+    List<ModLoader>? loader = body["loader"] != null
         ? List<ModLoader>.from(
-            body['loader']?.map((x) => ModLoader.values.byName(x)))
+            body["loader"]?.map((x) => ModLoader.values.byName(x)))
         : null;
-    String? translatedName = body['translatedName'];
-    String? introduction = body['introduction'];
-    String? imageStorageUUID = body['imageStorageUUID'];
+    String? translatedName = body["translatedName"];
+    String? introduction = body["introduction"];
+    String? imageStorageUUID = body["imageStorageUUID"];
 
     return ModRequestBodyParsedResult(
         name: name,
@@ -106,20 +106,20 @@ class MinecraftHeader {
     if (filter != null) {
       /// search by name or id
       builder = builder
-          .match('id', filter)
-          .or(where.match('name', "(?i)$filter"))
-          .or(where.match('translatedName', "(?i)$filter"));
+          .match("id", filter)
+          .or(where.match("name", "(?i)$filter"))
+          .or(where.match("translatedName", "(?i)$filter"));
     }
     builder = builder.limit(limit).skip(skip);
 
     if (sort == 0) {
-      builder = builder.sortBy('createTime', descending: true);
+      builder = builder.sortBy("createTime", descending: true);
     } else if (sort == 1) {
-      builder = builder.sortBy('viewCount', descending: true);
+      builder = builder.sortBy("viewCount", descending: true);
     } else if (sort == 2) {
-      builder = builder.sortBy('name', descending: true);
+      builder = builder.sortBy("name", descending: true);
     } else if (sort == 3) {
-      builder = builder.sortBy('lastUpdate', descending: true);
+      builder = builder.sortBy("lastUpdate", descending: true);
     }
 
     final List<Map<String, dynamic>> modMaps =
