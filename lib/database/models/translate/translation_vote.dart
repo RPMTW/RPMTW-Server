@@ -24,14 +24,12 @@ class TranslationVote extends BaseModels {
 
   TranslationVote copyWith({
     TranslationVoteType? type,
-    String? translationUUID,
-    String? userUUID,
   }) {
     return TranslationVote(
       uuid: uuid,
       type: type ?? this.type,
-      translationUUID: translationUUID ?? this.translationUUID,
-      userUUID: userUUID ?? this.userUUID,
+      translationUUID: translationUUID,
+      userUUID: userUUID,
     );
   }
 
@@ -53,20 +51,6 @@ class TranslationVote extends BaseModels {
       userUUID: map['userUUID'] ?? '',
     );
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is TranslationVote &&
-        other.type == type &&
-        other.translationUUID == translationUUID &&
-        other.userUUID == userUUID;
-  }
-
-  @override
-  int get hashCode =>
-      type.hashCode ^ translationUUID.hashCode ^ userUUID.hashCode;
 
   static Future<TranslationVote?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<TranslationVote>(uuid);

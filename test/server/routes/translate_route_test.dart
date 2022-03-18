@@ -140,8 +140,8 @@ void main() async {
   test("cancel translation vote", () async {
     String translationVoteUUID = await createTestVote();
 
-    final response = await delete(Uri.parse(host + '/translate/vote'),
-        body: json.encode({"uuid": translationVoteUUID}),
+    final response = await delete(
+        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -156,8 +156,7 @@ void main() async {
   });
 
   test("cancel translation vote (unknown translation vote uuid)", () async {
-    final response = await delete(Uri.parse(host + '/translate/vote'),
-        body: json.encode({"uuid": "test"}),
+    final response = await delete(Uri.parse(host + '/translate/vote/test'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token'
@@ -181,8 +180,8 @@ void main() async {
         headers: {'Content-Type': 'application/json'});
     String _token = json.decode(_response.body)["data"]["token"];
 
-    final response = await delete(Uri.parse(host + '/translate/vote'),
-        body: json.encode({"uuid": translationVoteUUID}),
+    final response = await delete(
+        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_token'
@@ -191,6 +190,72 @@ void main() async {
 
     expect(response.statusCode, 400);
     expect(responseJson["message"], contains("can't cancel"));
+
+    /// Delete the test translation vote.
+    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+  });
+  test("edit translation vote", () async {
+    String translationVoteUUID = await createTestVote();
+
+    final response = await patch(
+        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
+        body: json.encode({
+          "type": "down",
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 200);
+    expect(responseJson["message"], "success");
+
+    /// Delete the test translation vote.
+    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+  });
+
+  test("edit translation vote (unknown translation vote uuid)", () async {
+    final response = await patch(Uri.parse(host + '/translate/vote/test'),
+        body: json.encode({
+          "type": "down",
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 404);
+    expect(responseJson["message"], contains("not found"));
+  });
+
+  test("edit translation vote (use a different user account)", () async {
+    String translationVoteUUID = await createTestVote();
+
+    /// Create a test user account.
+    final _response = await post(Uri.parse(host + '/auth/user/create'),
+        body: json.encode({
+          "password": "testPassword1234",
+          "email": "test3@gmail.com",
+          "username": "test3",
+        }),
+        headers: {'Content-Type': 'application/json'});
+    String _token = json.decode(_response.body)["data"]["token"];
+
+    final response = await patch(
+        Uri.parse(host + '/translate/vote/$translationVoteUUID'),
+        body: json.encode({
+          "type": "down",
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token'
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("can't edit"));
 
     /// Delete the test translation vote.
     (await TranslationVote.getByUUID(translationVoteUUID))?.delete();

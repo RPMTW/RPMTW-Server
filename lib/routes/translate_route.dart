@@ -59,13 +59,36 @@ class TranslateRoute implements APIRoute {
       return APIResponse.success(data: vote.outputMap());
     }, requiredFields: ["translationUUID", "type"]);
 
+    /// Edit translation vote
+    router.patchRoute("/vote/<uuid>", (req, data) async {
+      final User user = req.user!;
+
+      final String uuid = data.fields["uuid"]!;
+      final TranslationVoteType type =
+          TranslationVoteType.values.byName(data.fields["type"]!);
+
+      TranslationVote? vote = await TranslationVote.getByUUID(uuid);
+      if (vote == null) {
+        return APIResponse.modelNotFound<TranslationVote>();
+      }
+
+      if (vote.userUUID != user.uuid) {
+        return APIResponse.badRequest(message: "You can't edit this vote");
+      }
+
+      vote = vote.copyWith(type: type);
+
+      await vote.update();
+      return APIResponse.success(data: null);
+    }, requiredFields: ["uuid", "type"]);
+
     /// Cancel translation vote
-    router.deleteRoute("/vote", (req, data) async {
+    router.deleteRoute("/vote/<uuid>", (req, data) async {
       final User user = req.user!;
 
       final String uuid = data.fields["uuid"]!;
 
-      TranslationVote? vote = await TranslationVote.getByUUID(uuid);
+      final TranslationVote? vote = await TranslationVote.getByUUID(uuid);
       if (vote == null) {
         return APIResponse.modelNotFound<TranslationVote>();
       }

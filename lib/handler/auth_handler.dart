@@ -41,13 +41,13 @@ class AuthHandler {
               _AuthPath("auth/user/me/update", method: "POST"),
               _AuthPath("minecraft/mod/create", method: "POST"),
               _AuthPath("minecraft/mod/edit",
-                  method: "PATCH", startsWith: true),
+                  method: "PATCH", hasUrlParams: true),
               _AuthPath("translate/vote", method: "POST"),
-              _AuthPath("translate/vote", method: "DELETE"),
+              _AuthPath("translate/vote/", method: "DELETE", hasUrlParams: true),
             ];
 
             bool needAuth = needAuthorizationPaths.any((_path) =>
-                _path.startsWith
+                _path.hasUrlParams
                     ? path.startsWith(_path.path)
                     : path == _path.path && request.method == _path.method);
 
@@ -316,8 +316,8 @@ class _EmailValidatedResult extends _BaseValidatedResult {
 
 class _AuthPath {
   final String path;
-  final bool startsWith;
+  final bool hasUrlParams;
   final String method;
 
-  _AuthPath(this.path, {this.startsWith = false, required this.method});
+  _AuthPath(this.path, {this.hasUrlParams = false, required this.method});
 }
