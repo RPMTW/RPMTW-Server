@@ -47,7 +47,7 @@ class AuthRoute implements APIRoute {
       if (avatarStorageUUID != null) {
         Storage? storage = await Storage.getByUUID(avatarStorageUUID);
         if (storage == null) {
-          return APIResponse.notFound('Avatar Storage not found');
+          return APIResponse.modelNotFound(modelName: "Avatar Storage");
         }
         if (storage.type == StorageType.temp) {
           //將暫存檔案改為一般檔案
@@ -76,7 +76,7 @@ class AuthRoute implements APIRoute {
         user = await User.getByUUID(uuid);
       }
       if (user == null) {
-        return APIResponse.notFound("User not found");
+        return APIResponse.modelNotFound<User>();
       }
       return APIResponse.success(data: user.outputMap());
     });
@@ -85,7 +85,7 @@ class AuthRoute implements APIRoute {
       String email = data.fields['email']!;
       User? user = await User.getByEmail(email);
       if (user == null) {
-        return APIResponse.notFound("User not found");
+        return APIResponse.modelNotFound<User>();
       }
       return APIResponse.success(data: user.outputMap());
     });
@@ -100,7 +100,7 @@ class AuthRoute implements APIRoute {
         user = await User.getByUUID(uuid);
       }
       if (user == null) {
-        return APIResponse.notFound("User not found");
+        return APIResponse.modelNotFound<User>();
       }
       User newUser = user;
       String? password = data.fields['password'];
@@ -146,7 +146,7 @@ class AuthRoute implements APIRoute {
         // 使用者想要修改帳號圖片
         Storage? storage = await Storage.getByUUID(avatarStorageUUID);
         if (storage == null) {
-          return APIResponse.notFound('Avatar Storage not found');
+          return APIResponse.modelNotFound(modelName: "Avatar Storage");
         }
         if (storage.type == StorageType.temp) {
           //將暫存檔案改為一般檔案
@@ -179,7 +179,7 @@ class AuthRoute implements APIRoute {
       String password = data.fields['password'];
       User? user = await User.getByUUID(uuid);
       if (user == null) {
-        return APIResponse.notFound("User not found");
+        return APIResponse.modelNotFound<User>();
       }
       bool checkPassword =
           AuthHandler.checkPassword(password, user.passwordHash);

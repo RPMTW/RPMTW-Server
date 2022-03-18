@@ -43,7 +43,7 @@ class StorageRoute implements APIRoute {
       String uuid = data.fields['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
-        return APIResponse.notFound();
+        return APIResponse.modelNotFound<Storage>();
       }
       return APIResponse.success(data: storage.outputMap());
     });
@@ -52,7 +52,7 @@ class StorageRoute implements APIRoute {
       String uuid = data.fields['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
-        return APIResponse.notFound("Storage not found");
+        return APIResponse.modelNotFound<Storage>();
       }
 
       Uint8List? bytes = await storage.readAsBytes();

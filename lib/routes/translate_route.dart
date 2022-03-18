@@ -12,10 +12,20 @@ class TranslateRoute implements APIRoute {
   Router get router {
     final Router router = Router();
 
+    /// List all translation votes by translation uuid
     router.getRoute("/vote", (req, data) async {
       final String translationUUID = data.fields["translationUUID"];
+      final Translation? translation =
+          await Translation.getByUUID(translationUUID);
 
-      throw UnimplementedError();
+      if (translation == null) {
+        return APIResponse.modelNotFound<Translation>();
+      }
+
+      final List<TranslationVote> votes = await translation.votes;
+
+      return APIResponse.success(
+          data: votes.map((e) => e.outputMap()).toList());
     }, requiredFields: ["translationUUID"]);
 
     /// Add translation vote
@@ -30,7 +40,7 @@ class TranslateRoute implements APIRoute {
           await Translation.getByUUID(translationUUID);
 
       if (translation == null) {
-        return APIResponse.notFound("Translation not found");
+        return APIResponse.modelNotFound<Translation>();
       }
 
       final List<TranslationVote> votes = await translation.votes;
@@ -57,7 +67,7 @@ class TranslateRoute implements APIRoute {
 
       TranslationVote? vote = await TranslationVote.getByUUID(uuid);
       if (vote == null) {
-        return APIResponse.notFound("Translation vote not found");
+        return APIResponse.modelNotFound<TranslationVote>();
       }
 
       if (vote.userUUID != user.uuid) {

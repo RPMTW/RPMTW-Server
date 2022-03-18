@@ -116,7 +116,7 @@ class MinecraftRoute implements APIRoute {
       MinecraftMod? mod;
       mod = await MinecraftMod.getByUUID(uuid);
       if (mod == null) {
-        return APIResponse.notFound("Minecraft mod not found");
+        return APIResponse.modelNotFound<MinecraftMod>();
       }
 
       String? _recordViewCount = data.fields['recordViewCount'];

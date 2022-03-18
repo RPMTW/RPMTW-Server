@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:rpmtw_server/utilities/extension.dart';
 import 'package:rpmtw_server/utilities/messages.dart';
 import 'package:shelf/shelf.dart';
 import 'dart:io';
@@ -56,6 +57,9 @@ class APIResponse {
             'message': message,
           }),
           headers: _baseHeaders);
+
+  static Response modelNotFound<T>({String? modelName}) =>
+      notFound("${modelName ?? T.toString().toUpperCaseWithSpace()} not found");
 
   static Response banned({required String reason}) =>
       Response(HttpStatus.forbidden,

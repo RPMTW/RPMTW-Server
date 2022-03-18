@@ -16,10 +16,13 @@ extension StringCasingExtension on String {
 
   /// 將字串每個開頭字母轉成大寫
   /// hello world -> Hello World
-  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
+  String toTitleCase() => replaceAll(RegExp(" +"), " ")
       .split(" ")
       .map((str) => str.toCapitalized())
       .join(" ");
+
+  String toUpperCaseWithSpace() =>
+      split(RegExp("[A-Z]")).map((str) => str.toUpperCase()).join(" ");
 
   bool get isEnglish {
     RegExp regExp = RegExp(r'\w+\s*$');
