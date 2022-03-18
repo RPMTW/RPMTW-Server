@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:http/http.dart' as http;
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
@@ -61,10 +63,6 @@ extension RequestExtension on Request {
       return null;
     }
   }
-
-  Future<Map<String, dynamic>> get data async {
-    return json.decode(await readAsString());
-  }
 }
 
 typedef RouteHandler = Future<Response> Function(Request req, RouteData data);
@@ -74,19 +72,27 @@ extension RouterExtension on Router {
       List<String> requiredFields) {
     Future<Response> _handler(Request request) async {
       try {
-        final Map<String, dynamic> fields = request.params.isEmpty
-            ? request.method == "GET"
-                ? request.requestedUri.queryParameters
-                : await request.data
-            : request.params;
+        Uint8List bytes = await http.ByteStream(request.read()).toBytes();
+        Map<String, dynamic>? bodyJson;
+        try {
+          bodyJson = json
+              .decode((request.encoding ?? utf8).decode(bytes))
+              .cast<String, dynamic>();
+        } catch (e) {
+          // ignore
+        }
+
+        final Map<String, dynamic> fields = Map.from(request.method == "GET"
+            ? request.requestedUri.queryParameters
+            : bodyJson ?? {})
+          ..addAll(request.params);
 
         final bool validateFields =
             Utility.validateRequiredFields(fields, requiredFields);
-
         if (!validateFields) {
           return APIResponse.missingRequiredFields();
         } else {
-          return await handler(request, RouteData(fields: fields));
+          return await handler(request, RouteData(fields, bytes));
         }
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -120,6 +126,9 @@ extension RouterExtension on Router {
 
 class RouteData {
   final Map<String, dynamic> fields;
+  final Uint8List bytes;
 
-  RouteData({required this.fields});
+  Stream<List<int>> get byteStream => http.ByteStream.fromBytes(bytes);
+
+  RouteData(this.fields, this.bytes);
 }

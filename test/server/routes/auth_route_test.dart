@@ -51,11 +51,12 @@ void main() async {
     late String token;
     test("create avatar storage", () async {
       Response rpmtwLogoResponse = await get(Uri.parse(
-          "https://raw.githubusercontent.com/RPMTW/RPMTW-Website/main/public/Image/RPMTW_Logo.gif"));
+          "https://raw.githubusercontent.com/RPMTW/RPMTW-Data/main/logo/rpmtw-logo.png"));
 
       final response = await post(Uri.parse(host + '/storage/create'),
           body: rpmtwLogoResponse.bodyBytes,
-          headers: {'Content-Type': 'image/gif'});
+          headers: {'Content-Type': 'image/png'});
+
       Map data = json.decode(response.body)['data'];
       avatarStorageUUID = data['uuid'];
       expect(response.statusCode, 200);
@@ -166,7 +167,7 @@ void main() async {
       expect(data1['username'], newUsername);
       expect(data1['emailVerified'], isFalse);
 
-      /// 檢查使用者資訊是否被更新了
+      /// Check if the user info is updated
       final response2 = await get(
         Uri.parse(host + '/auth/user/$userUUID'),
       );
@@ -206,8 +207,6 @@ void main() async {
         'Authorization': 'Bearer $token',
       });
       Map data = json.decode(response.body);
-
-      print(response.body);
 
       expect(response.statusCode, 403);
       expect(data['message'], contains("Ban"));

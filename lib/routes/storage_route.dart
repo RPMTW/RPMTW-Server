@@ -17,7 +17,6 @@ class StorageRoute implements APIRoute {
     final Router router = Router();
 
     router.postRoute("/create", (req, data) async {
-      Stream<List<int>> stream = req.read();
       String contentType = req.headers["content-type"] ??
           req.headers["Content-Type"] ??
           "application/octet-stream";
@@ -27,7 +26,8 @@ class StorageRoute implements APIRoute {
           contentType: contentType,
           uuid: Uuid().v4(),
           createAt: DateTime.now().toUtc().millisecondsSinceEpoch);
-      GridIn gridIn = DataBase.instance.gridFS.createFile(stream, storage.uuid);
+      GridIn gridIn =
+          DataBase.instance.gridFS.createFile(data.byteStream, storage.uuid);
       ByteSize size = ByteSize.FromBytes(req.contentLength!);
       if (size.MegaBytes > 8) {
         // 限制最大檔案大小為 8 MB
