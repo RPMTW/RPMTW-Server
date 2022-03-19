@@ -12,6 +12,7 @@ class Translation extends BaseModel {
   static const List<IndexFields> indexFields = [
     IndexFields("translatorUUID", unique: false),
     IndexFields("language", unique: false),
+    IndexFields("content", unique: false),
   ];
 
   /// Translated text
