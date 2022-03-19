@@ -2,10 +2,15 @@ import "dart:convert";
 
 import "package:http/http.dart";
 import "package:intl/locale.dart";
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import 'package:rpmtw_server/database/models/auth/user.dart';
+import 'package:rpmtw_server/database/models/auth/user_role.dart';
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/models/translate/source_file.dart';
+import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import 'package:rpmtw_server/handler/auth_handler.dart';
 import "package:test/test.dart";
 
 import "../../test_utility.dart";
@@ -15,6 +20,7 @@ void main() async {
   final String mockTranslationUUID = "0d87bd04-d957-4e7c-a9b7-5eb0bb3a40c1";
   final String mockSourceTextUUID = "b1b02c50-f35c-4a99-a38f-7240e61917f1";
   late final String token;
+  late final String translationManagerToken;
   late final String userUUID;
 
   setUpAll(() {
@@ -22,22 +28,35 @@ void main() async {
       await TestUttily.setUpAll();
 
       /// Create a test user account.
-      final _response = await post(Uri.parse(host + "/auth/user/create"),
-          body: json.encode({
-            "password": "testPassword1234",
-            "email": "test@gmail.com",
-            "username": "test",
-          }),
-          headers: {"Content-Type": "application/json"});
-      Map _body = json.decode(_response.body)["data"];
-      token = _body["token"];
-      userUUID = _body["uuid"];
+      final user1 = User(
+          passwordHash: "testPassword1234",
+          email: "test@gmail.com",
+          username: "test",
+          emailVerified: true,
+          uuid: Uuid().v4(),
+          loginIPs: []);
+      await user1.insert();
+      token = AuthHandler.generateAuthToken(user1.uuid);
+      userUUID = user1.uuid;
+
+      final user2 = User(
+          passwordHash: "testPassword1234",
+          email: "testManager@gmail.com",
+          username: "testManager",
+          emailVerified: true,
+          uuid: Uuid().v4(),
+          loginIPs: [],
+          role: UserRole(
+              roles: [UserRoleType.general, UserRoleType.translationManager]));
+      await user2.insert();
+      translationManagerToken = AuthHandler.generateAuthToken(user2.uuid);
 
       await SourceText(
               uuid: mockSourceTextUUID,
               source: "Hello, World!",
-              gameVersion: [],
-              key: "test.title.hello_world")
+              gameVersions: [],
+              key: "test.title.hello_world",
+              type: SourceTextType.general)
           .insert();
 
       await Translation(
@@ -76,6 +95,18 @@ void main() async {
     return translation.uuid;
   }
 
+  Future<String> addTestSourceText(
+      {SourceTextType type = SourceTextType.general}) async {
+    final SourceText source = SourceText(
+        uuid: mockSourceTextUUID,
+        source: "Hello, World!",
+        gameVersions: [],
+        key: "test.title.hello_world",
+        type: type);
+    await source.insert();
+    return source.uuid;
+  }
+
   test("add translation vote", () async {
     final String type = "up";
     final response = await post(Uri.parse(host + "/translate/vote"),
@@ -93,7 +124,7 @@ void main() async {
     expect(data["userUUID"], userUUID);
 
     /// Delete the test translation vote.
-    (await TranslationVote.getByUUID(data["uuid"]))?.delete();
+    (await TranslationVote.getByUUID(data["uuid"]))!.delete();
   });
 
   test("add translation vote (unknown translation uuid)", () async {
@@ -125,7 +156,7 @@ void main() async {
     expect(responseJson["message"], contains("already voted"));
 
     /// Delete the test translation vote.
-    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+    (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
   });
 
   test("add translation vote (unauthorized)", () async {
@@ -154,7 +185,7 @@ void main() async {
     expect(data[0]["uuid"], translationVoteUUID);
 
     /// Delete the test translation vote.
-    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+    (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
   });
 
   test("list translation vote (unknown translation uuid)", () async {
@@ -182,9 +213,7 @@ void main() async {
 
     expect(response.statusCode, 200);
     expect(responseJson["message"], "success");
-
-    /// Delete the test translation vote.
-    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+    expect(await TranslationVote.getByUUID(translationVoteUUID), null);
   });
 
   test("cancel translation vote (unknown translation vote uuid)", () async {
@@ -224,7 +253,7 @@ void main() async {
     expect(responseJson["message"], contains("can't cancel"));
 
     /// Delete the test translation vote.
-    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+    (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
   });
   test("edit translation vote", () async {
     String translationVoteUUID = await addTestVote();
@@ -244,7 +273,7 @@ void main() async {
     expect(responseJson["message"], "success");
 
     /// Delete the test translation vote.
-    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+    (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
   });
 
   test("edit translation vote (unknown translation vote uuid)", () async {
@@ -290,7 +319,7 @@ void main() async {
     expect(responseJson["message"], contains("can't edit"));
 
     /// Delete the test translation vote.
-    (await TranslationVote.getByUUID(translationVoteUUID))?.delete();
+    (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
   });
 
   test("add translation", () async {
@@ -314,7 +343,7 @@ void main() async {
     expect(data["content"], "你好，世界！");
 
     /// Delete the test translation.
-    (await Translation.getByUUID(data["uuid"]))?.delete();
+    (await Translation.getByUUID(data["uuid"]))!.delete();
   });
 
   test("add translation (unknown source text uuid)", () async {
@@ -393,7 +422,7 @@ void main() async {
     expect(data["uuid"], translationUUID);
 
     /// Delete the test translation.
-    (await Translation.getByUUID(translationUUID))?.delete();
+    (await Translation.getByUUID(translationUUID))!.delete();
   });
   test("get translation (unknown uuid)", () async {
     final response = await get(Uri.parse(host + "/translate/translation/test"),
@@ -423,7 +452,7 @@ void main() async {
     expect(data[1]["uuid"], translationUUID);
 
     /// Delete the test translation.
-    (await Translation.getByUUID(translationUUID))?.delete();
+    (await Translation.getByUUID(translationUUID))!.delete();
   });
 
   test("list translation (unknown source text uuid)", () async {
@@ -451,9 +480,7 @@ void main() async {
 
     expect(response.statusCode, 200);
     expect(responseJson["message"], "success");
-
-    /// Delete the test translation.
-    (await Translation.getByUUID(translationUUID))?.delete();
+    expect(await Translation.getByUUID(translationUUID), null);
   });
 
   test("delete translation (unknown translation uuid)", () async {
@@ -493,6 +520,420 @@ void main() async {
     expect(responseJson["message"], contains("can't delete"));
 
     /// Delete the test translation.
-    (await Translation.getByUUID(translationUUID))?.delete();
+    (await Translation.getByUUID(translationUUID))!.delete();
+  });
+
+  test("add source text", () async {
+    final response = await post(Uri.parse(host + "/translate/source-text"),
+        body: json.encode({
+          "source": "Hello, World!",
+          "gameVersions": ["1.18.2"],
+          "key": "test.title.hello_world",
+          "type": "general"
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+
+    Map data = json.decode(response.body)["data"];
+
+    expect(response.statusCode, 200);
+    expect(data["uuid"], isNotNull);
+    expect(data["source"], "Hello, World!");
+    expect(data["key"], "test.title.hello_world");
+    expect(data["type"], "general");
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(data["uuid"]))!.delete();
+  });
+
+  test("add source text (not permission)", () async {
+    final response = await post(Uri.parse(host + "/translate/source-text"),
+        body: json.encode({
+          "source": "Hello, World!",
+          "gameVersions": ["1.18.2"],
+          "key": "test.title.hello_world",
+          "type": "general"
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 403);
+    expect(responseJson["message"], "Forbidden");
+  });
+
+  test("add source text (empty source)", () async {
+    final response = await post(Uri.parse(host + "/translate/source-text"),
+        body: json.encode({
+          "source": "  ",
+          "gameVersions": ["1.18.2"],
+          "key": "test.title.hello_world",
+          "type": "general"
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("can't be empty"));
+  });
+
+  test("add source text (empty gameVersions)", () async {
+    final response = await post(Uri.parse(host + "/translate/source-text"),
+        body: json.encode({
+          "source": "Hello, World!",
+          "gameVersions": [],
+          "key": "test.title.hello_world",
+          "type": "general"
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("can't be empty"));
+  });
+
+  test("add source text (empty key)", () async {
+    final response = await post(Uri.parse(host + "/translate/source-text"),
+        body: json.encode({
+          "source": "Hello, World!",
+          "gameVersions": ["1.18.2"],
+          "key": "  ",
+          "type": "general"
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("can't be empty"));
+  });
+
+  test("get source text", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response = await get(
+        Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+        headers: {"Content-Type": "application/json"});
+
+    Map data = json.decode(response.body)["data"];
+
+    expect(response.statusCode, 200);
+    expect(data["uuid"], sourceTextUUID);
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+  test("get source text (unknown uuid)", () async {
+    final response = await get(Uri.parse(host + "/translate/source-text/test"),
+        headers: {"Content-Type": "application/json"});
+
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 404);
+    expect(responseJson["message"], contains("not found"));
+  });
+
+  test("list source text", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response = await get(
+        Uri.parse(host + "/translate/source-text")
+            .replace(queryParameters: {"limit": "10", "skip": "0"}),
+        headers: {"Content-Type": "application/json"});
+
+    List<Map> data = json.decode(response.body)["data"]["sources"].cast<Map>();
+
+    expect(response.statusCode, 200);
+    expect(data.length, 1);
+    expect(data[0]["uuid"], sourceTextUUID);
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("list source text (search by source and key)", () async {
+    final response = await get(
+        Uri.parse(host + "/translate/source-text").replace(queryParameters: {
+          "limit": "10",
+          "skip": "0",
+          "source": "Hello, World!",
+          "key": "test.title.hello_world"
+        }),
+        headers: {"Content-Type": "application/json"});
+
+    List<Map> data = json.decode(response.body)["data"]["sources"].cast<Map>();
+
+    expect(response.statusCode, 200);
+    expect(data.length, 0);
+  });
+
+  test("list source text (limit 100)", () async {
+    final response = await get(
+        Uri.parse(host + "/translate/source-text")
+            .replace(queryParameters: {"limit": "100", "skip": "0"}),
+        headers: {"Content-Type": "application/json"});
+
+    Map data = json.decode(response.body)["data"];
+
+    expect(response.statusCode, 200);
+    expect(data["limit"], 50);
+    expect(data["skip"], 0);
+    expect(data["sources"].length, 0);
+  });
+
+  test("edit source text", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response =
+        await patch(Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+            body: json.encode({
+              "source": "RPMTW is the best!",
+              "gameVersions": ["1.12.2", "1.18.2"],
+              "key": "test.patchouli.rpmtw",
+              "type": "patchouli"
+            }),
+            headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 200);
+    expect(responseJson["message"], "success");
+    expect(responseJson["data"]["source"], "RPMTW is the best!");
+    expect(responseJson["data"]["key"], "test.patchouli.rpmtw");
+    expect(responseJson["data"]["type"], "patchouli");
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("edit source text (not permission)", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response = await patch(
+        Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+        body: json.encode({
+          "source": "RPMTW is the best!",
+          "gameVersions": ["1.12.2", "1.18.2"],
+          "key": "test.patchouli.rpmtw",
+          "type": "patchouli"
+        }),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 403);
+    expect(responseJson["message"], "Forbidden");
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("edit source text (unknown uuid)", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response =
+        await patch(Uri.parse(host + "/translate/source-text/test"),
+            body: json.encode({
+              "source": "RPMTW is the best!",
+              "gameVersions": ["1.12.2", "1.18.2"],
+              "key": "test.patchouli.rpmtw",
+              "type": "patchouli"
+            }),
+            headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 404);
+    expect(responseJson["message"], contains("not found"));
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("edit source text (empty source)", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response =
+        await patch(Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+            body: json.encode({
+              "source": "",
+              "gameVersions": ["1.12.2", "1.18.2"],
+              "key": "test.patchouli.rpmtw",
+              "type": "patchouli"
+            }),
+            headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("can't be empty"));
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("edit source text (empty game versions)", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response =
+        await patch(Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+            body: json.encode({
+              "source": "RPMTW is the best!",
+              "gameVersions": [],
+              "key": "test.patchouli.rpmtw",
+              "type": "patchouli"
+            }),
+            headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("can't be empty"));
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("edit source text (empty key)", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response =
+        await patch(Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+            body: json.encode({
+              "source": "RPMTW is the best!",
+              "gameVersions": ["1.12.2", "1.18.2"],
+              "key": "   ",
+              "type": "patchouli"
+            }),
+            headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("can't be empty"));
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("edit source text (all is empty)", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response = await patch(
+        Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+        body: json.encode({}),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 400);
+    expect(responseJson["message"], contains("need to provide"));
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("delete source text", () async {
+    String sourceTextUUID = await addTestSourceText();
+    SourceFile file = SourceFile(
+        uuid: Uuid().v4(),
+        path: "assets/test/lang/en_us.json",
+        sourceInfoUUID: Uuid().v4(),
+        type: SourceFileType.gsonLang,
+        sources: [sourceTextUUID]);
+    await file.insert();
+
+    final response = await delete(
+        Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 200);
+    expect(responseJson["message"], "success");
+    expect(await SourceText.getByUUID(sourceTextUUID), null);
+
+    await file.delete();
+  });
+
+  test("delete source text (not permission)", () async {
+    final response =
+        await delete(Uri.parse(host + "/translate/source-text/test"), headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token"
+    });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 403);
+    expect(responseJson["message"], "Forbidden");
+  });
+
+  test("delete source text (unknown uuid)", () async {
+    String sourceTextUUID = await addTestSourceText();
+
+    final response =
+        await delete(Uri.parse(host + "/translate/source-text/test"), headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $translationManagerToken"
+    });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 404);
+    expect(responseJson["message"], contains("not found"));
+
+    /// Delete the test source text.
+    (await SourceText.getByUUID(sourceTextUUID))!.delete();
+  });
+
+  test("delete source text (type is patchouli)", () async {
+    String sourceTextUUID =
+        await addTestSourceText(type: SourceTextType.patchouli);
+    ModSourceInfo info = ModSourceInfo(
+        uuid: Uuid().v4(),
+        namespace: "test",
+        patchouliAddons: [sourceTextUUID]);
+    await info.insert();
+
+    final response = await delete(
+        Uri.parse(host + "/translate/source-text/$sourceTextUUID"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $translationManagerToken"
+        });
+    Map responseJson = json.decode(response.body);
+
+    expect(response.statusCode, 200);
+    expect(responseJson["message"], "success");
+    expect(await SourceText.getByUUID(sourceTextUUID), null);
+
+    await info.delete();
   });
 }

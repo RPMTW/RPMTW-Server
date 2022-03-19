@@ -8,6 +8,7 @@ import "package:mailer/smtp_server.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/auth_code_.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
+import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:shelf/shelf.dart";
 import "../database/database.dart";
@@ -36,29 +37,34 @@ class AuthHandler {
           return Future.sync(() async {
             String path = request.url.path;
 
-            List<_AuthPath> needAuthorizationPaths = [
+            List<_AuthPath?> needAuthorizationPaths = [
               _AuthPath("auth/user/me", method: "GET"),
               _AuthPath("auth/user/me/update", method: "POST"),
               _AuthPath("minecraft/mod/create", method: "POST"),
-              _AuthPath("minecraft/mod/edit",
-                  method: "PATCH", hasUrlParams: true),
+              _AuthPath("minecraft/mod/edit", method: "PATCH"),
               _AuthPath("translate/vote", method: "POST"),
-              _AuthPath("translate/vote/",
-                  method: "DELETE", hasUrlParams: true),
-              _AuthPath("translate/vote/",
-                  method: "PATCH", hasUrlParams: true),
+              _AuthPath("translate/vote/", method: "DELETE"),
+              _AuthPath("translate/vote/", method: "PATCH"),
               _AuthPath("translate/translation", method: "POST"),
-              _AuthPath("translate/translation/",
-                  method: "DELETE", hasUrlParams: true)
+              _AuthPath("translate/translation/", method: "DELETE"),
+              _AuthPath("translate/source-text",
+                  method: "POST", role: UserRoleType.translationManager),
+              _AuthPath("translate/source-text/",
+                  method: "DELETE", role: UserRoleType.translationManager),
+              _AuthPath("translate/source-text/",
+                  method: "PATCH", role: UserRoleType.translationManager)
             ];
 
-            bool needAuth = needAuthorizationPaths.any((_path) =>
-                (_path.hasUrlParams
-                    ? path.startsWith(_path.path)
-                    : path == _path.path) &&
-                request.method == _path.method);
+            _AuthPath? authPath = needAuthorizationPaths.firstWhere(
+                (_path) =>
+                    _path != null &&
+                    (_path.hasUrlParams
+                        ? path.startsWith(_path.path)
+                        : path == _path.path) &&
+                    request.method == _path.method,
+                orElse: (() => null));
 
-            if (needAuth) {
+            if (authPath != null) {
               String? token = request.headers["Authorization"]
                   ?.toString()
                   .replaceAll("Bearer ", "");
@@ -95,6 +101,10 @@ class AuthHandler {
 
                 request = request
                     .change(context: {"user": user, "isAuthenticated": true});
+
+                if (!user.role.permission.hasPermission(authPath.role)) {
+                  return APIResponse.forbidden();
+                }
               } on JWTError catch (e) {
                 logger.e(e.message, null, e.stackTrace);
                 return APIResponse.unauthorized();
@@ -323,8 +333,23 @@ class _EmailValidatedResult extends _BaseValidatedResult {
 
 class _AuthPath {
   final String path;
-  final bool hasUrlParams;
+  late final bool hasUrlParams;
   final String method;
+  final UserRoleType role;
 
-  _AuthPath(this.path, {this.hasUrlParams = false, required this.method});
+  _AuthPath(this.path,
+      {bool? hasUrlParams,
+      required this.method,
+      this.role = UserRoleType.general}) {
+    if (hasUrlParams == null) {
+      if (method == "PATCH" || method == "DELETE") {
+        hasUrlParams = true;
+      } else {
+        hasUrlParams = false;
+      }
+    }
+
+    // ignore: prefer_initializing_formals
+    this.hasUrlParams = hasUrlParams;
+  }
 }

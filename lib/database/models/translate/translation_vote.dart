@@ -1,7 +1,7 @@
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
-import 'package:rpmtw_server/database/models/model_field.dart';
+import "package:rpmtw_server/database/models/model_field.dart";
 
 class TranslationVote extends BaseModel {
   static const String collectionName = "translation_votes";

@@ -1,6 +1,5 @@
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/relation_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
@@ -13,12 +12,10 @@ class MinecraftHeader {
       Map<String, dynamic> body) async {
     String? name = body["name"];
 
-    List<MinecraftVersion> allVersions =
-        (await MinecraftVersionManifest.getFromCache()).manifest.versions;
     List<MinecraftVersion>? supportedVersions;
     try {
-      supportedVersions = List<MinecraftVersion>.from(body["supportVersions"]
-          ?.map((x) => allVersions.firstWhere((e) => e.id == x)));
+      supportedVersions = await MinecraftVersion.getByIDs(
+          body["supportVersions"]!.cast<String>());
     } catch (e) {
       supportedVersions = null;
     }

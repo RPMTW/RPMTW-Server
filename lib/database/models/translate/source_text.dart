@@ -1,10 +1,12 @@
-import 'package:intl/locale.dart';
-import 'package:rpmtw_server/database/database.dart';
+import "package:intl/locale.dart";
+import "package:rpmtw_server/database/database.dart";
 
 import "package:rpmtw_server/database/models/base_models.dart";
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
-import 'package:rpmtw_server/database/models/translate/translation.dart';
+import 'package:rpmtw_server/database/models/model_field.dart';
+import "package:rpmtw_server/database/models/translate/translation.dart";
+import "dart:collection";
 
 class SourceText extends BaseModel {
   static const String collectionName = "source_texts";
@@ -15,31 +17,35 @@ class SourceText extends BaseModel {
 
   final String source;
 
-  final List<MinecraftVersion> gameVersion;
+  final List<MinecraftVersion> gameVersions;
 
   final String key;
 
-  Future<List<Translation>> getTranslations({Locale? language}) {
-    return Translation.getAllBySource(uuid, language: language);
-  }
+  final SourceTextType type;
+
+  Future<List<Translation>> getTranslations({Locale? language}) =>
+      Translation.getAllBySource(uuid, language: language);
 
   const SourceText({
     required String uuid,
     required this.source,
-    required this.gameVersion,
+    required this.gameVersions,
     required this.key,
+    required this.type,
   }) : super(uuid: uuid);
 
   SourceText copyWith({
     String? source,
-    List<MinecraftVersion>? gameVersion,
+    List<MinecraftVersion>? gameVersions,
     String? key,
+    SourceTextType? type,
   }) {
     return SourceText(
       uuid: uuid,
       source: source ?? this.source,
-      gameVersion: gameVersion ?? this.gameVersion,
+      gameVersions: gameVersions ?? this.gameVersions,
       key: key ?? this.key,
+      type: type ?? this.type,
     );
   }
 
@@ -48,8 +54,9 @@ class SourceText extends BaseModel {
     return {
       "uuid": uuid,
       "source": source,
-      "gameVersion": gameVersion.map((x) => x.toMap()).toList(),
-      "key": key
+      "gameVersions": gameVersions.map((x) => x.toMap()).toList(),
+      "key": key,
+      "type": type.name,
     };
   }
 
@@ -57,11 +64,30 @@ class SourceText extends BaseModel {
     return SourceText(
         uuid: map["uuid"],
         source: map["source"],
-        gameVersion: List<MinecraftVersion>.from(
-            map["gameVersion"]?.map((x) => MinecraftVersion.fromMap(x))),
-        key: map["key"]);
+        gameVersions: List<MinecraftVersion>.from(
+            map["gameVersions"]?.map((x) => MinecraftVersion.fromMap(x))),
+        key: map["key"],
+        type: SourceTextType.values.byName(map["type"]));
   }
 
   static Future<SourceText?> getByUUID(String uuid) =>
       DataBase.instance.getModelByUUID<SourceText>(uuid);
+
+  static Future<List<SourceText>> search(
+      {String? source, String? key, int? limit, int? skip}) {
+    return DataBase.instance.getModelsByField([
+      if (source != null) ModelField("source", source),
+      if (key != null) ModelField("key", key),
+    ], limit: limit, skip: skip);
+  }
+}
+
+enum SourceTextType {
+  /// A collection of key/value pairs (e.g. [HashMap])
+  general,
+  patchouli,
+
+  /// Plain text format
+  /// Key in the source entry uses the md5 hash value of the source content
+  plainText
 }

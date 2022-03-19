@@ -1,4 +1,5 @@
 import "package:pub_semver/pub_semver.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 
 class MinecraftVersion {
@@ -46,6 +47,21 @@ class MinecraftVersion {
       "sha1": sha1,
       "complianceLevel": complianceLevel
     };
+  }
+
+  static Future<List<MinecraftVersion>> getByIDs(List<String> ids) async {
+    final List<MinecraftVersion> _allVersions =
+        (await MinecraftVersionManifest.getFromCache()).manifest.versions;
+
+    List<MinecraftVersion> versions = [];
+    try {
+      versions = _allVersions.where((e) => ids.contains(e.id)).toList();
+      versions
+          .sort((a, b) => a.comparableVersion.compareTo(b.comparableVersion));
+      return versions;
+    } catch (e) {
+      return [];
+    }
   }
 }
 

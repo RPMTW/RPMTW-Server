@@ -1,7 +1,7 @@
-import 'package:rpmtw_server/database/database.dart';
+import "package:rpmtw_server/database/database.dart";
 
 import "package:rpmtw_server/database/models/base_models.dart";
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
@@ -20,7 +20,7 @@ class ModSourceInfo extends BaseModel {
   final String? modUUID;
 
   /// Used to store specially formatted [SourceText] in patchouli manuals.
-  final List<String> patchouliAddons;
+  final List<String>? patchouliAddons;
 
   Future<MinecraftMod?> get mod async {
     if (modUUID == null) {
@@ -35,9 +35,11 @@ class ModSourceInfo extends BaseModel {
     return SourceFile.getBySourceInfoUUID(uuid);
   }
 
-  Future<List<SourceText>> get patchouliAddonTexts async {
+  Future<List<SourceText>?> get patchouliAddonTexts async {
+    if (patchouliAddons == null) return null;
+
     List<SourceText> texts = [];
-    for (String source in patchouliAddons) {
+    for (String source in patchouliAddons!) {
       SourceText? text = await SourceText.getByUUID(source);
       if (text == null) {
         throw Exception("SourceText not found, uuid: $source");
@@ -51,7 +53,7 @@ class ModSourceInfo extends BaseModel {
     required String uuid,
     required this.namespace,
     this.modUUID,
-    required this.patchouliAddons,
+    this.patchouliAddons,
   }) : super(uuid: uuid);
 
   ModSourceInfo copyWith({
@@ -82,7 +84,9 @@ class ModSourceInfo extends BaseModel {
       uuid: map["uuid"],
       namespace: map["namespace"],
       modUUID: map["modUUID"],
-      patchouliAddons: List<String>.from(map["patchouliAddons"]),
+      patchouliAddons: map["patchouliAddons"] != null
+          ? List<String>.from(map["patchouliAddons"])
+          : null,
     );
   }
 

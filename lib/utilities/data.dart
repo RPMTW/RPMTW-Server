@@ -1,6 +1,6 @@
 import "package:collection/collection.dart";
 import "package:dotenv/dotenv.dart";
-import 'package:intl/locale.dart';
+import "package:intl/locale.dart";
 import "package:logger/logger.dart";
 
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";

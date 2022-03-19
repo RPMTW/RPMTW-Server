@@ -1,8 +1,8 @@
-import 'package:rpmtw_server/database/database.dart';
+import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
-import 'package:rpmtw_server/database/models/index_fields.dart';
-import 'package:rpmtw_server/database/models/model_field.dart';
-import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/database/models/model_field.dart";
+import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 /// Represents the source language file in a text format.
@@ -79,7 +79,10 @@ class SourceFile extends BaseModel {
     );
   }
 
-  static Future<List<SourceFile>> getBySourceInfoUUID(String uuid) async =>
+  static Future<SourceFile?> getByUUID(String uuid) =>
+      DataBase.instance.getModelByUUID<SourceFile>(uuid);
+
+  static Future<List<SourceFile>> getBySourceInfoUUID(String uuid) =>
       DataBase.instance
           .getModelsByField<SourceFile>([ModelField("sourceInfoUUID", uuid)]);
 }

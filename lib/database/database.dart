@@ -9,10 +9,10 @@ import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
-import 'package:rpmtw_server/database/models/model_field.dart';
-import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
-import 'package:rpmtw_server/database/models/translate/source_file.dart';
-import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import "package:rpmtw_server/database/models/model_field.dart";
+import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
+import "package:rpmtw_server/database/models/translate/source_file.dart";
+import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 
@@ -180,13 +180,19 @@ class DataBase {
     return getModelByMap<T>(map);
   }
 
-  Future<List<T>> getModelsByField<T extends BaseModel>(
-      List<ModelField> field) async {
-    assert(field.isNotEmpty, "Field can't be empty");
+  Future<List<T>> getModelsByField<T extends BaseModel>(List<ModelField> field,
+      {int? limit, int? skip}) async {
     SelectorBuilder selector = SelectorBuilder();
 
     for (ModelField f in field) {
       selector = selector.eq(f.name, f.value);
+    }
+
+    if (limit != null) {
+      selector = selector.limit(limit);
+    }
+    if (skip != null) {
+      selector = selector.skip(skip);
     }
 
     List<Map<String, dynamic>>? list =

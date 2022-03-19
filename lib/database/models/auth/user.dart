@@ -1,5 +1,6 @@
 import "package:dart_jsonwebtoken/dart_jsonwebtoken.dart";
 import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/auth/user_role.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
 
@@ -17,16 +18,18 @@ class User extends BaseModel {
   final String passwordHash;
   final String? avatarStorageUUID;
   final List<String> loginIPs;
+  final UserRole role;
 
-  const User({
-    required String uuid,
-    required this.username,
-    required this.email,
-    required this.emailVerified,
-    required this.passwordHash,
-    this.avatarStorageUUID,
-    required this.loginIPs,
-  }) : super(uuid: uuid);
+  const User(
+      {required String uuid,
+      required this.username,
+      required this.email,
+      required this.emailVerified,
+      required this.passwordHash,
+      this.avatarStorageUUID,
+      required this.loginIPs,
+      this.role = const UserRole()})
+      : super(uuid: uuid);
 
   User copyWith({
     String? username,
@@ -35,6 +38,7 @@ class User extends BaseModel {
     String? passwordHash,
     String? avatarStorageUUID,
     List<String>? loginIPs,
+    UserRole? role,
   }) {
     return User(
       uuid: uuid,
@@ -44,6 +48,7 @@ class User extends BaseModel {
       passwordHash: passwordHash ?? this.passwordHash,
       avatarStorageUUID: avatarStorageUUID ?? this.avatarStorageUUID,
       loginIPs: loginIPs ?? this.loginIPs,
+      role: role ?? this.role,
     );
   }
 
@@ -57,6 +62,7 @@ class User extends BaseModel {
       "passwordHash": passwordHash,
       "avatarStorageUUID": avatarStorageUUID,
       "loginIPs": loginIPs,
+      "role": role.toMap(),
     };
   }
 
@@ -68,6 +74,7 @@ class User extends BaseModel {
       "email": email,
       "emailVerified": emailVerified,
       "avatarStorageUUID": avatarStorageUUID,
+      "role": role.toMap(),
     };
   }
 
@@ -80,6 +87,7 @@ class User extends BaseModel {
       passwordHash: map["passwordHash"],
       avatarStorageUUID: map["avatarStorageUUID"],
       loginIPs: List<String>.from(map["loginIPs"] ?? []),
+      role: map["role"] != null ? UserRole.fromMap(map["role"]) : UserRole(),
     );
   }
 

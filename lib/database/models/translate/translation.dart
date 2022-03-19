@@ -4,8 +4,8 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
-import 'package:rpmtw_server/database/models/model_field.dart';
-import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import "package:rpmtw_server/database/models/model_field.dart";
+import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 
 class Translation extends BaseModel {

@@ -1,12 +1,16 @@
-import 'package:intl/locale.dart';
+import "package:intl/locale.dart";
 import "package:mongo_dart/mongo_dart.dart";
+import 'package:rpmtw_server/database/database.dart';
 import "package:rpmtw_server/database/models/auth/user.dart";
-import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
+import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
+import "package:rpmtw_server/database/models/translate/source_file.dart";
+import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
-import 'package:rpmtw_server/utilities/data.dart';
+import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/extension.dart";
 
 class TranslateRoute extends APIRoute {
@@ -131,7 +135,8 @@ class TranslateRoute extends APIRoute {
       final List<Translation> translations =
           await sourceText.getTranslations(language: language);
 
-      return APIResponse.success(data: translations.map((e) => e.outputMap()).toList());
+      return APIResponse.success(
+          data: translations.map((e) => e.outputMap()).toList());
     }, requiredFields: ["sourceUUID", "language"]);
 
     /// Add translation
@@ -188,5 +193,185 @@ class TranslateRoute extends APIRoute {
 
       return APIResponse.success(data: null);
     }, requiredFields: ["uuid"]);
+
+    /// Get source text by uuid
+    router.getRoute("/source-text/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
+
+      final SourceText? sourceText = await SourceText.getByUUID(uuid);
+
+      if (sourceText == null) {
+        return APIResponse.modelNotFound<SourceText>();
+      }
+
+      return APIResponse.success(data: sourceText.outputMap());
+    }, requiredFields: ["uuid"]);
+
+    /// List all source text by source or key
+    router.getRoute("/source-text", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+      int limit =
+          fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
+      int? skip = fields["skip"] != null ? int.tryParse(fields["skip"]) : null;
+
+      // Max limit is 50
+      if (limit > 50) {
+        limit = 50;
+      }
+
+      final List<SourceText> sourceTexts = await SourceText.search(
+          source: data.fields["source"],
+          key: data.fields["key"],
+          limit: limit,
+          skip: skip);
+
+      return APIResponse.success(data: {
+        "sources": sourceTexts.map((e) => e.outputMap()).toList(),
+        "limit": limit,
+        "skip": skip,
+      });
+    });
+
+    /// Add source text
+    router.postRoute("/source-text", (req, data) async {
+      final String source = data.fields["source"]!;
+      final List<MinecraftVersion> gameVersions =
+          await MinecraftVersion.getByIDs(
+              data.fields["gameVersions"]!.cast<String>());
+      final String key = data.fields["key"]!;
+      final SourceTextType type =
+          SourceTextType.values.byName(data.fields["type"]!);
+
+      if (source.isEmpty || source.trim().isEmpty) {
+        return APIResponse.badRequest(message: "Source can't be empty");
+      }
+
+      if (gameVersions.isEmpty) {
+        return APIResponse.badRequest(message: "Game versions can't be empty");
+      }
+
+      if (key.isEmpty || key.trim().isEmpty) {
+        return APIResponse.badRequest(message: "Key can't be empty");
+      }
+
+      final SourceText sourceText = SourceText(
+          uuid: Uuid().v4(),
+          source: source,
+          gameVersions: gameVersions,
+          key: key,
+          type: type);
+
+      await sourceText.insert();
+      return APIResponse.success(data: sourceText.outputMap());
+    }, requiredFields: ["source", "gameVersions", "key", "type"]);
+
+    /// Edit source text by uuid
+    router.patchRoute("/source-text/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
+
+      SourceText? sourceText = await SourceText.getByUUID(uuid);
+      if (sourceText == null) {
+        return APIResponse.modelNotFound<SourceText>();
+      }
+
+      final String? source = data.fields["source"];
+      final List<MinecraftVersion>? gameVersions =
+          data.fields["gameVersions"] != null
+              ? await MinecraftVersion.getByIDs(
+                  data.fields["gameVersions"]!.cast<String>())
+              : null;
+      final String? key = data.fields["key"];
+      final SourceTextType? type = data.fields["type"] != null
+          ? SourceTextType.values.byName(data.fields["type"]!)
+          : null;
+
+      if (source != null && (source.isEmpty || source.trim().isEmpty)) {
+        return APIResponse.badRequest(message: "Source can't be empty");
+      }
+
+      if (gameVersions != null && gameVersions.isEmpty) {
+        return APIResponse.badRequest(message: "Game versions can't be empty");
+      }
+
+      if (key != null && (key.isEmpty || key.trim().isEmpty)) {
+        return APIResponse.badRequest(message: "Key can't be empty");
+      }
+
+      if (source == null &&
+          gameVersions == null &&
+          key == null &&
+          type == null) {
+        return APIResponse.badRequest(
+            message: "You need to provide at least one field to edit");
+      }
+
+      sourceText = sourceText.copyWith(
+          source: source, gameVersions: gameVersions, key: key, type: type);
+
+      await sourceText.update();
+      return APIResponse.success(data: sourceText.outputMap());
+    }, requiredFields: ["uuid"]);
+
+    /// Delete source text by uuid
+    router.deleteRoute("/source-text/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
+
+      SourceText? sourceText = await SourceText.getByUUID(uuid);
+      if (sourceText == null) {
+        return APIResponse.modelNotFound<SourceText>();
+      }
+
+      /// Delete all dependencies of this source text
+      if (sourceText.type == SourceTextType.patchouli) {
+        ModSourceInfo? info = await DataBase.instance
+            .getModelByField<ModSourceInfo>("patchouliAddons", sourceText.uuid);
+
+        if (info != null && info.patchouliAddons != null) {
+          info = info.copyWith(
+              patchouliAddons: List.from(info.patchouliAddons!)
+                ..remove(sourceText.uuid));
+          await info.update();
+        }
+      } else {
+        SourceFile? file = await DataBase.instance
+            .getModelByField<SourceFile>("sources", sourceText.uuid);
+
+        if (file != null) {
+          file = file.copyWith(
+              sources: List.from(file.sources)..remove(sourceText.uuid));
+          await file.update();
+        }
+      }
+
+      await sourceText.delete();
+
+      return APIResponse.success(data: null);
+    }, requiredFields: ["uuid"]);
+
+    // /// Get source file by uuid
+    // router.getRoute("/source-file/<uuid>", (req, data) async {
+    //   final String uuid = data.fields["uuid"]!;
+
+    //   final SourceFile? sourceFile = await SourceFile.getByUUID(uuid);
+
+    //   if (sourceFile == null) {
+    //     return APIResponse.modelNotFound<SourceFile>();
+    //   }
+
+    //   return APIResponse.success(data: sourceFile.outputMap());
+    // }, requiredFields: ["uuid"]);
+
+    // /// Get mod source info by uuid
+    // router.getRoute("/mod-source-info/<uuid>", (req, data) async {
+    //   final String uuid = data.fields["uuid"]!;
+
+    //   final ModSourceInfo? modSourceInfo = await ModSourceInfo.getByUUID(uuid);
+
+    //   if (modSourceInfo == null) {
+    //     return APIResponse.modelNotFound<ModSourceInfo>();
+    //   }
+
+    //   return APIResponse.success(data: modSourceInfo.outputMap());
+    // }, requiredFields: ["uuid"]);
   }
 }
