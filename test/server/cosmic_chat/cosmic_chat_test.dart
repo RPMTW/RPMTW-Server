@@ -10,7 +10,7 @@ import "package:test/test.dart";
 import "../../test_utility.dart";
 
 void main() async {
-  final cosmicChatHost = "http://localhost:2087";
+  final cosmicChatHost = "http://localhost:2096";
   final host = "http://0.0.0.0:8080";
   final baseOption =
       OptionBuilder().setTransports(["websocket"]).disableAutoConnect();
