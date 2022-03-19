@@ -1,6 +1,6 @@
 import "package:intl/locale.dart";
 import "package:mongo_dart/mongo_dart.dart";
-import 'package:rpmtw_server/database/database.dart';
+import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";

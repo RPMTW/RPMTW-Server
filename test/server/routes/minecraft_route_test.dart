@@ -212,6 +212,60 @@ void main() async {
       expect(mods[0]["loader"], [ModLoader.fabric.name, ModLoader.forge.name]);
       expect(mods[0]["side"], [modSide.toMap()]);
     });
+    test("search mods (sort by view count)", () async {
+      final response = await get(
+        Uri.parse(
+            host + "/minecraft/mod/search?filter=test&limit=1&skip=0&sort=1"),
+      );
+      Map data = json.decode(response.body)["data"];
+      List<Map<String, dynamic>> mods =
+          data["mods"].cast<Map<String, dynamic>>();
+
+      expect(response.statusCode, 200);
+      expect(mods.length, 1);
+      expect(mods[0]["uuid"], modUUID);
+      expect(mods[0]["name"], modName);
+      expect(mods[0]["id"], modID);
+      expect(mods[0]["description"], modDescription);
+      expect(mods[0]["loader"], [ModLoader.fabric.name, ModLoader.forge.name]);
+      expect(mods[0]["side"], [modSide.toMap()]);
+    });
+    test("search mods (sort by name)", () async {
+      final response = await get(
+        Uri.parse(
+            host + "/minecraft/mod/search?filter=test&limit=1&skip=0&sort=2"),
+      );
+      Map data = json.decode(response.body)["data"];
+      List<Map<String, dynamic>> mods =
+          data["mods"].cast<Map<String, dynamic>>();
+
+      expect(response.statusCode, 200);
+      expect(mods.length, 1);
+      expect(mods[0]["uuid"], modUUID);
+      expect(mods[0]["name"], modName);
+      expect(mods[0]["id"], modID);
+      expect(mods[0]["description"], modDescription);
+      expect(mods[0]["loader"], [ModLoader.fabric.name, ModLoader.forge.name]);
+      expect(mods[0]["side"], [modSide.toMap()]);
+    });
+    test("search mods (sort by last update)", () async {
+      final response = await get(
+        Uri.parse(
+            host + "/minecraft/mod/search?filter=test&limit=1&skip=0&sort=3"),
+      );
+      Map data = json.decode(response.body)["data"];
+      List<Map<String, dynamic>> mods =
+          data["mods"].cast<Map<String, dynamic>>();
+
+      expect(response.statusCode, 200);
+      expect(mods.length, 1);
+      expect(mods[0]["uuid"], modUUID);
+      expect(mods[0]["name"], modName);
+      expect(mods[0]["id"], modID);
+      expect(mods[0]["description"], modDescription);
+      expect(mods[0]["loader"], [ModLoader.fabric.name, ModLoader.forge.name]);
+      expect(mods[0]["side"], [modSide.toMap()]);
+    });
     test("edit mod", () async {
       final response = await patch(
           Uri.parse(host + "/minecraft/mod/edit/$modUUID"),
