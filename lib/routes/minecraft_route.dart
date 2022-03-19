@@ -9,13 +9,13 @@ import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/extension.dart";
-import "package:shelf_router/shelf_router.dart";
 
-class MinecraftRoute implements APIRoute {
+class MinecraftRoute extends APIRoute {
   @override
-  Router get router {
-    final Router router = Router();
+  String get routeName => "minecraft";
 
+  @override
+  void router(router) {
     router.postRoute("/mod/create", (req, data) async {
       ModRequestBodyParsedResult result =
           await MinecraftHeader.parseModRequestBody(data.fields);
@@ -188,7 +188,5 @@ class MinecraftRoute implements APIRoute {
         "changelogs": changelogsMap
       });
     });
-
-    return router;
   }
 }

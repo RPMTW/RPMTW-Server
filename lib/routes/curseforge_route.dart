@@ -7,13 +7,13 @@ import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 import "package:shelf/shelf.dart";
-import "package:shelf_router/shelf_router.dart";
 
-class CurseForgeRoute implements APIRoute {
+class CurseForgeRoute extends APIRoute {
   @override
-  Router get router {
-    final Router router = Router();
+  String get routeName => "curseforge";
 
+  @override
+  void router(router) {
     router.all("/", (Request req) async {
       try {
         final Map<String, String> queryParameters = req.url.queryParameters;
@@ -51,7 +51,5 @@ class CurseForgeRoute implements APIRoute {
         return APIResponse.badRequest();
       }
     });
-
-    return router;
   }
 }

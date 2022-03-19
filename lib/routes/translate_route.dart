@@ -5,13 +5,13 @@ import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/extension.dart";
-import "package:shelf_router/shelf_router.dart";
 
-class TranslateRoute implements APIRoute {
+class TranslateRoute extends APIRoute {
   @override
-  Router get router {
-    final Router router = Router();
+  String get routeName => "translate";
 
+  @override
+  void router(router) {
     /// List all translation votes by translation uuid
     router.getRoute("/vote", (req, data) async {
       final String translationUUID = data.fields["translationUUID"];
@@ -101,7 +101,5 @@ class TranslateRoute implements APIRoute {
 
       return APIResponse.success(data: null);
     }, requiredFields: ["uuid"]);
-
-    return router;
   }
 }

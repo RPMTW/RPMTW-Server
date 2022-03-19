@@ -4,18 +4,17 @@ import "package:byte_size/byte_size.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:shelf/shelf.dart";
-// ignore: implementation_imports
-import "package:shelf_router/src/router.dart";
 import "../database/database.dart";
 import "../database/models/storage/storage.dart";
 import "../utilities/extension.dart";
 import "base_route.dart";
 
-class StorageRoute implements APIRoute {
+class StorageRoute extends APIRoute {
   @override
-  Router get router {
-    final Router router = Router();
+  String get routeName => "storage";
 
+  @override
+  void router(router) {
     router.postRoute("/create", (req, data) async {
       String contentType =
           req.headers["content-type"] ?? "application/octet-stream";
@@ -60,7 +59,5 @@ class StorageRoute implements APIRoute {
         "Content-Type": storage.contentType,
       });
     });
-
-    return router;
   }
 }

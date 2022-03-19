@@ -7,14 +7,14 @@ import "package:rpmtw_server/database/models/storage/storage.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/extension.dart";
-import "package:shelf_router/shelf_router.dart";
 import "base_route.dart";
 
-class AuthRoute implements APIRoute {
+class AuthRoute extends APIRoute {
   @override
-  Router get router {
-    final Router router = Router();
+  String get routeName => "auth";
 
+  @override
+  void router(router) {
     router.postRoute("/user/create", (req, data) async {
       String password = data.fields["password"];
       final passwordValidatedResult = AuthHandler.validatePassword(password);
@@ -205,7 +205,5 @@ class AuthRoute implements APIRoute {
         "isValid": isValid,
       });
     }, requiredFields: ["authCode", "email"]);
-
-    return router;
   }
 }

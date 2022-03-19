@@ -4,13 +4,13 @@ import "package:rpmtw_server/handler/cosmic_chat_handler.dart";
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/extension.dart";
-import "package:shelf_router/shelf_router.dart";
 
-class CosmicChatRoute implements APIRoute {
+class CosmicChatRoute extends APIRoute {
   @override
-  Router get router {
-    final Router router = Router();
+  String get routeName => "cosmic-chat";
 
+  @override
+  void router(router) {
     router.getRoute("/view/<uuid>", (req, data) async {
       final String uuid = data.fields["uuid"]!;
       CosmicChatMessage? message = await CosmicChatMessage.getByUUID(uuid);
@@ -29,7 +29,5 @@ class CosmicChatRoute implements APIRoute {
 
       return APIResponse.success(data: info.toMap());
     });
-
-    return router;
   }
 }
