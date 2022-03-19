@@ -23,6 +23,18 @@ class SourceFile extends BaseModel {
     return ModSourceInfo.getByUUID(sourceInfoUUID);
   }
 
+  Future<List<SourceText>> get sourceTexts async {
+    List<SourceText> texts = [];
+    for (String source in sources) {
+      SourceText? text = await SourceText.getByUUID(source);
+      if (text == null) {
+        throw Exception("SourceText not found, uuid: $source");
+      }
+      texts.add(text);
+    }
+    return texts;
+  }
+
   const SourceFile(
       {required String uuid,
       required this.sourceInfoUUID,

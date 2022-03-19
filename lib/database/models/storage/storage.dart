@@ -30,10 +30,7 @@ class Storage extends BaseModel {
 
   Future<Uint8List> readAsBytes() async {
     GridFS fs = DataBase.instance.gridFS;
-    GridOut? gridOut = await fs.getFile(uuid);
-    if (gridOut == null) {
-      throw Exception("Storage file not found");
-    }
+    GridOut gridOut = (await fs.getFile(uuid))!;
 
     List<Map<String, dynamic>> chunks = await (fs.chunks
         .find(where.eq("files_id", gridOut.id).sortBy("n"))
@@ -76,25 +73,6 @@ class Storage extends BaseModel {
         createAt:
             map["createAt"] ?? DateTime.now().toUtc().millisecondsSinceEpoch);
   }
-
-  @override
-  String toString() =>
-      "Storage(uuid: $uuid,contentType: $contentType, type: $type, createAt: $createAt)";
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Storage &&
-        other.uuid == uuid &&
-        other.contentType == contentType &&
-        other.type == type &&
-        other.createAt == createAt;
-  }
-
-  @override
-  int get hashCode =>
-      uuid.hashCode ^ contentType.hashCode ^ type.hashCode ^ createAt.hashCode;
 
   static Future<Storage?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<Storage>(uuid);

@@ -22,9 +22,29 @@ class ModSourceInfo extends BaseModel {
   /// Used to store specially formatted [SourceText] in patchouli manuals.
   final List<String> patchouliAddons;
 
+  Future<MinecraftMod?> get mod async {
+    if (modUUID == null) {
+      return null;
+    } else {
+      return MinecraftMod.getByUUID(modUUID!);
+    }
+  }
+
   /// [SourceFile] files included in this mod.
   Future<List<SourceFile>> get files {
     return SourceFile.getBySourceInfoUUID(uuid);
+  }
+
+  Future<List<SourceText>> get patchouliAddonTexts async {
+    List<SourceText> texts = [];
+    for (String source in patchouliAddons) {
+      SourceText? text = await SourceText.getByUUID(source);
+      if (text == null) {
+        throw Exception("SourceText not found, uuid: $source");
+      }
+      texts.add(text);
+    }
+    return texts;
   }
 
   const ModSourceInfo({
