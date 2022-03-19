@@ -2,6 +2,8 @@ import "package:intl/locale.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
+import 'package:rpmtw_server/database/models/auth/user_role.dart';
+import 'package:rpmtw_server/database/models/auth_route.dart';
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
@@ -64,7 +66,7 @@ class TranslateRoute extends APIRoute {
 
       await vote.insert();
       return APIResponse.success(data: vote.outputMap());
-    }, requiredFields: ["translationUUID", "type"]);
+    }, requiredFields: ["translationUUID", "type"], authConfig: AuthConfig());
 
     /// Edit translation vote
     router.patchRoute("/vote/<uuid>", (req, data) async {
@@ -87,7 +89,7 @@ class TranslateRoute extends APIRoute {
 
       await vote.update();
       return APIResponse.success(data: null);
-    }, requiredFields: ["uuid", "type"]);
+    }, requiredFields: ["uuid", "type"], authConfig: AuthConfig());
 
     /// Cancel translation vote
     router.deleteRoute("/vote/<uuid>", (req, data) async {
@@ -107,7 +109,7 @@ class TranslateRoute extends APIRoute {
       await vote.delete();
 
       return APIResponse.success(data: null);
-    }, requiredFields: ["uuid"]);
+    }, requiredFields: ["uuid"], authConfig: AuthConfig());
 
     /// Get translation by uuid
     router.getRoute("/translation/<uuid>", (req, data) async {
@@ -171,7 +173,9 @@ class TranslateRoute extends APIRoute {
 
       await translation.insert();
       return APIResponse.success(data: translation.outputMap());
-    }, requiredFields: ["sourceUUID", "language", "content"]);
+    },
+        requiredFields: ["sourceUUID", "language", "content"],
+        authConfig: AuthConfig());
 
     /// Delete translation by uuid
     router.deleteRoute("/translation/<uuid>", (req, data) async {
@@ -192,7 +196,7 @@ class TranslateRoute extends APIRoute {
       await translation.delete();
 
       return APIResponse.success(data: null);
-    }, requiredFields: ["uuid"]);
+    }, requiredFields: ["uuid"], authConfig: AuthConfig());
 
     /// Get source text by uuid
     router.getRoute("/source-text/<uuid>", (req, data) async {
@@ -263,7 +267,9 @@ class TranslateRoute extends APIRoute {
 
       await sourceText.insert();
       return APIResponse.success(data: sourceText.outputMap());
-    }, requiredFields: ["source", "gameVersions", "key", "type"]);
+    },
+        requiredFields: ["source", "gameVersions", "key", "type"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
 
     /// Edit source text by uuid
     router.patchRoute("/source-text/<uuid>", (req, data) async {
@@ -310,7 +316,7 @@ class TranslateRoute extends APIRoute {
 
       await sourceText.update();
       return APIResponse.success(data: sourceText.outputMap());
-    }, requiredFields: ["uuid"]);
+    }, requiredFields: ["uuid"], authConfig: AuthConfig(role: UserRoleType.translationManager));
 
     /// Delete source text by uuid
     router.deleteRoute("/source-text/<uuid>", (req, data) async {
@@ -346,7 +352,9 @@ class TranslateRoute extends APIRoute {
       await sourceText.delete();
 
       return APIResponse.success(data: null);
-    }, requiredFields: ["uuid"]);
+    },
+        requiredFields: ["uuid"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
 
     // /// Get source file by uuid
     // router.getRoute("/source-file/<uuid>", (req, data) async {

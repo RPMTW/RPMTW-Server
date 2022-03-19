@@ -1,4 +1,5 @@
 import "package:mongo_dart/mongo_dart.dart";
+import 'package:rpmtw_server/database/models/auth_route.dart';
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
@@ -52,7 +53,7 @@ class MinecraftRoute extends APIRoute {
       await changeLog.insert();
 
       return APIResponse.success(data: mod.outputMap());
-    }, requiredFields: ["name", "supportVersions"]);
+    }, requiredFields: ["name", "supportVersions"], authConfig: AuthConfig());
 
     router.patchRoute("/mod/edit/<uuid>", (req, data) async {
       MinecraftMod? mod = await MinecraftMod.getByUUID(data.fields["uuid"]!);
@@ -109,7 +110,7 @@ class MinecraftRoute extends APIRoute {
       await changeLog.insert();
 
       return APIResponse.success(data: mod.outputMap());
-    });
+    }, authConfig: AuthConfig());
 
     router.getRoute("/mod/view/<uuid>", (req, data) async {
       String uuid = data.fields["uuid"]!;

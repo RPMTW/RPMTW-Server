@@ -48,7 +48,7 @@ Future<void> run({Parser? envParser}) async {
       .addMiddleware(logRequests())
       .addMiddleware(corsHeaders())
       .addMiddleware(rateLimiter.rateLimiter())
-      .addMiddleware(AuthHandler.authorizationToken())
+      .addMiddleware(AuthHandler.handleBanIP())
       .addHandler(RootRoute().router);
 
   final int port = int.parse(env["API_PORT"] ?? "8080");

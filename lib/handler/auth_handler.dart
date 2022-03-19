@@ -8,7 +8,6 @@ import "package:mailer/smtp_server.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/auth_code_.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
-import "package:rpmtw_server/database/models/auth/user_role.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:shelf/shelf.dart";
 import "../database/database.dart";
@@ -32,87 +31,19 @@ class AuthHandler {
     return authCode;
   }
 
-  static Middleware authorizationToken() => (innerHandler) {
+  static Middleware handleBanIP() => (innerHandler) {
         return (request) {
           return Future.sync(() async {
-            String path = request.url.path;
-
-            List<_AuthPath?> needAuthorizationPaths = [
-              _AuthPath("auth/user/me", method: "GET"),
-              _AuthPath("auth/user/me/update", method: "POST"),
-              _AuthPath("minecraft/mod/create", method: "POST"),
-              _AuthPath("minecraft/mod/edit", method: "PATCH"),
-              _AuthPath("translate/vote", method: "POST"),
-              _AuthPath("translate/vote/", method: "DELETE"),
-              _AuthPath("translate/vote/", method: "PATCH"),
-              _AuthPath("translate/translation", method: "POST"),
-              _AuthPath("translate/translation/", method: "DELETE"),
-              _AuthPath("translate/source-text",
-                  method: "POST", role: UserRoleType.translationManager),
-              _AuthPath("translate/source-text/",
-                  method: "DELETE", role: UserRoleType.translationManager),
-              _AuthPath("translate/source-text/",
-                  method: "PATCH", role: UserRoleType.translationManager)
-            ];
-
-            _AuthPath? authPath = needAuthorizationPaths.firstWhere(
-                (_path) =>
-                    _path != null &&
-                    (_path.hasUrlParams
-                        ? path.startsWith(_path.path)
-                        : path == _path.path) &&
-                    request.method == _path.method,
-                orElse: (() => null));
-
-            if (authPath != null) {
-              String? token = request.headers["Authorization"]
-                  ?.toString()
-                  .replaceAll("Bearer ", "");
-
-              if (token == null) {
-                return APIResponse.unauthorized();
+            try {
+              BanInfo? banInfo = await BanInfo.getByIP(request.ip);
+              if (banInfo != null) {
+                // 檢查是否被封鎖
+                return APIResponse.banned(reason: banInfo.reason);
               }
-
-              try {
-                User? user = await User.getByToken(token);
-                String clientIP = request.ip;
-                BanInfo? banInfo = await BanInfo.getByIP(clientIP);
-                if (user == null) {
-                  return APIResponse.unauthorized();
-                } else if (!user.emailVerified && !kTestMode) {
-                  // 驗證是否已經驗證電子郵件，測試模式不需要驗證
-                  return APIResponse.unauthorized(
-                      message: "Unauthorized (email not verified)");
-                } else if (banInfo != null) {
-                  // 檢查是否被封鎖
-                  return APIResponse.banned(reason: banInfo.reason);
-                }
-
-                List<String> loginIPs = user.loginIPs;
-
-                /// 如果此登入IP尚未被紀錄過
-                if (!loginIPs.contains(clientIP)) {
-                  loginIPs.add(clientIP);
-                  User _newUser = user.copyWith(loginIPs: loginIPs);
-
-                  /// 寫入新的登入IP
-                  await _newUser.update();
-                }
-
-                request = request
-                    .change(context: {"user": user, "isAuthenticated": true});
-
-                if (!user.role.permission.hasPermission(authPath.role)) {
-                  return APIResponse.forbidden();
-                }
-              } on JWTError catch (e) {
-                logger.e(e.message, null, e.stackTrace);
-                return APIResponse.unauthorized();
-              } catch (e, stack) {
-                logger.e(e, null, stack);
-                return APIResponse.internalServerError();
-              }
+            } catch (e) {
+              return APIResponse.internalServerError();
             }
+
             return await innerHandler(request);
           }).then((response) {
             return response;
@@ -329,27 +260,4 @@ class _PasswordValidatedResult extends _BaseValidatedResult {
 class _EmailValidatedResult extends _BaseValidatedResult {
   _EmailValidatedResult(bool isValid, int code, String message)
       : super(isValid, code, message);
-}
-
-class _AuthPath {
-  final String path;
-  late final bool hasUrlParams;
-  final String method;
-  final UserRoleType role;
-
-  _AuthPath(this.path,
-      {bool? hasUrlParams,
-      required this.method,
-      this.role = UserRoleType.general}) {
-    if (hasUrlParams == null) {
-      if (method == "PATCH" || method == "DELETE") {
-        hasUrlParams = true;
-      } else {
-        hasUrlParams = false;
-      }
-    }
-
-    // ignore: prefer_initializing_formals
-    this.hasUrlParams = hasUrlParams;
-  }
 }
