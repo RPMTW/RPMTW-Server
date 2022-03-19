@@ -1,30 +1,44 @@
-import "package:collection/collection.dart";
-
+import 'package:rpmtw_server/database/database.dart';
 import "package:rpmtw_server/database/models/base_models.dart";
+import 'package:rpmtw_server/database/models/index_fields.dart';
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 /// Represents the source language file in a text format.
 class SourceFile extends BaseModel {
+  static const String collectionName = "source_files";
+  static const List<IndexFields> indexFields = [
+    IndexFields("sourceInfoUUID", unique: false)
+  ];
+
+  final String sourceInfoUUID;
   final String path;
   final SourceFileType type;
 
   /// [SourceText] included in the file.
   final List<String> sources;
 
+  Future<ModSourceInfo?> get sourceInfo {
+    return ModSourceInfo.getByUUID(sourceInfoUUID);
+  }
+
   const SourceFile(
       {required String uuid,
+      required this.sourceInfoUUID,
       required this.path,
       required this.type,
       required this.sources})
       : super(uuid: uuid);
 
   SourceFile copyWith({
+    String? sourceInfoUUID,
     String? path,
     SourceFileType? type,
     List<String>? sources,
   }) {
     return SourceFile(
       uuid: uuid,
+      sourceInfoUUID: sourceInfoUUID ?? this.sourceInfoUUID,
       path: path ?? this.path,
       type: type ?? this.type,
       sources: sources ?? this.sources,
@@ -35,6 +49,7 @@ class SourceFile extends BaseModel {
   Map<String, dynamic> toMap() {
     return {
       "uuid": uuid,
+      "sourceInfoUUID": sourceInfoUUID,
       "path": path,
       "type": type.name,
       "sources": sources,
@@ -44,27 +59,15 @@ class SourceFile extends BaseModel {
   factory SourceFile.fromMap(Map<String, dynamic> map) {
     return SourceFile(
       uuid: map["uuid"],
+      sourceInfoUUID: map["sourceInfoUUID"],
       path: map["path"],
       type: SourceFileType.values.byName(map["type"]),
       sources: List<String>.from(map["sources"]),
     );
   }
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    final listEquals = const DeepCollectionEquality().equals;
-
-    return other is SourceFile &&
-        other.uuid == uuid &&
-        other.path == path &&
-        other.type == type &&
-        listEquals(other.sources, sources);
-  }
-
-  @override
-  int get hashCode =>
-      uuid.hashCode ^ path.hashCode ^ type.hashCode ^ sources.hashCode;
+  static Future<List<SourceFile>> getBySourceInfoUUID(String uuid) async =>
+      DataBase.instance.getModelsByField<SourceFile>("sourceInfoUUID", uuid);
 }
 
 enum SourceFileType {

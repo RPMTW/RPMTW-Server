@@ -11,7 +11,7 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 class MinecraftVersionManifest extends BaseModel {
   static const String collectionName = "minecraft_version_manifest";
   static const List<IndexFields> indexFields = [
-    IndexFields("lastUpdated"),
+    IndexFields("lastUpdated", unique: true),
   ];
 
   final _Manifest manifest;
@@ -57,19 +57,6 @@ class MinecraftVersionManifest extends BaseModel {
   @override
   String toString() =>
       "MinecraftVersionManifestModels(manifest: $manifest, uuid: $uuid, lastUpdated: $lastUpdated)";
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is MinecraftVersionManifest &&
-        other.manifest == manifest &&
-        other.uuid == uuid &&
-        other.lastUpdated == lastUpdated;
-  }
-
-  @override
-  int get hashCode => manifest.hashCode ^ uuid.hashCode ^ lastUpdated.hashCode;
 
   static Future<MinecraftVersionManifest> getFromWeb() async {
     _Manifest manifest;

@@ -9,6 +9,9 @@ import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/models/translate/source_file.dart';
+import 'package:rpmtw_server/database/models/translate/source_text.dart';
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 
@@ -48,6 +51,9 @@ class DataBase {
       CosmicChatMessage.collectionName,
       Translation.collectionName,
       TranslationVote.collectionName,
+      SourceText.collectionName,
+      ModSourceInfo.collectionName,
+      SourceFile.collectionName,
     ];
 
     List<List<IndexFields>> indexFields = [
@@ -61,6 +67,9 @@ class DataBase {
       CosmicChatMessage.indexFields,
       Translation.indexFields,
       TranslationVote.indexFields,
+      SourceText.indexFields,
+      ModSourceInfo.indexFields,
+      SourceFile.indexFields,
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -128,6 +137,9 @@ class DataBase {
       "CosmicChatMessage": collectionList[7],
       "Translation": collectionList[8],
       "TranslationVote": collectionList[9],
+      "SourceText": collectionList[10],
+      "ModSourceInfo": collectionList[11],
+      "SourceFile": collectionList[12],
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -145,6 +157,9 @@ class DataBase {
       "CosmicChatMessage": CosmicChatMessage.fromMap,
       "Translation": Translation.fromMap,
       "TranslationVote": TranslationVote.fromMap,
+      "SourceText": SourceText.fromMap,
+      "ModSourceInfo": ModSourceInfo.fromMap,
+      "SourceFile": SourceFile.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;

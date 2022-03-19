@@ -4,7 +4,7 @@ class IndexFields {
 
   const IndexFields(
     this.name, {
-    this.unique = true,
+    required this.unique,
   });
 
   IndexFields copyWith({

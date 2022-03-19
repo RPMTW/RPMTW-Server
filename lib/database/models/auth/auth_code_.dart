@@ -1,4 +1,3 @@
-import "dart:convert";
 import "dart:math";
 
 import "package:mongo_dart/mongo_dart.dart";
@@ -9,7 +8,7 @@ import "package:rpmtw_server/database/models/index_fields.dart";
 class AuthCode extends BaseModel {
   static const String collectionName = "auth_codes";
   static const List<IndexFields> indexFields = [
-    IndexFields("code"),
+    IndexFields("code", unique: true),
     IndexFields("expiresAt", unique: false)
   ];
 
@@ -67,30 +66,6 @@ class AuthCode extends BaseModel {
       email: map["email"],
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory AuthCode.fromJson(String source) =>
-      AuthCode.fromMap(json.decode(source));
-
-  @override
-  String toString() =>
-      "AuthCode(code: $code, expiresAt: $expiresAt, uuid: $uuid, email: $email)";
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is AuthCode &&
-        other.code == code &&
-        other.expiresAt == expiresAt &&
-        other.uuid == uuid &&
-        other.email == email;
-  }
-
-  @override
-  int get hashCode =>
-      code.hashCode ^ expiresAt.hashCode ^ uuid.hashCode ^ email.hashCode;
 
   static Future<AuthCode?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<AuthCode>(uuid);

@@ -34,7 +34,7 @@ class Storage extends BaseModel {
     if (gridOut == null) {
       throw Exception("Storage file not found");
     }
-    
+
     List<Map<String, dynamic>> chunks = await (fs.chunks
         .find(where.eq("files_id", gridOut.id).sortBy("n"))
         .toList());

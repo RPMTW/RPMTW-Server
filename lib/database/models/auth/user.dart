@@ -1,14 +1,15 @@
 import "package:dart_jsonwebtoken/dart_jsonwebtoken.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:collection/collection.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
 
 import "../base_models.dart";
 
 class User extends BaseModel {
   static const String collectionName = "users";
-  static const List<IndexFields> indexFields = [IndexFields("email")];
+  static const List<IndexFields> indexFields = [
+    IndexFields("email", unique: true)
+  ];
 
   final String username;
   final String email;
@@ -80,37 +81,6 @@ class User extends BaseModel {
       avatarStorageUUID: map["avatarStorageUUID"],
       loginIPs: List<String>.from(map["loginIPs"] ?? []),
     );
-  }
-
-  @override
-  String toString() {
-    return "User(uuid: $uuid, username: $username, email: $email,emailVerified: $emailVerified, passwordHash: $passwordHash, avatarStorageUUID: $avatarStorageUUID, loginIPs: $loginIPs)";
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    final listEquals = const DeepCollectionEquality().equals;
-
-    return other is User &&
-        other.uuid == uuid &&
-        other.username == username &&
-        other.email == email &&
-        other.emailVerified == emailVerified &&
-        other.passwordHash == passwordHash &&
-        other.avatarStorageUUID == avatarStorageUUID &&
-        listEquals(other.loginIPs, loginIPs);
-  }
-
-  @override
-  int get hashCode {
-    return uuid.hashCode ^
-        username.hashCode ^
-        email.hashCode ^
-        emailVerified.hashCode ^
-        passwordHash.hashCode ^
-        avatarStorageUUID.hashCode ^
-        loginIPs.hashCode;
   }
 
   static Future<User?> getByUUID(String uuid) async =>

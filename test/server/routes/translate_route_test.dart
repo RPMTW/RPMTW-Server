@@ -11,6 +11,7 @@ import "../../test_utility.dart";
 void main() async {
   final host = TestUttily.host;
   final String mockTranslationUUID = "0d87bd04-d957-4e7c-a9b7-5eb0bb3a40c1";
+  final String mockSourceTextUUID = "b1b02c50-f35c-4a99-a38f-7240e61917f1";
   late final String token;
   late final String userUUID;
 
@@ -31,6 +32,7 @@ void main() async {
       userUUID = _body["uuid"];
 
       await Translation(
+              sourceUUID: mockSourceTextUUID,
               uuid: mockTranslationUUID,
               content: "你好，世界",
               language: Locale.parse("zh-TW"),
