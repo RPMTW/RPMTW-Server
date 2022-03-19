@@ -9,9 +9,9 @@ import "../base_models.dart";
 
 class Storage extends BaseModel {
   static const String collectionName = "storages";
-  static const List<IndexFields> indexFields = [
-    IndexFields("createAt", unique: false),
-    IndexFields("type", unique: false)
+  static const List<IndexField> indexFields = [
+    IndexField("createAt", unique: false),
+    IndexField("type", unique: false)
   ];
 
   final String contentType;

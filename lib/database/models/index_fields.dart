@@ -1,17 +1,17 @@
-class IndexFields {
+class IndexField {
   final String name;
   final bool unique;
 
-  const IndexFields(
+  const IndexField(
     this.name, {
     required this.unique,
   });
 
-  IndexFields copyWith({
+  IndexField copyWith({
     String? name,
     bool? unique,
   }) {
-    return IndexFields(
+    return IndexField(
       name ?? this.name,
       unique: unique ?? this.unique,
     );
@@ -24,7 +24,7 @@ class IndexFields {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
 
-    return other is IndexFields && other.name == name && other.unique == unique;
+    return other is IndexField && other.name == name && other.unique == unique;
   }
 
   @override

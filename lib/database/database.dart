@@ -9,6 +9,7 @@ import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
+import 'package:rpmtw_server/database/models/model_field.dart';
 import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
 import 'package:rpmtw_server/database/models/translate/source_file.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
@@ -56,7 +57,7 @@ class DataBase {
       SourceFile.collectionName,
     ];
 
-    List<List<IndexFields>> indexFields = [
+    List<List<IndexField>> indexFields = [
       User.indexFields,
       Storage.indexFields,
       AuthCode.indexFields,
@@ -73,7 +74,7 @@ class DataBase {
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
-    Future<void> checkCollection(String name, List<IndexFields> indexFields,
+    Future<void> checkCollection(String name, List<IndexField> indexFields,
         {bool needCreateIndex = false}) async {
       if (!collections.contains(name)) {
         await _mongoDB.createCollection(name);
@@ -82,7 +83,7 @@ class DataBase {
       }
 
       if (needCreateIndex) {
-        for (IndexFields field in indexFields) {
+        for (IndexField field in indexFields) {
           await _mongoDB.createIndex(name,
               key: field.name, name: field.name, unique: field.unique);
         }
@@ -95,7 +96,7 @@ class DataBase {
       List<Map<String, dynamic>> indexes = await collection.getIndexes();
       List<String> indexFieldsName =
           indexes.map((index) => index["name"] as String).toList();
-      List<IndexFields> _indexFields =
+      List<IndexField> _indexFields =
           indexFields[collectionNameList.indexOf(name)];
       await checkCollection(name, _indexFields,
           needCreateIndex: !collections.contains(name) ||
@@ -180,9 +181,16 @@ class DataBase {
   }
 
   Future<List<T>> getModelsByField<T extends BaseModel>(
-      String fieldName, dynamic value) async {
+      List<ModelField> field) async {
+    assert(field.isNotEmpty, "Field can't be empty");
+    SelectorBuilder selector = SelectorBuilder();
+
+    for (ModelField f in field) {
+      selector = selector.eq(f.name, f.value);
+    }
+
     List<Map<String, dynamic>>? list =
-        await getCollection<T>().find(where.eq(fieldName, value)).toList();
+        await getCollection<T>().find(selector).toList();
 
     return list.map((m) => getModelByMap<T>(m)).toList();
   }

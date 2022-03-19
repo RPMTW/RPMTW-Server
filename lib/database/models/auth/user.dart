@@ -7,8 +7,8 @@ import "../base_models.dart";
 
 class User extends BaseModel {
   static const String collectionName = "users";
-  static const List<IndexFields> indexFields = [
-    IndexFields("email", unique: true)
+  static const List<IndexField> indexFields = [
+    IndexField("email", unique: true)
   ];
 
   final String username;

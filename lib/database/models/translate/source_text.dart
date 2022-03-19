@@ -1,3 +1,4 @@
+import 'package:intl/locale.dart';
 import 'package:rpmtw_server/database/database.dart';
 
 import "package:rpmtw_server/database/models/base_models.dart";
@@ -7,9 +8,9 @@ import 'package:rpmtw_server/database/models/translate/translation.dart';
 
 class SourceText extends BaseModel {
   static const String collectionName = "source_texts";
-  static const List<IndexFields> indexFields = [
-    IndexFields("source", unique: false),
-    IndexFields("key", unique: false),
+  static const List<IndexField> indexFields = [
+    IndexField("source", unique: false),
+    IndexField("key", unique: false),
   ];
 
   final String source;
@@ -18,8 +19,8 @@ class SourceText extends BaseModel {
 
   final String key;
 
-  Future<List<Translation>> get translations {
-    return Translation.getBySourceUUID(uuid);
+  Future<List<Translation>> getTranslations({Locale? language}) {
+    return Translation.getAllBySource(uuid, language: language);
   }
 
   const SourceText({

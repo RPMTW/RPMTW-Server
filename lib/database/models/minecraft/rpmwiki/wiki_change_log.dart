@@ -8,11 +8,11 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 
 class WikiChangeLog extends BaseModel {
   static const String collectionName = "rpmwiki_wiki_change_log";
-  static const List<IndexFields> indexFields = [
-    IndexFields("userUUID", unique: false),
-    IndexFields("dataUUID", unique: false),
-    IndexFields("type", unique: false),
-    IndexFields("time", unique: false),
+  static const List<IndexField> indexFields = [
+    IndexField("userUUID", unique: false),
+    IndexField("dataUUID", unique: false),
+    IndexField("type", unique: false),
+    IndexField("time", unique: false),
   ];
 
   /// 變更日誌

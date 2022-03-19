@@ -4,16 +4,17 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
+import 'package:rpmtw_server/database/models/model_field.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 
 class Translation extends BaseModel {
   static const String collectionName = "translations";
-  static const List<IndexFields> indexFields = [
-    IndexFields("sourceUUID", unique: false),
-    IndexFields("content", unique: false),
-    IndexFields("translatorUUID", unique: false),
-    IndexFields("language", unique: false),
+  static const List<IndexField> indexFields = [
+    IndexField("sourceUUID", unique: false),
+    IndexField("content", unique: false),
+    IndexField("translatorUUID", unique: false),
+    IndexField("language", unique: false),
   ];
 
   /// The translation source text.
@@ -34,7 +35,7 @@ class Translation extends BaseModel {
   }
 
   Future<List<TranslationVote>> get votes {
-    return TranslationVote.getByTranslationUUID(uuid);
+    return TranslationVote.getAllByTranslationUUID(uuid);
   }
 
   Future<SourceText?> get source {
@@ -87,6 +88,10 @@ class Translation extends BaseModel {
   static Future<Translation?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<Translation>(uuid);
 
-  static Future<List<Translation>> getBySourceUUID(String uuid) async =>
-      DataBase.instance.getModelsByField<Translation>("sourceUUID", uuid);
+  static Future<List<Translation>> getAllBySource(String uuid,
+          {Locale? language}) async =>
+      DataBase.instance.getModelsByField<Translation>([
+        ModelField("sourceUUID", uuid),
+        if (language != null) ModelField("language", language.toLanguageTag())
+      ]);
 }

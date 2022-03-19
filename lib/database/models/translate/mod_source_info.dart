@@ -8,9 +8,9 @@ import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 class ModSourceInfo extends BaseModel {
   static const String collectionName = "mod_source_infos";
-  static const List<IndexFields> indexFields = [
-    IndexFields("namespace", unique: false),
-    IndexFields("modUUID", unique: true),
+  static const List<IndexField> indexFields = [
+    IndexField("namespace", unique: false),
+    IndexField("modUUID", unique: true),
   ];
 
   /// Namespace of the mod

@@ -7,9 +7,9 @@ import "package:rpmtw_server/database/models/index_fields.dart";
 
 class CosmicChatMessage extends BaseModel {
   static const String collectionName = "cosmic_chat_message";
-  static const List<IndexFields> indexFields = [
-    IndexFields("sentAt", unique: false),
-    IndexFields("ip", unique: false),
+  static const List<IndexField> indexFields = [
+    IndexField("sentAt", unique: false),
+    IndexField("ip", unique: false),
   ];
 
   /// Username (not a nickname, may be the username of RPMTW account, Minecraft account or Discord account)

@@ -1,5 +1,7 @@
 import "package:collection/collection.dart";
 import "package:dotenv/dotenv.dart";
+import 'package:intl/intl.dart';
+import 'package:intl/locale.dart';
 import "package:logger/logger.dart";
 
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
@@ -25,6 +27,13 @@ class Data {
   static Future<void> init({Parser? envParser}) async {
     load(".env", envParser ?? const Parser());
   }
+
+  static List<Locale> rpmTranslatorSupportedLanguage = [
+    // Traditional Chinese
+    Locale.fromSubtags(languageCode: "zh", countryCode: "TW"),
+    // Simplified Chinese
+    Locale.fromSubtags(languageCode: "zh", countryCode: "CN"),
+  ];
 }
 
 class UserViewCountFilter {

@@ -1,14 +1,15 @@
 import 'package:rpmtw_server/database/database.dart';
 import "package:rpmtw_server/database/models/base_models.dart";
 import 'package:rpmtw_server/database/models/index_fields.dart';
+import 'package:rpmtw_server/database/models/model_field.dart';
 import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 /// Represents the source language file in a text format.
 class SourceFile extends BaseModel {
   static const String collectionName = "source_files";
-  static const List<IndexFields> indexFields = [
-    IndexFields("sourceInfoUUID", unique: false)
+  static const List<IndexField> indexFields = [
+    IndexField("sourceInfoUUID", unique: false)
   ];
 
   final String sourceInfoUUID;
@@ -67,7 +68,8 @@ class SourceFile extends BaseModel {
   }
 
   static Future<List<SourceFile>> getBySourceInfoUUID(String uuid) async =>
-      DataBase.instance.getModelsByField<SourceFile>("sourceInfoUUID", uuid);
+      DataBase.instance
+          .getModelsByField<SourceFile>([ModelField("sourceInfoUUID", uuid)]);
 }
 
 enum SourceFileType {

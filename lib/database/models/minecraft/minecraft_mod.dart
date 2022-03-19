@@ -12,12 +12,12 @@ import "package:rpmtw_server/database/models/minecraft/mod_side.dart";
 
 class MinecraftMod extends BaseModel {
   static const String collectionName = "minecraft_mods";
-  static const List<IndexFields> indexFields = [
-    IndexFields("name", unique: false),
-    IndexFields("id", unique: false),
-    IndexFields("integration", unique: false),
-    IndexFields("translatedName", unique: false),
-    IndexFields("viewCount", unique: false),
+  static const List<IndexField> indexFields = [
+    IndexField("name", unique: false),
+    IndexField("id", unique: false),
+    IndexField("integration", unique: false),
+    IndexField("translatedName", unique: false),
+    IndexField("viewCount", unique: false),
   ];
 
   /// 模組的名稱 (尚未翻譯的原始名稱)

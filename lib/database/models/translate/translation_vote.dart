@@ -1,11 +1,12 @@
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
+import 'package:rpmtw_server/database/models/model_field.dart';
 
 class TranslationVote extends BaseModel {
   static const String collectionName = "translation_votes";
-  static const List<IndexFields> indexFields = [
-    IndexFields("translationUUID", unique: false),
+  static const List<IndexField> indexFields = [
+    IndexField("translationUUID", unique: false),
   ];
 
   final TranslationVoteType type;
@@ -55,10 +56,10 @@ class TranslationVote extends BaseModel {
   static Future<TranslationVote?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<TranslationVote>(uuid);
 
-  static Future<List<TranslationVote>> getByTranslationUUID(
+  static Future<List<TranslationVote>> getAllByTranslationUUID(
           String uuid) async =>
-      DataBase.instance
-          .getModelsByField<TranslationVote>("translationUUID", uuid);
+      DataBase.instance.getModelsByField<TranslationVote>(
+          [ModelField("translationUUID", uuid)]);
 }
 
 enum TranslationVoteType { up, down }

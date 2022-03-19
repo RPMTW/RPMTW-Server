@@ -45,12 +45,18 @@ class AuthHandler {
               _AuthPath("translate/vote", method: "POST"),
               _AuthPath("translate/vote/",
                   method: "DELETE", hasUrlParams: true),
+              _AuthPath("translate/vote/",
+                  method: "PATCH", hasUrlParams: true),
+              _AuthPath("translate/translation", method: "POST"),
+              _AuthPath("translate/translation/",
+                  method: "DELETE", hasUrlParams: true)
             ];
 
             bool needAuth = needAuthorizationPaths.any((_path) =>
-                _path.hasUrlParams
+                (_path.hasUrlParams
                     ? path.startsWith(_path.path)
-                    : path == _path.path && request.method == _path.method);
+                    : path == _path.path) &&
+                request.method == _path.method);
 
             if (needAuth) {
               String? token = request.headers["Authorization"]

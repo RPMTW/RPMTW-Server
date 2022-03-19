@@ -10,8 +10,8 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 
 class MinecraftVersionManifest extends BaseModel {
   static const String collectionName = "minecraft_version_manifest";
-  static const List<IndexFields> indexFields = [
-    IndexFields("lastUpdated", unique: true),
+  static const List<IndexField> indexFields = [
+    IndexField("lastUpdated", unique: true),
   ];
 
   final _Manifest manifest;
