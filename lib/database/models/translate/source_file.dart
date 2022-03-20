@@ -91,19 +91,21 @@ class SourceFile extends BaseModel {
   }
 
   @override
-  Future<WriteResult> delete() async {
-    List<SourceText> texts = await sourceTexts;
+  Future<WriteResult> delete({bool deleteDependencies = true}) async {
+    if (deleteDependencies) {
+      List<SourceText> texts = await sourceTexts;
 
-    for (SourceText text in texts) {
-      await text.delete();
-    }
+      for (SourceText text in texts) {
+        await text.delete();
+      }
 
-    Storage? _storage = await storage;
-    if (_storage != null) {
-      _storage = _storage.copyWith(
-          type: StorageType.general,
-          usageCount: _storage.usageCount > 0 ? _storage.usageCount - 1 : 0);
-      await _storage.update();
+      Storage? _storage = await storage;
+      if (_storage != null) {
+        _storage = _storage.copyWith(
+            type: StorageType.general,
+            usageCount: _storage.usageCount > 0 ? _storage.usageCount - 1 : 0);
+        await _storage.update();
+      }
     }
 
     return super.delete();

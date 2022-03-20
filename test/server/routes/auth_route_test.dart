@@ -130,7 +130,7 @@ void main() async {
     test("view user by token", () async {
       final response = await get(Uri.parse(host + "/auth/user/me"), headers: {
         "Authorization": "Bearer $token",
-      });      
+      });
       Map data = json.decode(response.body)["data"];
 
       expect(response.statusCode, 200);

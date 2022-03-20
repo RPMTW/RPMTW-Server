@@ -21,6 +21,7 @@ void main() async {
   final host = TestUttily.host;
   final String mockTranslationUUID = "0d87bd04-d957-4e7c-a9b7-5eb0bb3a40c1";
   final String mockSourceTextUUID = "b1b02c50-f35c-4a99-a38f-7240e61917f1";
+  final String mockModSourceInfoUUID = "5b77ac1c-506a-4fc1-8e13-760ccd5abf08";
   late final String token;
   late final String translationManagerToken;
   late final String userUUID;
@@ -68,6 +69,10 @@ void main() async {
               language: Locale.parse("zh-TW"),
               translatorUUID: userUUID)
           .insert();
+
+      ModSourceInfo info =
+          ModSourceInfo(uuid: mockModSourceInfoUUID, namespace: "test");
+      await info.insert();
     });
   });
 
@@ -461,16 +466,25 @@ void main() async {
       await (await Translation.getByUUID(translationUUID))!.delete();
     });
 
-    test("list translation (unknown source text uuid)", () async {
+    test("list translation (search by translator)", () async {
+      String translationUUID = await addTestTranslation();
+
       final response = await get(
-          Uri.parse(host + "/translate/translation").replace(
-              queryParameters: {"sourceUUID": "test", "language": "zh-TW"}),
+          Uri.parse(host + "/translate/translation").replace(queryParameters: {
+            "language": "zh-TW",
+            "translatorUUID": userUUID
+          }),
           headers: {"Content-Type": "application/json"});
 
-      Map responseJson = json.decode(response.body);
+      List<Map> data = json.decode(response.body)["data"].cast<Map>();
 
-      expect(response.statusCode, 404);
-      expect(responseJson["message"], contains("not found"));
+      expect(response.statusCode, 200);
+      expect(data.length, 2);
+      expect(data[0]["uuid"], mockTranslationUUID);
+      expect(data[1]["uuid"], translationUUID);
+
+      /// Delete the test translation.
+      await (await Translation.getByUUID(translationUUID))!.delete();
     });
 
     test("delete translation", () async {
@@ -893,7 +907,7 @@ void main() async {
       expect(responseJson["message"], "success");
       expect(await SourceText.getByUUID(sourceTextUUID), null);
 
-      await file.delete();
+      await file.delete(deleteDependencies: false);
     });
 
     test("delete source text (not permission)", () async {
@@ -953,9 +967,8 @@ void main() async {
   });
 
   group("source file", () {
-    Future<_TestSourceFileData> addTestSourceFile() async {
-      ModSourceInfo info = ModSourceInfo(uuid: Uuid().v4(), namespace: "test");
-      await info.insert();
+    Future<String> addTestSourceFile() async {
+      String testTextUUID = await addTestSourceText();
 
       late String storageUUID;
       final _response = await post(Uri.parse(host + "/storage/create"),
@@ -966,15 +979,15 @@ void main() async {
       storageUUID = json.decode(_response.body)["data"]["uuid"];
 
       final SourceFile file = SourceFile(
-          uuid: mockSourceTextUUID,
+          uuid: Uuid().v4(),
           type: SourceFileType.gsonLang,
-          modSourceInfoUUID: info.uuid,
+          modSourceInfoUUID: mockModSourceInfoUUID,
           path: "assets/test/lang/en_us.json",
-          sources: [mockSourceTextUUID],
+          sources: [testTextUUID],
           storageUUID: storageUUID);
       await file.insert();
 
-      return _TestSourceFileData(file.uuid, info.uuid);
+      return file.uuid;
     }
 
     group("add", () {
@@ -1015,6 +1028,7 @@ void main() async {
 
         /// Delete the test source file.
         await (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await info.delete();
       });
 
       test("add source file (minecraft lang)", () async {
@@ -1053,6 +1067,7 @@ void main() async {
 
         /// Delete the test source file.
         await (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await info.delete();
       });
 
       test("add source file (patchouli book)", () async {
@@ -1095,6 +1110,7 @@ void main() async {
 
         /// Delete the test source file.
         await (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await info.delete();
       });
 
       test("add source file (not permission)", () async {
@@ -1164,6 +1180,7 @@ void main() async {
 
         expect(response.statusCode, 404);
         expect(responseJson["message"], contains("not found"));
+        await info.delete();
       });
 
       test("add source file (empty path)", () async {
@@ -1195,6 +1212,7 @@ void main() async {
 
         expect(response.statusCode, 400);
         expect(responseJson["message"], contains("can't be empty"));
+        await info.delete();
       });
 
       test("add source file (empty game versions)", () async {
@@ -1226,6 +1244,7 @@ void main() async {
 
         expect(response.statusCode, 400);
         expect(responseJson["message"], contains("can't be empty"));
+        await info.delete();
       });
 
       test("add source file (invalid file content)", () async {
@@ -1257,11 +1276,12 @@ void main() async {
 
         expect(response.statusCode, 400);
         expect(responseJson["message"], contains("Handle file failed"));
+        await info.delete();
       });
     });
     group("get and list", () {
       test("get source file", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await get(
             Uri.parse(host + "/translate/source-file/$sourceFileUUID"),
@@ -1287,7 +1307,7 @@ void main() async {
       });
 
       test("list source file", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await get(
             Uri.parse(host + "/translate/source-file")
@@ -1306,14 +1326,14 @@ void main() async {
       });
 
       test("list source file (search by mod source)", () async {
-        _TestSourceFileData testData = await addTestSourceFile();
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await get(
             Uri.parse(host + "/translate/source-file")
                 .replace(queryParameters: {
               "limit": "10",
               "skip": "0",
-              "modSourceInfoUUID": testData.infoUUID,
+              "modSourceInfoUUID": mockModSourceInfoUUID,
             }),
             headers: {"Content-Type": "application/json"});
 
@@ -1322,10 +1342,10 @@ void main() async {
 
         expect(response.statusCode, 200);
         expect(data.length, 1);
-        expect(data[0]["uuid"], testData.uuid);
+        expect(data[0]["uuid"], sourceFileUUID);
 
         /// Delete the test source file.
-        await (await SourceFile.getByUUID(testData.uuid))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
       test("list source text (limit 100)", () async {
@@ -1344,7 +1364,7 @@ void main() async {
     });
     group("edit", () {
       test("edit source file", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: "test2");
@@ -1386,7 +1406,7 @@ void main() async {
       });
 
       test("edit source file (not permission)", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await patch(
             Uri.parse(host + "/translate/source-file/$sourceFileUUID"),
@@ -1431,7 +1451,7 @@ void main() async {
       });
 
       test("edit source file", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: "test2");
@@ -1474,7 +1494,7 @@ void main() async {
       });
 
       test("edit source file (unknown mod source info)", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await patch(
             Uri.parse(host + "/translate/source-file/$sourceFileUUID"),
@@ -1496,7 +1516,7 @@ void main() async {
       });
 
       test("edit source file (empty path)", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await patch(
             Uri.parse(host + "/translate/source-file/$sourceFileUUID"),
@@ -1518,7 +1538,7 @@ void main() async {
       });
 
       test("edit source file (change storage, empty game versions)", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         late String storageUUID;
         final _response = await post(Uri.parse(host + "/storage/create"),
@@ -1546,7 +1566,7 @@ void main() async {
       });
 
       test("edit source file (unknown storage)", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await patch(
             Uri.parse(host + "/translate/source-file/$sourceFileUUID"),
@@ -1568,7 +1588,7 @@ void main() async {
       });
 
       test("edit source file (invalid file content)", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         late String storageUUID;
         final _response = await post(Uri.parse(host + "/storage/create"),
@@ -1600,7 +1620,7 @@ void main() async {
 
     group("delete", () {
       test("delete source file", () async {
-        String sourceFileUUID = (await addTestSourceFile()).uuid;
+        String sourceFileUUID = await addTestSourceFile();
 
         final response = await delete(
             Uri.parse(host + "/translate/source-file/$sourceFileUUID"),
@@ -1803,8 +1823,9 @@ void main() async {
             json.decode(response.body)["data"]["infos"].cast<Map>();
 
         expect(response.statusCode, 200);
-        expect(data.length, 1);
-        expect(data[0]["uuid"], modSourceInfoUUID);
+        expect(data.length, 2);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
+        expect(data[1]["uuid"], modSourceInfoUUID);
 
         /// Delete the test mod source info.
         await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
@@ -1827,8 +1848,8 @@ void main() async {
             json.decode(response.body)["data"]["infos"].cast<Map>();
 
         expect(response.statusCode, 200);
-        expect(data.length, 1);
-        expect(data[0]["uuid"], modSourceInfoUUID);
+        expect(data.length, 2);
+        expect(data[1]["uuid"], modSourceInfoUUID);
 
         /// Delete the test mod source info.
         await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
@@ -1845,7 +1866,7 @@ void main() async {
         expect(response.statusCode, 200);
         expect(data["limit"], 50);
         expect(data["skip"], 0);
-        expect(data["infos"].length, 0);
+        expect(data["infos"].length, 1);
       });
     });
     group("edit", () {
@@ -2029,11 +2050,4 @@ void main() async {
       });
     });
   });
-}
-
-class _TestSourceFileData {
-  final String uuid;
-  final String infoUUID;
-
-  const _TestSourceFileData(this.uuid, this.infoUUID);
 }

@@ -32,7 +32,7 @@ class SourceText extends BaseModel {
   final SourceTextType type;
 
   Future<List<Translation>> getTranslations({Locale? language}) =>
-      Translation.getAllBySource(uuid, language: language);
+      Translation.search(sourceUUID: uuid, language: language);
 
   const SourceText({
     required String uuid,

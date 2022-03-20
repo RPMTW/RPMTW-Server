@@ -129,22 +129,23 @@ class TranslateRoute extends APIRoute {
       return APIResponse.success(data: translation.outputMap());
     }, requiredFields: ["uuid"]);
 
-    /// List all translations by source text and target language
+    /// List all translations by source text or target language or translator
     router.getRoute("/translation", (req, data) async {
-      final SourceText? sourceText =
-          await SourceText.getByUUID(data.fields["sourceUUID"]!);
-      final Locale language = Locale.parse(data.fields["language"]!);
+      final Map<String, dynamic> fields = data.fields;
 
-      if (sourceText == null) {
-        return APIResponse.modelNotFound<SourceText>();
-      }
+      final String? sourceTextUUID = fields["sourceUUID"];
+      final Locale? language =
+          fields["language"] != null ? Locale.parse(fields["language"]) : null;
+      final String? translatorUUID = fields["translatorUUID"];
 
-      final List<Translation> translations =
-          await sourceText.getTranslations(language: language);
+      final List<Translation> translations = await Translation.search(
+          sourceUUID: sourceTextUUID,
+          language: language,
+          translatorUUID: translatorUUID);
 
       return APIResponse.success(
           data: translations.map((e) => e.outputMap()).toList());
-    }, requiredFields: ["sourceUUID", "language"]);
+    });
 
     /// Add translation
     router.postRoute("/translation", (req, data) async {
