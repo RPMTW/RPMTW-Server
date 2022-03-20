@@ -1,3 +1,4 @@
+import 'package:grammer/grammer.dart';
 import "package:intl/locale.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
@@ -1022,5 +1023,42 @@ class TranslateRoute extends APIRoute {
 
       return APIResponse.success(data: null);
     }, requiredFields: ["uuid"], authConfig: AuthConfig());
+
+    /// Get glossaries from text
+    router.getRoute("/glossary-highlight", (req, data) async {
+      final String text = data.fields["text"]!;
+      final Locale language = Locale.parse(data.fields["language"]!);
+
+      final List<String> words =
+          text.split(" ").where((w) => !w.isAllEmpty).toSet().toList();
+      Map<String, Glossary> result = {};
+
+      for (String word in words) {
+        Grammer grammer = Grammer(word);
+
+        Future<Glossary?> get(String str) async {
+          List<Glossary> glossaries =
+              await Glossary.list(filter: str, language: language, limit: 1);
+          if (glossaries.isNotEmpty) {
+            return glossaries.first;
+          } else {
+            return null;
+          }
+        }
+
+        List<String> strings = [grammer.toSingular(), ...grammer.toPlural()];
+
+        for (String str in strings) {
+          Glossary? glossary = await get(str);
+          if (glossary != null) {
+            result[word] = glossary;
+            break;
+          }
+        }
+      }
+
+      return APIResponse.success(
+          data: result.map((key, value) => MapEntry(key, value.toMap())));
+    }, requiredFields: ["text", "language"]);
   }
 }

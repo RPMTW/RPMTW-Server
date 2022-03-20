@@ -155,6 +155,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.2"
+  grammer:
+    dependency: "direct main"
+    description:
+      name: grammer
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
   http:
     dependency: "direct main"
     description:
@@ -456,6 +463,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.10.0"
+  stemmer:
+    dependency: transitive
+    description:
+      name: stemmer
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.0"
   stream:
     dependency: transitive
     description:

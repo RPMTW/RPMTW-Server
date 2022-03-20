@@ -2200,10 +2200,10 @@ void main() async {
     Future<String> addTestGlossary() async {
       final Glossary glossary = Glossary(
           uuid: Uuid().v4(),
-          term: "Test glossary",
-          description: "This is a test glossary",
+          term: "Creeper",
+          description: "This is a Creeper",
           language: Locale.parse("zh-TW"),
-          translation: "測試用詞彙");
+          translation: "苦力怕");
       await glossary.insert();
       return glossary.uuid;
     }
@@ -2341,9 +2341,9 @@ void main() async {
           Map data = json.decode(response.body)["data"];
 
           expect(response.statusCode, 200);
-          expect(data["term"], "Test glossary");
-          expect(data["translation"], "測試用詞彙");
-          expect(data["description"], "This is a test glossary");
+          expect(data["term"], "Creeper");
+          expect(data["translation"], "苦力怕");
+          expect(data["description"], "This is a Creeper");
           expect(data["language"], "zh-TW");
           expect(data["modUUID"], null);
 
@@ -2361,6 +2361,26 @@ void main() async {
         expect(responseJson["message"], contains("not found"));
       });
 
+      test("highlight glossary from text", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(
+            Uri.parse(host + "/translate/glossary-highlight").replace(
+                queryParameters: {
+                  "text": "Creeper exploded",
+                  "language": "zh-TW"
+                }),
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["Creeper"], isNotNull);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
       test("list glossaries", () {
         return addTestGlossary().then((uuid) async {
           final response = await get(Uri.parse(host + "/translate/glossary"),
@@ -2370,10 +2390,10 @@ void main() async {
 
           expect(response.statusCode, 200);
           expect(data["glossaries"].length, 1);
-          expect(data["glossaries"][0]["term"], "Test glossary");
-          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(data["glossaries"][0]["term"], "Creeper");
+          expect(data["glossaries"][0]["translation"], "苦力怕");
           expect(
-              data["glossaries"][0]["description"], "This is a test glossary");
+              data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2386,7 +2406,7 @@ void main() async {
         return addTestGlossary().then((uuid) async {
           final response = await get(
             Uri.parse(host + "/translate/glossary")
-                .replace(queryParameters: {"filter": "Test"}),
+                .replace(queryParameters: {"filter": "Creeper"}),
             headers: {"Authorization": "Bearer $token"},
           );
 
@@ -2394,10 +2414,10 @@ void main() async {
 
           expect(response.statusCode, 200);
           expect(data["glossaries"].length, 1);
-          expect(data["glossaries"][0]["term"], "Test glossary");
-          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(data["glossaries"][0]["term"], "Creeper");
+          expect(data["glossaries"][0]["translation"], "苦力怕");
           expect(
-              data["glossaries"][0]["description"], "This is a test glossary");
+              data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2410,7 +2430,7 @@ void main() async {
         return addTestGlossary().then((uuid) async {
           final response = await get(
             Uri.parse(host + "/translate/glossary")
-                .replace(queryParameters: {"filter": "測試"}),
+                .replace(queryParameters: {"filter": "苦力"}),
             headers: {"Authorization": "Bearer $token"},
           );
 
@@ -2418,10 +2438,10 @@ void main() async {
 
           expect(response.statusCode, 200);
           expect(data["glossaries"].length, 1);
-          expect(data["glossaries"][0]["term"], "Test glossary");
-          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(data["glossaries"][0]["term"], "Creeper");
+          expect(data["glossaries"][0]["translation"], "苦力怕");
           expect(
-              data["glossaries"][0]["description"], "This is a test glossary");
+              data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2442,10 +2462,10 @@ void main() async {
 
           expect(response.statusCode, 200);
           expect(data["glossaries"].length, 1);
-          expect(data["glossaries"][0]["term"], "Test glossary");
-          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(data["glossaries"][0]["term"], "Creeper");
+          expect(data["glossaries"][0]["translation"], "苦力怕");
           expect(
-              data["glossaries"][0]["description"], "This is a test glossary");
+              data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2484,10 +2504,10 @@ void main() async {
 
           expect(response.statusCode, 200);
           expect(data["glossaries"].length, 1);
-          expect(data["glossaries"][0]["term"], "Test glossary");
-          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(data["glossaries"][0]["term"], "Creeper");
+          expect(data["glossaries"][0]["translation"], "苦力怕");
           expect(
-              data["glossaries"][0]["description"], "This is a test glossary");
+              data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
           expect(data["limit"], 50);
@@ -2517,8 +2537,8 @@ void main() async {
             Uri.parse(host + "/translate/glossary/$uuid"),
             headers: {"Authorization": "Bearer $token"},
             body: jsonEncode({
-              "term": "Test glossary2",
-              "translation": "測試用詞彙2",
+              "term": "Creeper2",
+              "translation": "苦力怕2",
               "description": "Hello world",
               "language": "zh-TW",
               "modUUID": mod.uuid
@@ -2528,8 +2548,8 @@ void main() async {
           Map data = json.decode(response.body)["data"];
 
           expect(response.statusCode, 200);
-          expect(data["term"], "Test glossary2");
-          expect(data["translation"], "測試用詞彙2");
+          expect(data["term"], "Creeper2");
+          expect(data["translation"], "苦力怕2");
           expect(data["description"], "Hello world");
           expect(data["language"], "zh-TW");
           expect(data["modUUID"], mod.uuid);
@@ -2545,8 +2565,8 @@ void main() async {
             await patch(Uri.parse(host + "/translate/glossary/unknown"),
                 headers: {"Authorization": "Bearer $token"},
                 body: jsonEncode({
-                  "term": "Test glossary2",
-                  "translation": "測試用詞彙2",
+                  "term": "Creeper2",
+                  "translation": "苦力怕2",
                   "description": "Hello world",
                   "language": "zh-TW",
                   "modUUID": "unknown"
@@ -2561,8 +2581,8 @@ void main() async {
               await patch(Uri.parse(host + "/translate/glossary/$uuid"),
                   headers: {"Authorization": "Bearer $token"},
                   body: jsonEncode({
-                    "term": "Test glossary2",
-                    "translation": "測試用詞彙2",
+                    "term": "Creeper2",
+                    "translation": "苦力怕2",
                     "description": "Hello world",
                     "language": "zh-TW",
                     "modUUID": "unknown"
@@ -2582,7 +2602,7 @@ void main() async {
                   headers: {"Authorization": "Bearer $token"},
                   body: jsonEncode({
                     "term": "",
-                    "translation": "測試用詞彙2",
+                    "translation": "苦力怕2",
                     "description": "Hello world",
                     "language": "zh-TW"
                   }));
@@ -2602,7 +2622,7 @@ void main() async {
               await patch(Uri.parse(host + "/translate/glossary/$uuid"),
                   headers: {"Authorization": "Bearer $token"},
                   body: jsonEncode({
-                    "term": "Test glossary2",
+                    "term": "Creeper2",
                     "translation": "",
                     "description": "Hello world",
                     "language": "zh-TW"
@@ -2623,8 +2643,8 @@ void main() async {
               await patch(Uri.parse(host + "/translate/glossary/$uuid"),
                   headers: {"Authorization": "Bearer $token"},
                   body: jsonEncode({
-                    "term": "Test glossary2",
-                    "translation": "測試用詞彙2",
+                    "term": "Creeper2",
+                    "translation": "苦力怕2",
                     "description": "",
                     "language": "zh-TW"
                   }));
