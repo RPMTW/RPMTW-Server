@@ -6,6 +6,7 @@
   "sortnum": 6120,
   "pages": [
     {
+      "title": "Test Title",
       "type": "entity",
       "entity": "twilightforest:ur_ghast",
       "text": "Time to call the Ghastbusters"
