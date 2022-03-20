@@ -99,22 +99,26 @@ class TranslateHandler {
               /// https://github.com/VazkiiMods/Patchouli/blob/7d61bb287ea1e87a757bb14bff95e0de1c70688f/Common/src/main/java/vazkii/patchouli/client/book/ClientBookRegistry.java#L101
 
               String? type = page["type"];
-              dynamic text = page["text"];
-              bool hasSource = type != null &&
-                  text is String &&
-                  text.isNotEmpty &&
-                  !patchouliI18nKeys!.contains(text);
 
-              if (hasSource) {
-                int index = value.indexOf(page);
+              void _addSource(dynamic source) {
+                if (source is String &&
+                    source.isNotEmpty &&
+                    !patchouliI18nKeys!.contains(source)) {
+                  int index = value.indexOf(page);
 
-                texts.add(SourceText(
-                    uuid: Uuid().v4(),
-                    source: text,
-                    key:
-                        "patchouli.${info.namespace}.${info.bookName}.content.${info.fileFolder}.${info.fileName}.pages.$index.text",
-                    type: SourceTextType.patchouli,
-                    gameVersions: gameVersions));
+                  texts.add(SourceText(
+                      uuid: Uuid().v4(),
+                      source: source,
+                      key:
+                          "patchouli.${info.namespace}.${info.bookName}.content.${info.fileFolder}.${info.fileName}.pages.$index.text",
+                      type: SourceTextType.patchouli,
+                      gameVersions: gameVersions));
+                }
+              }
+
+              if (type != null) {
+                _addSource(page["title"]);
+                _addSource(page["text"]);
               }
             }
           }
