@@ -2,6 +2,7 @@ import "package:dart_jsonwebtoken/dart_jsonwebtoken.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user_role.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
+import 'package:rpmtw_server/database/models/storage/storage.dart';
 import "package:rpmtw_server/handler/auth_handler.dart";
 
 import "../base_models.dart";
@@ -19,6 +20,10 @@ class User extends BaseModel {
   final String? avatarStorageUUID;
   final List<String> loginIPs;
   final UserRole role;
+
+  Future<Storage?> get avatarStorage async => avatarStorageUUID != null
+      ? await Storage.getByUUID(avatarStorageUUID!)
+      : null;
 
   const User(
       {required String uuid,

@@ -271,10 +271,14 @@ class DataBase {
   Future<void> _storageTimer(DateTime time) async {
     /// 暫存檔案超過指定時間後將刪除
     /// 檔案最多暫存一天
+    SelectorBuilder timeSelector = where.lte(
+        "createAt", time.subtract(Duration(days: 1)).millisecondsSinceEpoch);
+
     SelectorBuilder selector = where
-        .eq("type", StorageType.temp.name) // 檔案類型為暫存檔案
-        .and(where.lte("createAt",
-            time.subtract(Duration(days: 1)).millisecondsSinceEpoch));
+        // 檔案類型為暫存檔案
+        .eq("type", StorageType.temp.name)
+        .and(timeSelector)
+        .or(where.eq("usageCount", 0).and(timeSelector));
     // 檔案建立時間為一天前
 
     List<Storage> storageList = await getCollection<Storage>()
@@ -296,9 +300,9 @@ class DataBase {
   }
 
   Future<void> _authCodeTimer(DateTime time) async {
-    /// 驗證碼最多暫存 1 小時
-    SelectorBuilder selector = where.lte(
-        "expiresAt", time.subtract(Duration(hours: 1)).millisecondsSinceEpoch);
+    /// 驗證碼最多暫存 30 分鐘
+    SelectorBuilder selector = where.lte("expiresAt",
+        time.subtract(Duration(minutes: 30)).millisecondsSinceEpoch);
     List<AuthCode> authCodeList = await getCollection<AuthCode>()
         .find(selector)
         .map((map) => AuthCode.fromMap(map))

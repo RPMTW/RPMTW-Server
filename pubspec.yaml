@@ -16,6 +16,7 @@ dependencies:
   dotenv: ^3.0.0
   http: ^0.13.4
   intl: ^0.17.0
+  json5: ^0.7.0
   logger: ^1.1.0
   mailer: ^5.1.0
   mongo_dart: ^0.7.4

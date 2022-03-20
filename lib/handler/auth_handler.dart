@@ -185,7 +185,7 @@ If you have not requested an RPMTW account, please ignore this email.<br><br>
       ..bccRecipients.add(email)
       ..subject = "驗證您的 RPMTW 帳號電子郵件地址"
       ..html = html;
-    // TODO:實現驗證電子郵件的界面
+    // TODO:製作更美觀的驗證信件
 
     try {
       if (kTestMode) return true; //在測試模式下不發送訊息

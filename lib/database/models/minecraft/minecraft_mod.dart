@@ -1,6 +1,3 @@
-import "dart:convert";
-
-import "package:collection/collection.dart";
 import "package:rpmtw_server/database/database.dart";
 
 import "package:rpmtw_server/database/models/base_models.dart";
@@ -157,58 +154,6 @@ class MinecraftMod extends BaseModel {
       imageStorageUUID: map["imageStorageUUID"],
       viewCount: map["viewCount"] ?? 0,
     );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory MinecraftMod.fromJson(String source) =>
-      MinecraftMod.fromMap(json.decode(source));
-
-  @override
-  String toString() {
-    return "MinecraftMod(uuid:$uuid, name: $name, description: $description, id: $id, supportVersions: $supportVersions, relationMods: $relationMods, integration: $integration, side: $side, lastUpdate: $lastUpdate, createTime: $createTime, loader: $loader, translatedName: $translatedName, introduction: $introduction, imageStorageUUID: $imageStorageUUID, viewCount: $viewCount)";
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    final listEquals = const DeepCollectionEquality().equals;
-
-    return other is MinecraftMod &&
-        other.uuid == uuid &&
-        other.name == name &&
-        other.description == description &&
-        other.id == id &&
-        listEquals(other.supportVersions, supportVersions) &&
-        listEquals(other.relationMods, relationMods) &&
-        other.integration == integration &&
-        listEquals(other.side, side) &&
-        other.lastUpdate == lastUpdate &&
-        other.createTime == createTime &&
-        listEquals(other.loader, loader) &&
-        other.translatedName == translatedName &&
-        other.introduction == introduction &&
-        other.imageStorageUUID == imageStorageUUID &&
-        other.viewCount == viewCount;
-  }
-
-  @override
-  int get hashCode {
-    return uuid.hashCode ^
-        name.hashCode ^
-        description.hashCode ^
-        id.hashCode ^
-        supportVersions.hashCode ^
-        relationMods.hashCode ^
-        integration.hashCode ^
-        side.hashCode ^
-        lastUpdate.hashCode ^
-        createTime.hashCode ^
-        loader.hashCode ^
-        translatedName.hashCode ^
-        introduction.hashCode ^
-        imageStorageUUID.hashCode ^
-        viewCount.hashCode;
   }
 
   static Future<MinecraftMod?> getByUUID(String uuid) async =>

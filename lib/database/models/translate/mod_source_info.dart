@@ -10,7 +10,7 @@ class ModSourceInfo extends BaseModel {
   static const String collectionName = "mod_source_infos";
   static const List<IndexField> indexFields = [
     IndexField("namespace", unique: false),
-    IndexField("modUUID", unique: true),
+    IndexField("modUUID", unique: false),
   ];
 
   /// Namespace of the mod
@@ -32,7 +32,7 @@ class ModSourceInfo extends BaseModel {
 
   /// [SourceFile] files included in this mod.
   Future<List<SourceFile>> get files {
-    return SourceFile.getBySourceInfoUUID(uuid);
+    return SourceFile.search(modSourceInfoUUID: uuid);
   }
 
   Future<List<SourceText>?> get patchouliAddonTexts async {

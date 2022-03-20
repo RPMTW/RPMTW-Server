@@ -50,11 +50,11 @@ class AuthRoute extends APIRoute {
         if (storage == null) {
           return APIResponse.modelNotFound(modelName: "Avatar Storage");
         }
-        if (storage.type == StorageType.temp) {
-          //將暫存檔案改為一般檔案
-          storage = storage.copyWith(type: StorageType.general);
-          await DataBase.instance.replaceOneModel<Storage>(storage);
-        }
+
+        /// Change temp storage to general storage
+        storage = storage.copyWith(
+            type: StorageType.general, usageCount: storage.usageCount + 1);
+        await DataBase.instance.replaceOneModel<Storage>(storage);
       }
 
       await user.insert(); // 儲存至資料庫
@@ -149,12 +149,18 @@ class AuthRoute extends APIRoute {
         if (storage == null) {
           return APIResponse.modelNotFound(modelName: "Avatar Storage");
         }
-        if (storage.type == StorageType.temp) {
-          //將暫存檔案改為一般檔案
-          storage = storage.copyWith(type: StorageType.general);
-          await DataBase.instance.replaceOneModel<Storage>(storage);
-        }
+
+        /// Change temp storage to general storage
+        storage = storage.copyWith(
+            type: StorageType.general, usageCount: storage.usageCount + 1);
+        await storage.update();
         newUser = newUser.copyWith(avatarStorageUUID: avatarStorageUUID);
+        Storage? oldStorage = await user.avatarStorage;
+        await oldStorage
+            ?.copyWith(
+                usageCount:
+                    oldStorage.usageCount > 0 ? oldStorage.usageCount - 1 : 0)
+            .update();
       }
 
       if (newUser != user) {

@@ -60,7 +60,7 @@ class AuthCode extends BaseModel {
 
   factory AuthCode.fromMap(Map<String, dynamic> map) {
     return AuthCode(
-      code: map["code"]?.toInt() ?? 0,
+      code: map["code"],
       expiresAt: DateTime.fromMillisecondsSinceEpoch(map["expiresAt"]),
       uuid: map["uuid"],
       email: map["email"],

@@ -34,10 +34,9 @@ class MinecraftRoute extends APIRoute {
         if (storage == null) {
           return APIResponse.badRequest(message: "Invalid image storage");
         }
-        if (storage.type == StorageType.temp) {
-          storage = storage.copyWith(type: StorageType.general);
-          await storage.update();
-        }
+        storage = storage.copyWith(
+            type: StorageType.general, usageCount: storage.usageCount + 1);
+        await storage.update();
       }
 
       MinecraftMod mod = await MinecraftHeader.createMod(result);
@@ -72,9 +71,19 @@ class MinecraftRoute extends APIRoute {
         if (storage == null) {
           return APIResponse.badRequest(message: "Invalid image storage");
         }
-        if (storage.type == StorageType.temp) {
-          storage = storage.copyWith(type: StorageType.general);
-          await storage.update();
+        storage = storage.copyWith(
+            type: StorageType.general, usageCount: storage.usageCount + 1);
+        await storage.update();
+
+        if (mod.imageStorageUUID != null) {
+          Storage? oldStorage = await Storage.getByUUID(mod.imageStorageUUID!);
+          if (oldStorage != null) {
+            oldStorage = oldStorage.copyWith(
+                type: StorageType.general,
+                usageCount:
+                    oldStorage.usageCount > 0 ? oldStorage.usageCount - 1 : 0);
+            await oldStorage.update();
+          }
         }
       }
 

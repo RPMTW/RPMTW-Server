@@ -29,6 +29,7 @@ void main() async {
     expect(response.statusCode, 200);
     expect(data["contentType"], contains("text/plain"));
     expect(data["type"], contains("temp"));
+    expect(data["usageCount"], 0);
 
     storageUUID = data["uuid"];
     createAt = data["createAt"];

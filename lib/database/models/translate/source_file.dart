@@ -2,6 +2,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/model_field.dart";
+import 'package:rpmtw_server/database/models/storage/storage.dart';
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
@@ -9,19 +10,22 @@ import "package:rpmtw_server/database/models/translate/source_text.dart";
 class SourceFile extends BaseModel {
   static const String collectionName = "source_files";
   static const List<IndexField> indexFields = [
-    IndexField("sourceInfoUUID", unique: false)
+    IndexField("modSourceInfoUUID", unique: false),
+    IndexField("sources", unique: false),
   ];
 
-  final String sourceInfoUUID;
+  final String modSourceInfoUUID;
+  final String storageUUID;
   final String path;
   final SourceFileType type;
 
   /// [SourceText] included in the file.
   final List<String> sources;
 
-  Future<ModSourceInfo?> get sourceInfo {
-    return ModSourceInfo.getByUUID(sourceInfoUUID);
-  }
+  Future<ModSourceInfo?> get sourceInfo =>
+      ModSourceInfo.getByUUID(modSourceInfoUUID);
+
+  Future<Storage?> get storage => Storage.getByUUID(storageUUID);
 
   Future<List<SourceText>> get sourceTexts async {
     List<SourceText> texts = [];
@@ -35,23 +39,38 @@ class SourceFile extends BaseModel {
     return texts;
   }
 
+  Future<SourceFile> addSourceText(SourceText text) async {
+    if (sources.contains(text.uuid)) {
+      return this;
+    }
+
+    SourceFile newFile = copyWith(
+      sources: List.from(sources)..add(text.uuid),
+    );
+    await newFile.update();
+    return newFile;
+  }
+
   const SourceFile(
       {required String uuid,
-      required this.sourceInfoUUID,
+      required this.modSourceInfoUUID,
+      required this.storageUUID,
       required this.path,
       required this.type,
       required this.sources})
       : super(uuid: uuid);
 
   SourceFile copyWith({
-    String? sourceInfoUUID,
+    String? modSourceInfoUUID,
+    String? storageUUID,
     String? path,
     SourceFileType? type,
     List<String>? sources,
   }) {
     return SourceFile(
       uuid: uuid,
-      sourceInfoUUID: sourceInfoUUID ?? this.sourceInfoUUID,
+      modSourceInfoUUID: modSourceInfoUUID ?? this.modSourceInfoUUID,
+      storageUUID: storageUUID ?? this.storageUUID,
       path: path ?? this.path,
       type: type ?? this.type,
       sources: sources ?? this.sources,
@@ -62,7 +81,8 @@ class SourceFile extends BaseModel {
   Map<String, dynamic> toMap() {
     return {
       "uuid": uuid,
-      "sourceInfoUUID": sourceInfoUUID,
+      "modSourceInfoUUID": modSourceInfoUUID,
+      "storageUUID": storageUUID,
       "path": path,
       "type": type.name,
       "sources": sources,
@@ -72,7 +92,8 @@ class SourceFile extends BaseModel {
   factory SourceFile.fromMap(Map<String, dynamic> map) {
     return SourceFile(
       uuid: map["uuid"],
-      sourceInfoUUID: map["sourceInfoUUID"],
+      modSourceInfoUUID: map["modSourceInfoUUID"],
+      storageUUID: map["storageUUID"],
       path: map["path"],
       type: SourceFileType.values.byName(map["type"]),
       sources: List<String>.from(map["sources"]),
@@ -82,9 +103,12 @@ class SourceFile extends BaseModel {
   static Future<SourceFile?> getByUUID(String uuid) =>
       DataBase.instance.getModelByUUID<SourceFile>(uuid);
 
-  static Future<List<SourceFile>> getBySourceInfoUUID(String uuid) =>
-      DataBase.instance
-          .getModelsByField<SourceFile>([ModelField("sourceInfoUUID", uuid)]);
+  static Future<List<SourceFile>> search(
+          {String? modSourceInfoUUID, int? limit, int? skip}) =>
+      DataBase.instance.getModelsByField<SourceFile>([
+        if (modSourceInfoUUID != null)
+          ModelField("modSourceInfoUUID", modSourceInfoUUID)
+      ], limit: limit, skip: skip);
 }
 
 enum SourceFileType {

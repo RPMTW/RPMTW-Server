@@ -7,13 +7,24 @@ import "package:rpmtw_server/handler/cosmic_chat_handler.dart";
 import "package:rpmtw_server/utilities/data.dart";
 import "../bin/server.dart" as server;
 
-enum TestData { versionManifest }
+enum TestData {
+  versionManifest,
+  tinkersConstructLang,
+  justEnoughItemsLang,
+  twilightForestPatchouliEntries
+}
 
 extension TestDataExtension on TestData {
   String toFileName() {
     switch (this) {
       case TestData.versionManifest:
         return "minecraft_version_manifest_v2_2022_1_10.json";
+      case TestData.tinkersConstructLang:
+        return "tconstruct_1.16_lang.json";
+      case TestData.justEnoughItemsLang:
+        return "jei_1.12_lang.lang";
+      case TestData.twilightForestPatchouliEntries:
+        return "twilightforest_patchouli_book_guide_entrie_ur_ghast.json";
       default:
         return name;
     }

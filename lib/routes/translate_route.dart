@@ -5,11 +5,14 @@ import "package:rpmtw_server/database/models/auth/user.dart";
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/database/models/auth_route.dart';
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
+import 'package:rpmtw_server/database/models/model_field.dart';
+import 'package:rpmtw_server/database/models/storage/storage.dart';
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import 'package:rpmtw_server/handler/translate_handler.dart';
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/data.dart";
@@ -216,7 +219,8 @@ class TranslateRoute extends APIRoute {
       Map<String, dynamic> fields = data.fields;
       int limit =
           fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
-      int? skip = fields["skip"] != null ? int.tryParse(fields["skip"]) : null;
+      final int? skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) : null;
 
       // Max limit is 50
       if (limit > 50) {
@@ -316,7 +320,9 @@ class TranslateRoute extends APIRoute {
 
       await sourceText.update();
       return APIResponse.success(data: sourceText.outputMap());
-    }, requiredFields: ["uuid"], authConfig: AuthConfig(role: UserRoleType.translationManager));
+    },
+        requiredFields: ["uuid"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
 
     /// Delete source text by uuid
     router.deleteRoute("/source-text/<uuid>", (req, data) async {
@@ -329,24 +335,27 @@ class TranslateRoute extends APIRoute {
 
       /// Delete all dependencies of this source text
       if (sourceText.type == SourceTextType.patchouli) {
-        ModSourceInfo? info = await DataBase.instance
-            .getModelByField<ModSourceInfo>("patchouliAddons", sourceText.uuid);
+        List<ModSourceInfo>? infos = await DataBase.instance
+            .getModelsByField<ModSourceInfo>(
+                [ModelField("patchouliAddons", sourceText.uuid)]);
 
-        if (info != null && info.patchouliAddons != null) {
-          info = info.copyWith(
-              patchouliAddons: List.from(info.patchouliAddons!)
-                ..remove(sourceText.uuid));
-          await info.update();
+        for (ModSourceInfo info in infos) {
+          if (info.patchouliAddons != null) {
+            info = info.copyWith(
+                patchouliAddons: List.from(info.patchouliAddons!)
+                  ..remove(sourceText.uuid));
+            await info.update();
+          }
         }
-      } else {
-        SourceFile? file = await DataBase.instance
-            .getModelByField<SourceFile>("sources", sourceText.uuid);
+      }
+      List<SourceFile> files = await DataBase.instance
+          .getModelsByField<SourceFile>(
+              [ModelField("sources", sourceText.uuid)]);
 
-        if (file != null) {
-          file = file.copyWith(
-              sources: List.from(file.sources)..remove(sourceText.uuid));
-          await file.update();
-        }
+      for (SourceFile file in files) {
+        file = file.copyWith(
+            sources: List.from(file.sources)..remove(sourceText.uuid));
+        await file.update();
       }
 
       await sourceText.delete();
@@ -356,18 +365,250 @@ class TranslateRoute extends APIRoute {
         requiredFields: ["uuid"],
         authConfig: AuthConfig(role: UserRoleType.translationManager));
 
-    // /// Get source file by uuid
-    // router.getRoute("/source-file/<uuid>", (req, data) async {
-    //   final String uuid = data.fields["uuid"]!;
+    /// Get source file by uuid
+    router.getRoute("/source-file/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
 
-    //   final SourceFile? sourceFile = await SourceFile.getByUUID(uuid);
+      final SourceFile? sourceFile = await SourceFile.getByUUID(uuid);
 
-    //   if (sourceFile == null) {
-    //     return APIResponse.modelNotFound<SourceFile>();
-    //   }
+      if (sourceFile == null) {
+        return APIResponse.modelNotFound<SourceFile>();
+      }
 
-    //   return APIResponse.success(data: sourceFile.outputMap());
-    // }, requiredFields: ["uuid"]);
+      return APIResponse.success(data: sourceFile.outputMap());
+    }, requiredFields: ["uuid"]);
+
+    /// List source files by source info uuid
+    router.getRoute("/source-file", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+      final String? modSourceInfoUUID = fields["modSourceInfoUUID"];
+      int limit =
+          fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
+      final int? skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) : null;
+
+      // Max limit is 50
+      if (limit > 50) {
+        limit = 50;
+      }
+
+      final List<SourceFile> files =
+          await SourceFile.search(modSourceInfoUUID: modSourceInfoUUID);
+
+      return APIResponse.success(data: {
+        "files": files.map((e) => e.outputMap()).toList(),
+        "limit": limit,
+        "skip": skip,
+      });
+    });
+
+    /// Add source file
+    router.postRoute("/source-file", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+
+      final String modSourceInfoUUID = fields["modSourceInfoUUID"]!;
+      final String storageUUID = fields["storageUUID"]!;
+      final String path = fields["path"]!;
+      final SourceFileType type = SourceFileType.values.byName(fields["type"]!);
+      final List<MinecraftVersion> gameVersions =
+          await MinecraftVersion.getByIDs(
+              fields["gameVersions"]!.cast<String>());
+      final List<String>? patchouliI18nKeys =
+          fields["patchouliI18nKeys"] != null
+              ? fields["patchouliI18nKeys"]!.cast<String>()
+              : null;
+
+      final ModSourceInfo? modSourceInfo =
+          await ModSourceInfo.getByUUID(modSourceInfoUUID);
+
+      if (modSourceInfo == null) {
+        return APIResponse.modelNotFound<ModSourceInfo>();
+      }
+
+      if (gameVersions.isEmpty) {
+        return APIResponse.badRequest(message: "Game versions can't be empty");
+      }
+
+      Storage? storage = await Storage.getByUUID(storageUUID);
+      if (storage == null) {
+        return APIResponse.modelNotFound<Storage>();
+      }
+      storage = storage.copyWith(
+          type: StorageType.general, usageCount: storage.usageCount + 1);
+      await storage.update();
+
+      if (path.isEmpty || path.trim().isEmpty) {
+        return APIResponse.badRequest(message: "Path can't be empty");
+      }
+
+      String fileString = await storage.readAsString();
+      List<SourceText> sourceTexts;
+      try {
+        sourceTexts = TranslateHandler.handleFile(
+            fileString, type, gameVersions, path,
+            patchouliI18nKeys: patchouliI18nKeys ?? []);
+      } catch (e) {
+        return APIResponse.badRequest(message: "Handle file failed");
+      }
+
+      for (SourceText source in sourceTexts) {
+        await source.insert();
+      }
+
+      SourceFile file = SourceFile(
+          uuid: Uuid().v4(),
+          modSourceInfoUUID: modSourceInfoUUID,
+          storageUUID: storageUUID,
+          path: path,
+          type: type,
+          sources: sourceTexts.map((e) => e.uuid).toList());
+
+      await file.insert();
+
+      return APIResponse.success(data: file.outputMap());
+    }, requiredFields: [
+      "modSourceInfoUUID",
+      "storageUUID",
+      "path",
+      "type",
+      "gameVersions"
+    ], authConfig: AuthConfig(role: UserRoleType.translationManager));
+
+    /// Edit source file
+    router.patchRoute("/source-file/<uuid>", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+
+      final String uuid = fields["uuid"]!;
+
+      SourceFile? sourceFile = await SourceFile.getByUUID(uuid);
+      if (sourceFile == null) {
+        return APIResponse.modelNotFound<SourceFile>();
+      }
+
+      final String? modSourceInfoUUID = fields["modSourceInfoUUID"];
+      final String? storageUUID = fields["storageUUID"];
+      final String? path = fields["path"];
+      final SourceFileType? type = fields["type"] != null
+          ? SourceFileType.values.byName(fields["type"]!)
+          : null;
+      final List<MinecraftVersion>? gameVersions =
+          fields["gameVersions"] != null
+              ? await MinecraftVersion.getByIDs(
+                  fields["gameVersions"]!.cast<String>())
+              : null;
+      final List<String>? patchouliI18nKeys =
+          fields["patchouliI18nKeys"] != null
+              ? fields["patchouliI18nKeys"]!.cast<String>()
+              : null;
+
+      if (modSourceInfoUUID != null) {
+        final ModSourceInfo? modSourceInfo =
+            await ModSourceInfo.getByUUID(modSourceInfoUUID);
+
+        if (modSourceInfo == null) {
+          return APIResponse.modelNotFound<ModSourceInfo>();
+        }
+      }
+
+      if (path != null && (path.isEmpty || path.trim().isEmpty)) {
+        return APIResponse.badRequest(message: "Path can't be empty");
+      }
+
+      List<SourceText>? sourceTexts;
+      if (storageUUID != null) {
+        if (gameVersions == null || gameVersions.isEmpty) {
+          return APIResponse.badRequest(
+              message:
+                  "If you want to change storage, you must provide game versions");
+        }
+
+        Storage? storage = await Storage.getByUUID(storageUUID);
+
+        if (storage == null) {
+          return APIResponse.modelNotFound<Storage>();
+        }
+
+        storage = storage.copyWith(
+            type: StorageType.general, usageCount: storage.usageCount + 1);
+        await storage.update();
+
+        Storage? oldStorage = await Storage.getByUUID(sourceFile.storageUUID);
+        if (oldStorage != null) {
+          oldStorage = oldStorage.copyWith(
+              type: StorageType.general,
+              usageCount:
+                  oldStorage.usageCount > 0 ? oldStorage.usageCount - 1 : 0);
+          await oldStorage.update();
+        }
+
+        final String fileString = await storage.readAsString();
+        try {
+          sourceTexts = TranslateHandler.handleFile(fileString,
+              type ?? sourceFile.type, gameVersions, path ?? sourceFile.path,
+              patchouliI18nKeys: patchouliI18nKeys ?? []);
+        } catch (e) {
+          return APIResponse.badRequest(message: "Handle file failed");
+        }
+
+        for (SourceText source in sourceTexts) {
+          if (sourceFile.sources.contains(source.uuid)) {
+            continue;
+          } else {
+            await source.insert();
+          }
+        }
+      }
+
+      sourceFile = sourceFile.copyWith(
+          modSourceInfoUUID: modSourceInfoUUID,
+          path: path,
+          type: type,
+          storageUUID: storageUUID,
+          sources: sourceTexts != null
+              ? (List.from(sourceFile.sources)
+                ..addAll(sourceTexts.map((e) => e.uuid).toList())
+                ..toSet()
+                ..toList())
+              : null);
+      await sourceFile.update();
+
+      if (storageUUID != null) {
+        (await sourceFile.storage)?.delete();
+      }
+
+      return APIResponse.success(data: sourceFile.outputMap());
+    },
+        requiredFields: ["uuid"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
+
+    /// Delete source file and all source texts in it
+    router.deleteRoute("/source-file/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
+
+      SourceFile? sourceFile = await SourceFile.getByUUID(uuid);
+      if (sourceFile == null) {
+        return APIResponse.modelNotFound<SourceFile>();
+      }
+      List<SourceText> sourceTexts = await sourceFile.sourceTexts;
+
+      for (SourceText source in sourceTexts) {
+        await source.delete();
+      }
+
+      Storage? storage = await sourceFile.storage;
+      if (storage != null) {
+        storage = storage.copyWith(
+            type: StorageType.general,
+            usageCount: storage.usageCount > 0 ? storage.usageCount - 1 : 0);
+        await storage.update();
+      }
+
+      await sourceFile.delete();
+
+      return APIResponse.success(data: null);
+    },
+        requiredFields: ["uuid"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
 
     // /// Get mod source info by uuid
     // router.getRoute("/mod-source-info/<uuid>", (req, data) async {

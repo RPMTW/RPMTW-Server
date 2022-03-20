@@ -23,7 +23,7 @@ class StorageRoute extends APIRoute {
           type: StorageType.temp,
           contentType: contentType,
           uuid: Uuid().v4(),
-          createAt: DateTime.now().toUtc().millisecondsSinceEpoch);
+          createAt: DateTime.now().toUtc());
       GridIn gridIn =
           DataBase.instance.gridFS.createFile(data.byteStream, storage.uuid);
       ByteSize size = ByteSize.FromBytes(req.contentLength!);

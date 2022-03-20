@@ -1,3 +1,4 @@
+import 'dart:convert';
 import "dart:typed_data";
 
 import "package:http/http.dart" as http;
@@ -16,16 +17,15 @@ class Storage extends BaseModel {
 
   final String contentType;
   final StorageType type;
-  final int createAt;
-
-  DateTime get createAtDateTime =>
-      DateTime.fromMillisecondsSinceEpoch(createAt).toUtc();
+  final DateTime createAt;
+  final int usageCount;
 
   const Storage(
       {required String uuid,
       this.contentType = "binary/octet-stream",
       required this.type,
-      required this.createAt})
+      required this.createAt,
+      this.usageCount = 0})
       : super(uuid: uuid);
 
   Future<Uint8List> readAsBytes() async {
@@ -46,12 +46,21 @@ class Storage extends BaseModel {
     return Uint8List.fromList(await byteStream.toBytes());
   }
 
-  Storage copyWith({String? contentType, StorageType? type, int? createAt}) {
+  Future<String> readAsString({Encoding encoding = utf8}) async {
+    return encoding.decode(await readAsBytes());
+  }
+
+  Storage copyWith(
+      {String? contentType,
+      StorageType? type,
+      DateTime? createAt,
+      int? usageCount}) {
     return Storage(
       uuid: uuid,
       contentType: contentType ?? this.contentType,
       type: type ?? this.type,
       createAt: createAt ?? this.createAt,
+      usageCount: usageCount ?? this.usageCount,
     );
   }
 
@@ -61,7 +70,8 @@ class Storage extends BaseModel {
       "uuid": uuid,
       "contentType": contentType,
       "type": type.name,
-      "createAt": createAt
+      "createAt": createAt.millisecondsSinceEpoch,
+      "usageCount": usageCount,
     };
   }
 
@@ -71,7 +81,8 @@ class Storage extends BaseModel {
         contentType: map["contentType"],
         type: StorageType.values.byName(map["type"] ?? "temp"),
         createAt:
-            map["createAt"] ?? DateTime.now().toUtc().millisecondsSinceEpoch);
+            DateTime.fromMillisecondsSinceEpoch(map["createAt"], isUtc: true),
+        usageCount: map["usageCount"]);
   }
 
   static Future<Storage?> getByUUID(String uuid) async =>

@@ -1,13 +1,20 @@
-import "package:intl/locale.dart";
-import "package:rpmtw_server/database/database.dart";
+import "dart:collection";
 
+import "package:intl/locale.dart";
+import 'package:collection/collection.dart';
+
+import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import "package:rpmtw_server/database/models/model_field.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
-import "dart:collection";
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/models/translate/source_file.dart';
 
+/// Represents a source text entry in a text format.
+/// Can be referenced by `sources` of [SourceFile] or `patchouliAddons` of [ModSourceInfo].
+/// Cannot be repeatedly referenced.
 class SourceText extends BaseModel {
   static const String collectionName = "source_texts";
   static const List<IndexField> indexFields = [
@@ -15,6 +22,7 @@ class SourceText extends BaseModel {
     IndexField("key", unique: false),
   ];
 
+  /// Text for translation.
   final String source;
 
   final List<MinecraftVersion> gameVersions;
@@ -79,6 +87,26 @@ class SourceText extends BaseModel {
       if (source != null) ModelField("source", source),
       if (key != null) ModelField("key", key),
     ], limit: limit, skip: skip);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    final listEquals = const DeepCollectionEquality().equals;
+
+    return other is SourceText &&
+        other.source == source &&
+        listEquals(other.gameVersions, gameVersions) &&
+        other.key == key &&
+        other.type == type;
+  }
+
+  @override
+  int get hashCode {
+    return source.hashCode ^
+        gameVersions.hashCode ^
+        key.hashCode ^
+        type.hashCode;
   }
 }
 
