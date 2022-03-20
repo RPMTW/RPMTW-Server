@@ -64,31 +64,6 @@ class MinecraftVersion {
       return [];
     }
   }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is MinecraftVersion &&
-        other.id == id &&
-        other.type == type &&
-        other.url == url &&
-        other.time == time &&
-        other.releaseTime == releaseTime &&
-        other.sha1 == sha1 &&
-        other.complianceLevel == complianceLevel;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^
-        type.hashCode ^
-        url.hashCode ^
-        time.hashCode ^
-        releaseTime.hashCode ^
-        sha1.hashCode ^
-        complianceLevel.hashCode;
-  }
 }
 
 enum MinecraftVersionType {

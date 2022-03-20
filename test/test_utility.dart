@@ -11,7 +11,8 @@ enum TestData {
   versionManifest,
   tinkersConstructLang,
   justEnoughItemsLang,
-  twilightForestPatchouliEntries
+  twilightForestPatchouliEntries,
+  rpmtwPlatformLogo
 }
 
 extension TestDataExtension on TestData {
@@ -25,6 +26,8 @@ extension TestDataExtension on TestData {
         return "jei_1.12_lang.lang";
       case TestData.twilightForestPatchouliEntries:
         return "twilightforest_patchouli_book_guide_entrie_ur_ghast.json";
+      case TestData.rpmtwPlatformLogo:
+        return "rpmtw-platform-logo.png";
       default:
         return name;
     }

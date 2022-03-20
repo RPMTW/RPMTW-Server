@@ -1450,7 +1450,8 @@ void main() async {
               "storageUUID": storageUUID,
               "path": "assets/jei/lang/en_us.lang",
               "type": "minecraftLang",
-              "gameVersions": ["1.11.2", "1.12.2"]
+              "gameVersions": ["1.11.2", "1.12.2"],
+              "patchouliI18nKeys": []
             }),
             headers: {
               "Content-Type": "application/json",

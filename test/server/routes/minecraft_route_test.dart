@@ -58,6 +58,13 @@ void main() async {
       Map _body = json.decode(_response.body)["data"];
       token = _body["token"];
       userUUID = _body["uuid"];
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.rpmtwPlatformLogo.getFileBytes(),
+          headers: {
+            "Content-Type": "image/png",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
 
       final response = await post(Uri.parse(host + "/minecraft/mod/create"),
           body: json.encode({
@@ -74,7 +81,7 @@ void main() async {
             ],
             "translatedName": modTranslatedName,
             "introduction": modIntroduction,
-            "imageStorageUUID": null // TODO: 測試新增模組圖片至 wiki 資料
+            "imageStorageUUID": storageUUID
           }),
           headers: {
             "Content-Type": "application/json",
@@ -90,6 +97,7 @@ void main() async {
       expect(data["side"], [modSide.toMap()]);
       expect(data["translatedName"], modTranslatedName);
       expect(data["introduction"], modIntroduction);
+      expect(data["imageStorageUUID"], storageUUID);
 
       modUUID = data["uuid"];
     });
@@ -267,14 +275,25 @@ void main() async {
       expect(mods[0]["side"], [modSide.toMap()]);
     });
     test("edit mod", () async {
-      final response = await patch(
-          Uri.parse(host + "/minecraft/mod/edit/$modUUID"),
+      late String storageUUID;
+      final _response = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.rpmtwPlatformLogo.getFileBytes(),
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          },
-          body:
-              json.encode({"name": changedName, "changelog": "edit mod name"}));
+            "Content-Type": "image/png",
+          });
+      storageUUID = json.decode(_response.body)["data"]["uuid"];
+
+      final response =
+          await patch(Uri.parse(host + "/minecraft/mod/edit/$modUUID"),
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer $token",
+              },
+              body: json.encode({
+                "name": changedName,
+                "imageStorageUUID": storageUUID,
+                "changelog": "edit mod name"
+              }));
       Map data = json.decode(response.body)["data"];
       expect(response.statusCode, 200);
       expect(data["name"], changedName);
