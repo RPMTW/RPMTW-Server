@@ -31,7 +31,7 @@ class WikiChangeLog extends BaseModel {
 
   final DateTime time;
 
-  WikiChangeLog({
+  const WikiChangeLog({
     this.changelog,
     required this.type,
     required this.dataUUID,
@@ -40,25 +40,6 @@ class WikiChangeLog extends BaseModel {
     required this.time,
     required String uuid,
   }) : super(uuid: uuid);
-
-  WikiChangeLog copyWith({
-    String? changelog,
-    WikiChangeLogType? type,
-    String? dataUUID,
-    Map<String, dynamic>? changedData,
-    String? userUUID,
-    DateTime? time,
-  }) {
-    return WikiChangeLog(
-      changelog: changelog ?? this.changelog,
-      type: type ?? this.type,
-      dataUUID: dataUUID ?? this.dataUUID,
-      changedData: changedData ?? this.changedData,
-      userUUID: userUUID ?? this.userUUID,
-      time: time ?? this.time,
-      uuid: uuid,
-    );
-  }
 
   @override
   Map<String, dynamic> toMap() {
@@ -115,41 +96,6 @@ class WikiChangeLog extends BaseModel {
       time: DateTime.fromMillisecondsSinceEpoch(map["time"]),
       uuid: map["uuid"],
     );
-  }
-
-  String toJson() => json.encode(toMap());
-
-  factory WikiChangeLog.fromJson(String source) =>
-      WikiChangeLog.fromMap(json.decode(source));
-
-  @override
-  String toString() {
-    return "WikiChangeLog(changelog: $changelog, type: $type, dataUUID: $dataUUID, changedData: $changedData, userUUID: $userUUID, time: $time, uuid: $uuid)";
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is WikiChangeLog &&
-        other.changelog == changelog &&
-        other.type == type &&
-        other.dataUUID == dataUUID &&
-        other.changedData == changedData &&
-        other.userUUID == userUUID &&
-        other.time == time &&
-        other.uuid == uuid;
-  }
-
-  @override
-  int get hashCode {
-    return changelog.hashCode ^
-        type.hashCode ^
-        dataUUID.hashCode ^
-        changedData.hashCode ^
-        userUUID.hashCode ^
-        time.hashCode ^
-        uuid.hashCode;
   }
 }
 
