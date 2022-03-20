@@ -1,7 +1,7 @@
 import "dart:collection";
 
 import "package:intl/locale.dart";
-import 'package:collection/collection.dart';
+import "package:collection/collection.dart";
 
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
@@ -9,8 +9,8 @@ import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import "package:rpmtw_server/database/models/model_field.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
-import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
-import 'package:rpmtw_server/database/models/translate/source_file.dart';
+import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
+import "package:rpmtw_server/database/models/translate/source_file.dart";
 
 /// Represents a source text entry in a text format.
 /// Can be referenced by `sources` of [SourceFile] or `patchouliAddons` of [ModSourceInfo].
@@ -32,7 +32,7 @@ class SourceText extends BaseModel {
   final SourceTextType type;
 
   Future<List<Translation>> getTranslations({Locale? language}) =>
-      Translation.search(sourceUUID: uuid, language: language);
+      Translation.list(sourceUUID: uuid, language: language);
 
   const SourceText({
     required String uuid,
@@ -81,7 +81,7 @@ class SourceText extends BaseModel {
   static Future<SourceText?> getByUUID(String uuid) =>
       DataBase.instance.getModelByUUID<SourceText>(uuid);
 
-  static Future<List<SourceText>> search(
+  static Future<List<SourceText>> list(
       {String? source, String? key, int? limit, int? skip}) {
     return DataBase.instance.getModelsByField([
       if (source != null) ModelField("source", source),

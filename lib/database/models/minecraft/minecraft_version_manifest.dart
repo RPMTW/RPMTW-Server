@@ -72,18 +72,18 @@ class MinecraftVersionManifest extends BaseModel {
   }
 
   static Future<MinecraftVersionManifest> getFromCache() async {
-    Map<String, dynamic>? manifestMap = await DataBase.instance
-        .getCollection<MinecraftVersionManifest>()
-        .findOne();
+    MinecraftVersionManifest? manifest = await DataBase.instance
+        .getModelWithSelector<MinecraftVersionManifest>(
+            where.sortBy("lastUpdated", descending: true));
 
-    if (manifestMap == null) {
+    if (manifest == null) {
       /// 如果資料庫快取中沒此資料，則重新下載
       MinecraftVersionManifest _manifest = await getFromWeb();
       await _manifest.insert();
       return _manifest;
     }
 
-    return MinecraftVersionManifest.fromMap(manifestMap);
+    return manifest;
   }
 }
 

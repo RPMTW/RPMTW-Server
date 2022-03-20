@@ -1,9 +1,9 @@
-import 'package:mongo_dart/mongo_dart.dart';
+import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/model_field.dart";
-import 'package:rpmtw_server/database/models/storage/storage.dart';
+import "package:rpmtw_server/database/models/storage/storage.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
@@ -125,7 +125,7 @@ class SourceFile extends BaseModel {
   static Future<SourceFile?> getByUUID(String uuid) =>
       DataBase.instance.getModelByUUID<SourceFile>(uuid);
 
-  static Future<List<SourceFile>> search(
+  static Future<List<SourceFile>> list(
           {String? modSourceInfoUUID, int? limit, int? skip}) =>
       DataBase.instance.getModelsByField<SourceFile>([
         if (modSourceInfoUUID != null)

@@ -74,11 +74,9 @@ class WikiChangeLog extends BaseModel {
   }
 
   Future<Map<String, dynamic>> output() async {
-    DbCollection collection = DataBase.instance.getCollection<WikiChangeLog>();
-    List<WikiChangeLog> changelogs = await collection
-        .find(where.eq("dataUUID", dataUUID).sortBy("time"))
-        .map((e) => WikiChangeLog.fromMap(e))
-        .toList();
+    List<WikiChangeLog> changelogs = await DataBase.instance
+        .getModelsWithSelector<WikiChangeLog>(
+            where.eq("dataUUID", dataUUID).sortBy("time"));
     Map<String, dynamic>? unchangedData;
 
     if (changelogs.isEmpty) {

@@ -1,4 +1,4 @@
-import 'package:rpmtw_server/database/models/auth/user_role.dart';
+import "package:rpmtw_server/database/models/auth/user_role.dart";
 
 class AuthConfig {
   final String? path;

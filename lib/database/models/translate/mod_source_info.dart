@@ -32,7 +32,7 @@ class ModSourceInfo extends BaseModel {
 
   /// [SourceFile] files included in this mod.
   Future<List<SourceFile>> get files {
-    return SourceFile.search(modSourceInfoUUID: uuid);
+    return SourceFile.list(modSourceInfoUUID: uuid);
   }
 
   Future<List<SourceText>?> get patchouliAddonTexts async {

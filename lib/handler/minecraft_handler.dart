@@ -94,40 +94,27 @@ class MinecraftHeader {
       limit = 50;
     }
 
-    List<MinecraftMod> mods = [];
-
-    final DbCollection collection =
-        DataBase.instance.getCollection<MinecraftMod>();
-
-    SelectorBuilder builder = SelectorBuilder();
+    SelectorBuilder selector = SelectorBuilder();
     if (filter != null) {
       /// search by name or id
-      builder = builder
+      selector = selector
           .match("id", filter)
           .or(where.match("name", "(?i)$filter"))
           .or(where.match("translatedName", "(?i)$filter"));
     }
-    builder = builder.limit(limit).skip(skip);
+    selector = selector.limit(limit).skip(skip);
 
     if (sort == 0) {
-      builder = builder.sortBy("createTime", descending: true);
+      selector = selector.sortBy("createTime", descending: true);
     } else if (sort == 1) {
-      builder = builder.sortBy("viewCount", descending: true);
+      selector = selector.sortBy("viewCount", descending: true);
     } else if (sort == 2) {
-      builder = builder.sortBy("name", descending: true);
+      selector = selector.sortBy("name", descending: true);
     } else if (sort == 3) {
-      builder = builder.sortBy("lastUpdate", descending: true);
+      selector = selector.sortBy("lastUpdate", descending: true);
     }
 
-    final List<Map<String, dynamic>> modMaps =
-        await collection.find(builder).toList();
-
-    for (final Map<String, dynamic> map in modMaps) {
-      MinecraftMod mod = MinecraftMod.fromMap(map);
-      mods.add(mod);
-    }
-
-    return mods;
+    return DataBase.instance.getModelsWithSelector<MinecraftMod>(selector);
   }
 
   static Future<List<WikiChangeLog>> filterChangelogs(
@@ -139,29 +126,19 @@ class MinecraftHeader {
       limit = 50;
     }
 
-    List<WikiChangeLog> changelogs = [];
-
-    final DbCollection collection =
-        DataBase.instance.getCollection<WikiChangeLog>();
-    SelectorBuilder builder = SelectorBuilder();
+    SelectorBuilder selector = SelectorBuilder();
 
     if (dataUUID != null && dataUUID.isNotEmpty) {
-      builder = builder.eq("dataUUID", dataUUID);
+      selector = selector.eq("dataUUID", dataUUID);
     }
     if (userUUID != null && userUUID.isNotEmpty) {
-      builder = builder.eq("userUUID", userUUID);
+      selector = selector.eq("userUUID", userUUID);
     }
 
-    builder = builder.limit(limit).skip(skip);
+    selector = selector.limit(limit).skip(skip);
 
-    final List<Map<String, dynamic>> changelogMaps =
-        await collection.find(builder).toList();
-
-    for (final Map<String, dynamic> map in changelogMaps) {
-      changelogs.add(WikiChangeLog.fromMap(map));
-    }
-
-    return changelogs;
+    return await DataBase.instance
+        .getModelsWithSelector<WikiChangeLog>(selector);
   }
 }
 

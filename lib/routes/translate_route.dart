@@ -8,6 +8,7 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import 'package:rpmtw_server/database/models/model_field.dart';
 import 'package:rpmtw_server/database/models/storage/storage.dart';
+import 'package:rpmtw_server/database/models/translate/glossary.dart';
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
@@ -18,7 +19,6 @@ import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/handler/translate_handler.dart';
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
-import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/extension.dart";
 
 class TranslateRoute extends APIRoute {
@@ -139,7 +139,7 @@ class TranslateRoute extends APIRoute {
           fields["language"] != null ? Locale.parse(fields["language"]) : null;
       final String? translatorUUID = fields["translatorUUID"];
 
-      final List<Translation> translations = await Translation.search(
+      final List<Translation> translations = await Translation.list(
           sourceUUID: sourceTextUUID,
           language: language,
           translatorUUID: translatorUUID);
@@ -166,7 +166,7 @@ class TranslateRoute extends APIRoute {
             message: "Translation content can't be empty");
       }
 
-      if (!Data.rpmTranslatorSupportedLanguage.contains(language)) {
+      if (!TranslateHandler.supportedLanguage.contains(language)) {
         return APIResponse.badRequest(
             message: "RPMTranslator doesn't support this language");
       }
@@ -223,15 +223,15 @@ class TranslateRoute extends APIRoute {
       Map<String, dynamic> fields = data.fields;
       int limit =
           fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
-      final int? skip =
-          fields["skip"] != null ? int.tryParse(fields["skip"]) : null;
+      final int skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) ?? 0 : 0;
 
       // Max limit is 50
       if (limit > 50) {
         limit = 50;
       }
 
-      final List<SourceText> sourceTexts = await SourceText.search(
+      final List<SourceText> sourceTexts = await SourceText.list(
           source: data.fields["source"],
           key: data.fields["key"],
           limit: limit,
@@ -390,8 +390,8 @@ class TranslateRoute extends APIRoute {
       final String? modSourceInfoUUID = fields["modSourceInfoUUID"];
       int limit =
           fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
-      final int? skip =
-          fields["skip"] != null ? int.tryParse(fields["skip"]) : null;
+      final int skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) ?? 0 : 0;
 
       // Max limit is 50
       if (limit > 50) {
@@ -399,7 +399,7 @@ class TranslateRoute extends APIRoute {
       }
 
       final List<SourceFile> files =
-          await SourceFile.search(modSourceInfoUUID: modSourceInfoUUID);
+          await SourceFile.list(modSourceInfoUUID: modSourceInfoUUID);
 
       return APIResponse.success(data: {
         "files": files.map((e) => e.outputMap()).toList(),
@@ -637,13 +637,10 @@ class TranslateRoute extends APIRoute {
 
       if (namespace != null) {
         final List<ModSourceInfo> results = await DataBase.instance
-            .getCollection<ModSourceInfo>()
-            .find(where
+            .getModelsWithSelector<ModSourceInfo>(where
                 .match("namespace", "(?i)$namespace")
                 .limit(limit)
-                .skip(skip))
-            .map((e) => ModSourceInfo.fromMap(e))
-            .toList();
+                .skip(skip));
 
         infos.addAll(results);
       }
@@ -832,7 +829,7 @@ class TranslateRoute extends APIRoute {
           await MinecraftVersion.getByID(data.fields["version"]!);
 
       if (version == null ||
-          Data.rpmTranslatorSupportedVersion.contains(version.id) == false) {
+          TranslateHandler.supportedVersion.contains(version.id) == false) {
         return APIResponse.badRequest(message: "Invalid game version");
       }
 
@@ -873,5 +870,157 @@ class TranslateRoute extends APIRoute {
 
       return APIResponse.success(data: output);
     }, requiredFields: ["namespaces", "format", "language", "version"]);
+
+    /// Get glossary
+    router.getRoute("/glossary/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"];
+
+      Glossary? glossary = await Glossary.getByUUID(uuid);
+      if (glossary == null) {
+        return APIResponse.modelNotFound<Glossary>();
+      }
+
+      return APIResponse.success(data: glossary.outputMap());
+    }, requiredFields: ["uuid"]);
+
+    /// Add glossary
+    router.postRoute("/glossary", (req, data) async {
+      final String term = data.fields["term"]!;
+      final String translation = data.fields["translation"]!;
+      final String? description = data.fields["description"];
+      final Locale language = Locale.parse(data.fields["language"]!);
+      final String? modUUID = data.fields["modUUID"];
+
+      if (!TranslateHandler.supportedLanguage.contains(language)) {
+        return APIResponse.badRequest(
+            message: "RPMTranslator doesn't support this language");
+      }
+
+      if (modUUID != null) {
+        MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
+        if (mod == null) {
+          return APIResponse.modelNotFound<MinecraftMod>();
+        }
+      }
+
+      if (term.isAllEmpty) {
+        return APIResponse.badRequest(message: "Term can't be empty");
+      }
+
+      if (translation.isAllEmpty) {
+        return APIResponse.badRequest(message: "Translation can't be empty");
+      }
+
+      if (description != null && description.isAllEmpty) {
+        return APIResponse.badRequest(message: "Description can't be empty");
+      }
+
+      final Glossary glossary = Glossary(
+        uuid: Uuid().v4(),
+        term: term,
+        translation: translation,
+        description: description,
+        language: language,
+        modUUID: modUUID,
+      );
+
+      await glossary.insert();
+
+      return APIResponse.success(data: glossary.outputMap());
+    },
+        requiredFields: ["term", "translation", "language"],
+        authConfig: AuthConfig());
+
+    /// List glossaries
+    router.getRoute("/glossary", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+
+      final Locale? language =
+          fields["language"] != null ? Locale.parse(fields["language"]) : null;
+      final String? modUUID = fields["modUUID"];
+      final String? filter = fields["filter"];
+      int limit =
+          fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
+      final int skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) ?? 0 : 0;
+
+      // Max limit is 50
+      if (limit > 50) {
+        limit = 50;
+      }
+
+      final List<Glossary> glossaries = await Glossary.list(
+          language: language,
+          modUUID: modUUID,
+          filter: filter,
+          limit: limit,
+          skip: skip);
+
+      return APIResponse.success(data: {
+        "glossaries": glossaries.map((e) => e.outputMap()).toList(),
+        "limit": limit,
+        "skip": skip,
+      });
+    }, authConfig: AuthConfig());
+
+    /// Edit glossary
+    router.patchRoute("/glossary/<uuid>", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+      final String uuid = fields["uuid"]!;
+
+      final String? term = fields["term"];
+      final String? translation = fields["translation"];
+      final String? description = fields["description"];
+      final String? modUUID = fields["modUUID"];
+
+      if (modUUID != null) {
+        MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
+        if (mod == null) {
+          return APIResponse.modelNotFound<MinecraftMod>();
+        }
+      }
+
+      if (term != null && term.isAllEmpty) {
+        return APIResponse.badRequest(message: "Term can't be empty");
+      }
+
+      if (translation != null && translation.isAllEmpty) {
+        return APIResponse.badRequest(message: "Translation can't be empty");
+      }
+
+      if (description != null && description.isAllEmpty) {
+        return APIResponse.badRequest(message: "Description can't be empty");
+      }
+
+      Glossary? glossary = await Glossary.getByUUID(uuid);
+      if (glossary == null) {
+        return APIResponse.modelNotFound<Glossary>();
+      }
+
+      glossary = glossary.copyWith(
+        term: term,
+        translation: translation,
+        description: description,
+        modUUID: modUUID,
+      );
+
+      await glossary.update();
+
+      return APIResponse.success(data: glossary.outputMap());
+    }, requiredFields: ["uuid"], authConfig: AuthConfig());
+
+    /// Delete glossary
+    router.deleteRoute("/glossary/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
+
+      Glossary? glossary = await Glossary.getByUUID(uuid);
+      if (glossary == null) {
+        return APIResponse.modelNotFound<Glossary>();
+      }
+
+      await glossary.delete();
+
+      return APIResponse.success(data: null);
+    }, requiredFields: ["uuid"], authConfig: AuthConfig());
   }
 }

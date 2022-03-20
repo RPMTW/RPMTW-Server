@@ -78,7 +78,7 @@ class MinecraftVersion {
                 _allVersions.firstWhere((e) => e.id == ver.mainVersion))
             .toList();
       }
-      
+
       versions
           .sort((a, b) => a.comparableVersion.compareTo(b.comparableVersion));
       versions = versions.toSet().toList();

@@ -2,10 +2,10 @@ import "dart:convert";
 import "dart:io";
 import "dart:typed_data";
 
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import "package:dart_jsonwebtoken/dart_jsonwebtoken.dart";
 import "package:http/http.dart" as http;
 import "package:rpmtw_server/database/models/auth/user.dart";
-import 'package:rpmtw_server/database/models/auth_route.dart';
+import "package:rpmtw_server/database/models/auth_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/utility.dart";

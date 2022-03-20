@@ -1,21 +1,36 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:crypto/crypto.dart';
-import 'package:intl/locale.dart';
-import 'package:json5/json5.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
-import 'package:rpmtw_server/database/models/translate/patchouli_file_info.dart';
-import 'package:rpmtw_server/database/models/translate/source_file.dart';
-import 'package:rpmtw_server/database/models/translate/source_text.dart';
-import 'package:rpmtw_server/database/models/translate/translation.dart';
-import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
-import 'package:rpmtw_server/utilities/extension.dart';
+import "package:crypto/crypto.dart";
+import "package:intl/locale.dart";
+import "package:json5/json5.dart";
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
+import "package:rpmtw_server/database/models/translate/patchouli_file_info.dart";
+import "package:rpmtw_server/database/models/translate/source_file.dart";
+import "package:rpmtw_server/database/models/translate/source_text.dart";
+import "package:rpmtw_server/database/models/translate/translation.dart";
+import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import "package:rpmtw_server/utilities/extension.dart";
 
 class TranslateHandler {
+  static final List<Locale> supportedLanguage = [
+    // Traditional Chinese
+    Locale.fromSubtags(languageCode: "zh", countryCode: "TW"),
+    // Simplified Chinese
+    Locale.fromSubtags(languageCode: "zh", countryCode: "CN"),
+  ];
+
+  static final List<String> supportedVersion = [
+    "1.12",
+    "1.16",
+    "1.17",
+    "1.18",
+    // "1.19"
+  ];
+
   /// https://github.com/VazkiiMods/Patchouli/blob/7d61bb287ea1e87a757bb14bff95e0de1c70688f/Common/src/main/java/vazkii/patchouli/client/book/BookEntry.java#L33
   /// https://github.com/VazkiiMods/Patchouli/blob/7d61bb287ea1e87a757bb14bff95e0de1c70688f/Common/src/main/java/vazkii/patchouli/client/book/BookCategory.java#L20
-  static List<String> patchouliSkipFields = [
+  static final List<String> _patchouliSkipFields = [
     "category",
     "flag",
     "icon",
@@ -128,7 +143,7 @@ class TranslateHandler {
         } else {
           bool hasSource = value is String &&
               !patchouliI18nKeys!.contains(value) &&
-              !patchouliSkipFields.contains(key);
+              !_patchouliSkipFields.contains(key);
 
           if (hasSource) {
             texts.add(SourceText(

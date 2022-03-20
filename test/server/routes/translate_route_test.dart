@@ -7,6 +7,7 @@ import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/auth/user_role.dart";
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
+import 'package:rpmtw_server/database/models/translate/glossary.dart';
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
@@ -2192,6 +2193,473 @@ void main() async {
       /// Delete the test data.
       await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
       await info.delete();
+    });
+  });
+
+  group("glossary", () {
+    Future<String> addTestGlossary() async {
+      final Glossary glossary = Glossary(
+          uuid: Uuid().v4(),
+          term: "Test glossary",
+          description: "This is a test glossary",
+          language: Locale.parse("zh-TW"),
+          translation: "測試用詞彙");
+      await glossary.insert();
+      return glossary.uuid;
+    }
+
+    group("add", () {
+      test("add glossary", () async {
+        String description =
+            "常見的敵對生物之一，它們悄無聲息地接近玩家，當距離目標3格內就會開始爆炸。由於它們獨特的外表和殺傷力以及破壞地形的能力，苦力怕成為了 Minecraft 的象徵標誌之一，遊戲內外都很受歡迎。";
+
+        MinecraftMod mod = MinecraftMod(
+            uuid: Uuid().v4(),
+            name: "Minecraft",
+            id: "minecraft",
+            supportVersions: [],
+            relationMods: [],
+            integration: ModIntegrationPlatform(),
+            side: [],
+            createTime: DateTime.now().toUtc(),
+            lastUpdate: DateTime.now().toUtc());
+        await mod.insert();
+
+        final response = await post(Uri.parse(host + "/translate/glossary"),
+            body: json.encode({
+              "term": "Creeper",
+              "translation": "苦力怕",
+              "description": description,
+              "language": "zh-TW",
+              "modUUID": mod.uuid
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token"
+            });
+
+        Map data = json.decode(response.body)["data"];
+
+        expect(response.statusCode, 200);
+        expect(data["term"], "Creeper");
+        expect(data["translation"], "苦力怕");
+        expect(data["description"], description);
+        expect(data["language"], "zh-TW");
+        expect(data["modUUID"], mod.uuid);
+
+        /// Delete the test data.
+        await (await Glossary.getByUUID(data["uuid"]))!.delete();
+        await mod.delete();
+      });
+
+      test("add glossary (unknown mod uuid)", () async {
+        final response = await post(Uri.parse(host + "/translate/glossary"),
+            body: json.encode({
+              "term": "Creeper",
+              "translation": "苦力怕",
+              "language": "zh-TW",
+              "modUUID": "test"
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token"
+            });
+
+        Map responseJson = json.decode(response.body);
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+      });
+
+      test("add glossary (unsupported language)", () async {
+        final response = await post(Uri.parse(host + "/translate/glossary"),
+            body: json.encode(
+                {"term": "Creeper", "translation": "クリーパー", "language": "ja"}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token"
+            });
+
+        Map responseJson = json.decode(response.body);
+        expect(response.statusCode, 400);
+        expect(responseJson["message"], contains("doesn't support"));
+      });
+
+      test("add glossary (empty term)", () async {
+        final response = await post(Uri.parse(host + "/translate/glossary"),
+            body: json.encode(
+                {"term": " ", "translation": "苦力怕", "language": "zh-TW"}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token"
+            });
+
+        Map responseJson = json.decode(response.body);
+        expect(response.statusCode, 400);
+        expect(responseJson["message"], contains("can't be empty"));
+      });
+
+      test("add glossary (empty translation)", () async {
+        final response = await post(Uri.parse(host + "/translate/glossary"),
+            body: json.encode(
+                {"term": "Creeper", "translation": " ", "language": "zh-TW"}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token"
+            });
+
+        Map responseJson = json.decode(response.body);
+        expect(response.statusCode, 400);
+        expect(responseJson["message"], contains("can't be empty"));
+      });
+
+      test("add glossary (empty description)", () async {
+        final response = await post(Uri.parse(host + "/translate/glossary"),
+            body: json.encode({
+              "term": "Creeper",
+              "translation": "苦力怕",
+              "language": "zh-TW",
+              "description": ""
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token"
+            });
+
+        Map responseJson = json.decode(response.body);
+        expect(response.statusCode, 400);
+        expect(responseJson["message"], contains("can't be empty"));
+      });
+    });
+
+    group("get and list", () {
+      test("get glossary", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(
+              Uri.parse(host + "/translate/glossary/$uuid"),
+              headers: {"Authorization": "Bearer $token"});
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["term"], "Test glossary");
+          expect(data["translation"], "測試用詞彙");
+          expect(data["description"], "This is a test glossary");
+          expect(data["language"], "zh-TW");
+          expect(data["modUUID"], null);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("get glossary (unknown uuid)", () async {
+        final response = await get(Uri.parse(host + "/translate/glossary/test"),
+            headers: {"Authorization": "Bearer $token"});
+
+        Map responseJson = json.decode(response.body);
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+      });
+
+      test("list glossaries", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(Uri.parse(host + "/translate/glossary"),
+              headers: {"Authorization": "Bearer $token"});
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["glossaries"].length, 1);
+          expect(data["glossaries"][0]["term"], "Test glossary");
+          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(
+              data["glossaries"][0]["description"], "This is a test glossary");
+          expect(data["glossaries"][0]["language"], "zh-TW");
+          expect(data["glossaries"][0]["modUUID"], null);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("list glossaries (filter)", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(
+            Uri.parse(host + "/translate/glossary")
+                .replace(queryParameters: {"filter": "Test"}),
+            headers: {"Authorization": "Bearer $token"},
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["glossaries"].length, 1);
+          expect(data["glossaries"][0]["term"], "Test glossary");
+          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(
+              data["glossaries"][0]["description"], "This is a test glossary");
+          expect(data["glossaries"][0]["language"], "zh-TW");
+          expect(data["glossaries"][0]["modUUID"], null);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("list glossaries (filter)", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(
+            Uri.parse(host + "/translate/glossary")
+                .replace(queryParameters: {"filter": "測試"}),
+            headers: {"Authorization": "Bearer $token"},
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["glossaries"].length, 1);
+          expect(data["glossaries"][0]["term"], "Test glossary");
+          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(
+              data["glossaries"][0]["description"], "This is a test glossary");
+          expect(data["glossaries"][0]["language"], "zh-TW");
+          expect(data["glossaries"][0]["modUUID"], null);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("list glossaries (filter with language zh-TW)", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(
+            Uri.parse(host + "/translate/glossary")
+                .replace(queryParameters: {"language": "zh-TW"}),
+            headers: {"Authorization": "Bearer $token"},
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["glossaries"].length, 1);
+          expect(data["glossaries"][0]["term"], "Test glossary");
+          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(
+              data["glossaries"][0]["description"], "This is a test glossary");
+          expect(data["glossaries"][0]["language"], "zh-TW");
+          expect(data["glossaries"][0]["modUUID"], null);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("list glossaries (filter with language zh-CN)", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(
+            Uri.parse(host + "/translate/glossary")
+                .replace(queryParameters: {"language": "zh-CN"}),
+            headers: {"Authorization": "Bearer $token"},
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["glossaries"].length, 0);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("list glossaries (filter with limit 100)", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await get(
+            Uri.parse(host + "/translate/glossary")
+                .replace(queryParameters: {"limit": "100"}),
+            headers: {"Authorization": "Bearer $token"},
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["glossaries"].length, 1);
+          expect(data["glossaries"][0]["term"], "Test glossary");
+          expect(data["glossaries"][0]["translation"], "測試用詞彙");
+          expect(
+              data["glossaries"][0]["description"], "This is a test glossary");
+          expect(data["glossaries"][0]["language"], "zh-TW");
+          expect(data["glossaries"][0]["modUUID"], null);
+          expect(data["limit"], 50);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+    });
+
+    group("edit", () {
+      test("edit glossary", () {
+        return addTestGlossary().then((uuid) async {
+          MinecraftMod mod = MinecraftMod(
+              uuid: Uuid().v4(),
+              name: "Minecraft",
+              id: "minecraft",
+              supportVersions: [],
+              relationMods: [],
+              integration: ModIntegrationPlatform(),
+              side: [],
+              createTime: DateTime.now().toUtc(),
+              lastUpdate: DateTime.now().toUtc());
+          await mod.insert();
+
+          final response = await patch(
+            Uri.parse(host + "/translate/glossary/$uuid"),
+            headers: {"Authorization": "Bearer $token"},
+            body: jsonEncode({
+              "term": "Test glossary2",
+              "translation": "測試用詞彙2",
+              "description": "Hello world",
+              "language": "zh-TW",
+              "modUUID": mod.uuid
+            }),
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["term"], "Test glossary2");
+          expect(data["translation"], "測試用詞彙2");
+          expect(data["description"], "Hello world");
+          expect(data["language"], "zh-TW");
+          expect(data["modUUID"], mod.uuid);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+          await mod.delete();
+        });
+      });
+
+      test("edit glossary (unknown uuid)", () async {
+        final response =
+            await patch(Uri.parse(host + "/translate/glossary/unknown"),
+                headers: {"Authorization": "Bearer $token"},
+                body: jsonEncode({
+                  "term": "Test glossary2",
+                  "translation": "測試用詞彙2",
+                  "description": "Hello world",
+                  "language": "zh-TW",
+                  "modUUID": "unknown"
+                }));
+
+        expect(response.statusCode, 404);
+      });
+
+      test("edit glossary (unknown modUUID)", () {
+        return addTestGlossary().then((uuid) async {
+          final response =
+              await patch(Uri.parse(host + "/translate/glossary/$uuid"),
+                  headers: {"Authorization": "Bearer $token"},
+                  body: jsonEncode({
+                    "term": "Test glossary2",
+                    "translation": "測試用詞彙2",
+                    "description": "Hello world",
+                    "language": "zh-TW",
+                    "modUUID": "unknown"
+                  }));
+
+          expect(response.statusCode, 404);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("edit glossary (empty term)", () {
+        return addTestGlossary().then((uuid) async {
+          final response =
+              await patch(Uri.parse(host + "/translate/glossary/$uuid"),
+                  headers: {"Authorization": "Bearer $token"},
+                  body: jsonEncode({
+                    "term": "",
+                    "translation": "測試用詞彙2",
+                    "description": "Hello world",
+                    "language": "zh-TW"
+                  }));
+
+          Map responseJson = json.decode(response.body);
+          expect(response.statusCode, 400);
+          expect(responseJson["message"], contains("can't be empty"));
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("edit glossary (empty translation)", () {
+        return addTestGlossary().then((uuid) async {
+          final response =
+              await patch(Uri.parse(host + "/translate/glossary/$uuid"),
+                  headers: {"Authorization": "Bearer $token"},
+                  body: jsonEncode({
+                    "term": "Test glossary2",
+                    "translation": "",
+                    "description": "Hello world",
+                    "language": "zh-TW"
+                  }));
+
+          Map responseJson = json.decode(response.body);
+          expect(response.statusCode, 400);
+          expect(responseJson["message"], contains("can't be empty"));
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
+      test("edit glossary (empty description)", () {
+        return addTestGlossary().then((uuid) async {
+          final response =
+              await patch(Uri.parse(host + "/translate/glossary/$uuid"),
+                  headers: {"Authorization": "Bearer $token"},
+                  body: jsonEncode({
+                    "term": "Test glossary2",
+                    "translation": "測試用詞彙2",
+                    "description": "",
+                    "language": "zh-TW"
+                  }));
+
+          Map responseJson = json.decode(response.body);
+          expect(response.statusCode, 400);
+          expect(responseJson["message"], contains("can't be empty"));
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+    });
+
+    group("delete", () {
+      test("delete glossary", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await delete(
+            Uri.parse(host + "/translate/glossary/$uuid"),
+            headers: {"Authorization": "Bearer $token"},
+          );
+
+          expect(response.statusCode, 200);
+          expect(await Glossary.getByUUID(uuid), null);
+        });
+      });
+
+      test("delete glossary (unknown uuid)", () async {
+        final response = await delete(
+          Uri.parse(host + "/translate/glossary/unknown"),
+          headers: {"Authorization": "Bearer $token"},
+        );
+
+        expect(response.statusCode, 404);
+      });
     });
   });
 }

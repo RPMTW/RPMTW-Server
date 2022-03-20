@@ -88,7 +88,7 @@ class Translation extends BaseModel {
   static Future<Translation?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<Translation>(uuid);
 
-  static Future<List<Translation>> search(
+  static Future<List<Translation>> list(
           {String? sourceUUID,
           Locale? language,
           String? translatorUUID}) async =>

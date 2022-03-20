@@ -1,4 +1,1 @@
-enum TranslationExportFormat{
-  json,
-  patchouli
-}
+enum TranslationExportFormat { json, patchouli }

@@ -10,6 +10,7 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
 import "package:rpmtw_server/database/models/model_field.dart";
+import "package:rpmtw_server/database/models/translate/glossary.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
@@ -55,6 +56,7 @@ class DataBase {
       SourceText.collectionName,
       ModSourceInfo.collectionName,
       SourceFile.collectionName,
+      Glossary.collectionName,
     ];
 
     List<List<IndexField>> indexFields = [
@@ -71,6 +73,7 @@ class DataBase {
       SourceText.indexFields,
       ModSourceInfo.indexFields,
       SourceFile.indexFields,
+      Glossary.indexFields,
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -141,6 +144,7 @@ class DataBase {
       "SourceText": collectionList[10],
       "ModSourceInfo": collectionList[11],
       "SourceFile": collectionList[12],
+      "Glossary": collectionList[13],
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -161,6 +165,7 @@ class DataBase {
       "SourceText": SourceText.fromMap,
       "ModSourceInfo": ModSourceInfo.fromMap,
       "SourceFile": SourceFile.fromMap,
+      "Glossary": Glossary.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;
@@ -175,9 +180,22 @@ class DataBase {
     Map<String, dynamic>? map =
         await getCollection<T>().findOne(where.eq(fieldName, value));
 
-    if (map == null) return null;
+    return map != null ? getModelByMap<T>(map) : null;
+  }
 
-    return getModelByMap<T>(map);
+  Future<T?> getModelWithSelector<T extends BaseModel>(
+      SelectorBuilder selector) async {
+    Map<String, dynamic>? map = await getCollection<T>().findOne(selector);
+
+    return map != null ? getModelByMap<T>(map) : null;
+  }
+
+  Future<List<T>> getModelsWithSelector<T extends BaseModel>(
+      SelectorBuilder selector) async {
+    List<Map<String, dynamic>> maps =
+        await getCollection<T>().find(selector).toList();
+
+    return maps.map((map) => getModelByMap<T>(map)).toList();
   }
 
   Future<List<T>> getModelsByField<T extends BaseModel>(List<ModelField> field,
