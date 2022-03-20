@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:intl/locale.dart';
 import 'package:json5/json5.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/translate/patchouli_file_info.dart';
 import 'package:rpmtw_server/database/models/translate/source_file.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import 'package:rpmtw_server/database/models/translate/translation.dart';
+import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 import 'package:rpmtw_server/utilities/extension.dart';
 
 class TranslateHandler {
@@ -153,5 +156,37 @@ class TranslateHandler {
     }
 
     return texts.toSet().toList();
+  }
+
+  static Future<int> getVoteResult(Translation translation) async {
+    int result = 0;
+    List<TranslationVote> votes =
+        await TranslationVote.getAllByTranslationUUID(translation.uuid);
+    for (TranslationVote vote in votes) {
+      if (vote.isUpVote) {
+        result++;
+      } else if (vote.isDownVote) {
+        result--;
+      }
+    }
+
+    return result;
+  }
+
+  static Future<Translation?> getBestTranslation(
+      SourceText text, Locale language) async {
+    List<Translation> translations =
+        await text.getTranslations(language: language);
+
+    Map<String, int> voteResults = {};
+    for (Translation translation in translations) {
+      voteResults[translation.uuid] = await getVoteResult(translation);
+    }
+
+    translations
+        .sort((a, b) => voteResults[a.uuid]!.compareTo(voteResults[b.uuid]!));
+
+    if (translations.isEmpty) return null;
+    return translations.first;
   }
 }

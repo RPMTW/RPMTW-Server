@@ -2050,4 +2050,148 @@ void main() async {
       });
     });
   });
+  group("export", () {
+    test("export translation (json format)", () async {
+      ModSourceInfo info =
+          ModSourceInfo(uuid: Uuid().v4(), namespace: "tconstruct");
+      await info.insert();
+
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.tinkersConstructLang.getFileString(),
+          headers: {
+            "Content-Type": "application/json",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
+
+      final _response2 = await post(Uri.parse(host + "/translate/source-file"),
+          body: json.encode({
+            "modSourceInfoUUID": info.uuid,
+            "storageUUID": storageUUID,
+            "path": "assets/tconstruct/lang/en_us.json",
+            "type": "gsonLang",
+            "gameVersions": ["1.16.5"]
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $translationManagerToken"
+          });
+      expect(_response2.statusCode, 200);
+      Map _data2 = json.decode(_response2.body)["data"];
+
+      final response = await get(
+          Uri.parse(host + "/translate/export").replace(queryParameters: {
+            "format": "json",
+            "language": "zh-TW",
+            "version": "1.16",
+            "namespaces": "tconstruct"
+          }),
+          headers: {"Content-Type": "application/json"});
+
+      Map data = json.decode(response.body)["data"];
+
+      expect(response.statusCode, 200);
+      expect(data, {});
+
+      /// Delete the test data.
+      await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
+      await info.delete();
+    });
+
+    test("export translation (patchouli format)", () async {
+      ModSourceInfo info =
+          ModSourceInfo(uuid: Uuid().v4(), namespace: "twilightforest");
+      await info.insert();
+
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.twilightForestPatchouliEntries.getFileString(),
+          headers: {
+            "Content-Type": "plain/text",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
+
+      final _response2 = await post(Uri.parse(host + "/translate/source-file"),
+          body: json.encode({
+            "modSourceInfoUUID": info.uuid,
+            "storageUUID": storageUUID,
+            "path":
+                "data/twilightforest/patchouli_books/guide/en_us/entries/bosses/ur_ghast.json",
+            "type": "patchouli",
+            "gameVersions": ["1.18.2"],
+            "patchouliI18nKeys": []
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $translationManagerToken"
+          });
+      expect(_response2.statusCode, 200);
+      Map _data2 = json.decode(_response2.body)["data"];
+
+      final response = await get(
+          Uri.parse(host + "/translate/export").replace(queryParameters: {
+            "format": "patchouli",
+            "language": "zh-TW",
+            "version": "1.18",
+            "namespaces": "twilightforest,tconstruct,patchouli"
+          }),
+          headers: {"Content-Type": "application/json"});
+
+      Map data = json.decode(response.body)["data"];
+
+      expect(response.statusCode, 200);
+      expect(data, {});
+
+      /// Delete the test data.
+      await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
+      await info.delete();
+    });
+
+    test("export translation (invalid game version)", () async {
+      ModSourceInfo info =
+          ModSourceInfo(uuid: Uuid().v4(), namespace: "tconstruct");
+      await info.insert();
+
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.tinkersConstructLang.getFileString(),
+          headers: {
+            "Content-Type": "application/json",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
+
+      final _response2 = await post(Uri.parse(host + "/translate/source-file"),
+          body: json.encode({
+            "modSourceInfoUUID": info.uuid,
+            "storageUUID": storageUUID,
+            "path": "assets/tconstruct/lang/en_us.json",
+            "type": "gsonLang",
+            "gameVersions": ["1.16.5"]
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $translationManagerToken"
+          });
+      expect(_response2.statusCode, 200);
+      Map _data2 = json.decode(_response2.body)["data"];
+
+      final response = await get(
+          Uri.parse(host + "/translate/export").replace(queryParameters: {
+            "format": "json",
+            "language": "zh-TW",
+            "version": "22w11a",
+            "namespaces": "tconstruct"
+          }),
+          headers: {"Content-Type": "application/json"});
+
+      Map responseJson = json.decode(response.body);
+
+      expect(response.statusCode, 400);
+      expect(responseJson["message"], contains("Invalid game version"));
+
+      /// Delete the test data.
+      await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
+      await info.delete();
+    });
+  });
 }

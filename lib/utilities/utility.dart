@@ -54,7 +54,11 @@ class Utility {
         RegExpMatch match = _.allMatches(sourceVersion).toList().first;
 
         String praseRelease(int year, int week) {
-          if (year == 21 && week >= 37) {
+          if (year == 22 && week >= 11) {
+            return "1.19.0";
+          } else if (year == 22 && week >= 3 && week <= 7) {
+            return "1.18.2";
+          } else if (year == 21 && week >= 37) {
             return "1.18.0";
           } else if (year == 21 && (week >= 3 && week <= 20)) {
             return "1.17.0";

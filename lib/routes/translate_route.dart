@@ -12,6 +12,7 @@ import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
+import 'package:rpmtw_server/database/models/translate/translation_export_format.dart';
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/handler/translate_handler.dart';
@@ -248,7 +249,8 @@ class TranslateRoute extends APIRoute {
       final String source = data.fields["source"]!;
       final List<MinecraftVersion> gameVersions =
           await MinecraftVersion.getByIDs(
-              data.fields["gameVersions"]!.cast<String>());
+              data.fields["gameVersions"]!.cast<String>(),
+              mainVersion: true);
       final String key = data.fields["key"]!;
       final SourceTextType type =
           SourceTextType.values.byName(data.fields["type"]!);
@@ -291,7 +293,8 @@ class TranslateRoute extends APIRoute {
       final List<MinecraftVersion>? gameVersions =
           data.fields["gameVersions"] != null
               ? await MinecraftVersion.getByIDs(
-                  data.fields["gameVersions"]!.cast<String>())
+                  data.fields["gameVersions"]!.cast<String>(),
+                  mainVersion: true)
               : null;
       final String? key = data.fields["key"];
       final SourceTextType? type = data.fields["type"] != null
@@ -415,7 +418,8 @@ class TranslateRoute extends APIRoute {
       final SourceFileType type = SourceFileType.values.byName(fields["type"]!);
       final List<MinecraftVersion> gameVersions =
           await MinecraftVersion.getByIDs(
-              fields["gameVersions"]!.cast<String>());
+              fields["gameVersions"]!.cast<String>(),
+              mainVersion: true);
       final List<String>? patchouliI18nKeys =
           fields["patchouliI18nKeys"] != null
               ? fields["patchouliI18nKeys"]!.cast<String>()
@@ -497,7 +501,8 @@ class TranslateRoute extends APIRoute {
       final List<MinecraftVersion>? gameVersions =
           fields["gameVersions"] != null
               ? await MinecraftVersion.getByIDs(
-                  fields["gameVersions"]!.cast<String>())
+                  fields["gameVersions"]!.cast<String>(),
+                  mainVersion: true)
               : null;
       final List<String>? patchouliI18nKeys =
           fields["patchouliI18nKeys"] != null
@@ -815,5 +820,58 @@ class TranslateRoute extends APIRoute {
     },
         requiredFields: ["uuid"],
         authConfig: AuthConfig(role: UserRoleType.translationManager));
+
+    /// Export translation
+    router.getRoute("/export", (req, data) async {
+      final List<String> namespaces =
+          data.fields["namespaces"]!.toString().split(",");
+      final Locale language = Locale.parse(data.fields["language"]!);
+      final TranslationExportFormat format =
+          TranslationExportFormat.values.byName(data.fields["format"]!);
+      final MinecraftVersion? version =
+          await MinecraftVersion.getByID(data.fields["version"]!);
+
+      if (version == null ||
+          Data.rpmTranslatorSupportedVersion.contains(version.id) == false) {
+        return APIResponse.badRequest(message: "Invalid game version");
+      }
+
+      List<ModSourceInfo> infos = [];
+      for (String namespace in namespaces) {
+        ModSourceInfo? info = await ModSourceInfo.getByNamespace(namespace);
+        if (info != null) {
+          infos.add(info);
+        }
+      }
+
+      List<SourceText> texts = [];
+
+      for (ModSourceInfo info in infos) {
+        final List<SourceFile> files = await info.files;
+
+        if (format == TranslationExportFormat.json) {
+          for (SourceFile file in files) {
+            (await file.sourceTexts).forEach(texts.add);
+          }
+        } else if (format == TranslationExportFormat.patchouli) {
+          final List<SourceText>? _texts = await info.patchouliAddonTexts;
+          if (_texts != null) {
+            (await info.patchouliAddonTexts)?.forEach(texts.add);
+          }
+        }
+      }
+      texts = texts.where((e) => e.gameVersions.contains(version)).toList();
+
+      Map<String, String> output = {};
+      for (SourceText text in texts) {
+        Translation? translation =
+            await TranslateHandler.getBestTranslation(text, language);
+        if (translation != null) {
+          output[text.key] = translation.content;
+        }
+      }
+
+      return APIResponse.success(data: output);
+    }, requiredFields: ["namespaces", "format", "language", "version"]);
   }
 }

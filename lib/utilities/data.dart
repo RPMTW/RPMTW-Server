@@ -33,6 +33,14 @@ class Data {
     // Simplified Chinese
     Locale.fromSubtags(languageCode: "zh", countryCode: "CN"),
   ];
+
+  static List<String> rpmTranslatorSupportedVersion = [
+    "1.12",
+    "1.16",
+    "1.17",
+    "1.18",
+   // "1.19"
+  ];
 }
 
 class UserViewCountFilter {

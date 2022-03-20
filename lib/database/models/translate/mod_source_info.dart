@@ -95,4 +95,7 @@ class ModSourceInfo extends BaseModel {
 
   static Future<ModSourceInfo?> getByModUUID(String modUUID) =>
       DataBase.instance.getModelByField<ModSourceInfo>("modUUID", modUUID);
+
+  static Future<ModSourceInfo?> getByNamespace(String namespace) =>
+      DataBase.instance.getModelByField<ModSourceInfo>("namespace", namespace);
 }

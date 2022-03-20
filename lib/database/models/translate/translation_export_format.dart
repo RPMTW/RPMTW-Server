@@ -1,0 +1,4 @@
+enum TranslationExportFormat{
+  json,
+  patchouli
+}

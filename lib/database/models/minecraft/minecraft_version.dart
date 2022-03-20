@@ -24,6 +24,9 @@ class MinecraftVersion {
 
   Version get comparableVersion => Utility.parseMCComparableVersion(id);
 
+  String get mainVersion =>
+      "${comparableVersion.major}.${comparableVersion.minor}";
+
   MinecraftVersion(this.id, this.type, this.url, this.time, this.releaseTime,
       this.sha1, this.complianceLevel);
 
@@ -50,19 +53,64 @@ class MinecraftVersion {
     };
   }
 
-  static Future<List<MinecraftVersion>> getByIDs(List<String> ids) async {
+  static Future<MinecraftVersion?> getByID(String id) async {
+    final List<MinecraftVersion> _allVersions =
+        (await MinecraftVersionManifest.getFromCache()).manifest.versions;
+
+    try {
+      return _allVersions.firstWhere((e) => id.contains(e.id));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<List<MinecraftVersion>> getByIDs(List<String> ids,
+      {bool mainVersion = false}) async {
     final List<MinecraftVersion> _allVersions =
         (await MinecraftVersionManifest.getFromCache()).manifest.versions;
 
     List<MinecraftVersion> versions = [];
     try {
       versions = _allVersions.where((e) => ids.contains(e.id)).toList();
+      if (mainVersion) {
+        versions = versions
+            .map((ver) =>
+                _allVersions.firstWhere((e) => e.id == ver.mainVersion))
+            .toList();
+      }
+      
       versions
           .sort((a, b) => a.comparableVersion.compareTo(b.comparableVersion));
+      versions = versions.toSet().toList();
       return versions;
     } catch (e) {
       return [];
     }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is MinecraftVersion &&
+        other.id == id &&
+        other.type == type &&
+        other.url == url &&
+        other.time == time &&
+        other.releaseTime == releaseTime &&
+        other.sha1 == sha1 &&
+        other.complianceLevel == complianceLevel;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        type.hashCode ^
+        url.hashCode ^
+        time.hashCode ^
+        releaseTime.hashCode ^
+        sha1.hashCode ^
+        complianceLevel.hashCode;
   }
 }
 
