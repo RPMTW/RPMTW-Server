@@ -1,3 +1,4 @@
+import 'package:mongo_dart/mongo_dart.dart';
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
@@ -87,6 +88,25 @@ class SourceFile extends BaseModel {
       "type": type.name,
       "sources": sources,
     };
+  }
+
+  @override
+  Future<WriteResult> delete() async {
+    List<SourceText> texts = await sourceTexts;
+
+    for (SourceText text in texts) {
+      await text.delete();
+    }
+
+    Storage? _storage = await storage;
+    if (_storage != null) {
+      _storage = _storage.copyWith(
+          type: StorageType.general,
+          usageCount: _storage.usageCount > 0 ? _storage.usageCount - 1 : 0);
+      await _storage.update();
+    }
+
+    return super.delete();
   }
 
   factory SourceFile.fromMap(Map<String, dynamic> map) {

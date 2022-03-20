@@ -19,7 +19,8 @@ class PatchouliFileInfo {
       int pbIndex = parts.indexOf("patchouli_books");
 
       final String fileName = path.basename(filePath);
-      final String fileFolder = parts.sublist(pbIndex + 3, parts.length - 1).join("/");
+      final String fileFolder =
+          parts.sublist(pbIndex + 3, parts.length - 1).join("/");
       // final String langCode = parts[parts.length - 3];
       final String bookName = parts[pbIndex + 1];
       final String namespace = parts[pbIndex - 1];

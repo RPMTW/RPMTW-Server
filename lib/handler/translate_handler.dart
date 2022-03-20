@@ -7,6 +7,7 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/translate/patchouli_file_info.dart';
 import 'package:rpmtw_server/database/models/translate/source_file.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import 'package:rpmtw_server/utilities/extension.dart';
 
 class TranslateHandler {
   /// https://github.com/VazkiiMods/Patchouli/blob/7d61bb287ea1e87a757bb14bff95e0de1c70688f/Common/src/main/java/vazkii/patchouli/client/book/BookEntry.java#L33
@@ -75,7 +76,7 @@ class TranslateHandler {
       }
 
       lang.forEach((key, value) {
-        if (value.isEmpty || value.trim().isEmpty) return;
+        if (value.isAllEmpty) return;
 
         texts.add(SourceText(
             uuid: Uuid().v4(),
@@ -134,10 +135,8 @@ class TranslateHandler {
         }
       });
     } else if (type == SourceFileType.plainText) {
-      List<String> lines = LineSplitter()
-          .convert(string)
-          .where((l) => l.isEmpty || l.trim().isEmpty)
-          .toList();
+      List<String> lines =
+          LineSplitter().convert(string).where((l) => l.isAllEmpty).toList();
 
       for (String line in lines) {
         texts.add(SourceText(

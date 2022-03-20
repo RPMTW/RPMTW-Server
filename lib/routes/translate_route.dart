@@ -4,6 +4,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/database/models/auth_route.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import 'package:rpmtw_server/database/models/model_field.dart';
 import 'package:rpmtw_server/database/models/storage/storage.dart';
@@ -12,6 +13,7 @@ import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/handler/translate_handler.dart';
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
@@ -157,7 +159,7 @@ class TranslateRoute extends APIRoute {
         return APIResponse.modelNotFound<SourceText>();
       }
 
-      if (content.isEmpty || content.trim().isEmpty) {
+      if (content.isAllEmpty) {
         return APIResponse.badRequest(
             message: "Translation content can't be empty");
       }
@@ -250,7 +252,7 @@ class TranslateRoute extends APIRoute {
       final SourceTextType type =
           SourceTextType.values.byName(data.fields["type"]!);
 
-      if (source.isEmpty || source.trim().isEmpty) {
+      if (source.isAllEmpty) {
         return APIResponse.badRequest(message: "Source can't be empty");
       }
 
@@ -258,7 +260,7 @@ class TranslateRoute extends APIRoute {
         return APIResponse.badRequest(message: "Game versions can't be empty");
       }
 
-      if (key.isEmpty || key.trim().isEmpty) {
+      if (key.isAllEmpty) {
         return APIResponse.badRequest(message: "Key can't be empty");
       }
 
@@ -295,7 +297,7 @@ class TranslateRoute extends APIRoute {
           ? SourceTextType.values.byName(data.fields["type"]!)
           : null;
 
-      if (source != null && (source.isEmpty || source.trim().isEmpty)) {
+      if (source != null && source.isAllEmpty) {
         return APIResponse.badRequest(message: "Source can't be empty");
       }
 
@@ -303,7 +305,7 @@ class TranslateRoute extends APIRoute {
         return APIResponse.badRequest(message: "Game versions can't be empty");
       }
 
-      if (key != null && (key.isEmpty || key.trim().isEmpty)) {
+      if (key != null && key.isAllEmpty) {
         return APIResponse.badRequest(message: "Key can't be empty");
       }
 
@@ -437,7 +439,7 @@ class TranslateRoute extends APIRoute {
           type: StorageType.general, usageCount: storage.usageCount + 1);
       await storage.update();
 
-      if (path.isEmpty || path.trim().isEmpty) {
+      if (path.isAllEmpty) {
         return APIResponse.badRequest(message: "Path can't be empty");
       }
 
@@ -510,7 +512,7 @@ class TranslateRoute extends APIRoute {
         }
       }
 
-      if (path != null && (path.isEmpty || path.trim().isEmpty)) {
+      if (path != null && path.isAllEmpty) {
         return APIResponse.badRequest(message: "Path can't be empty");
       }
 
@@ -589,19 +591,6 @@ class TranslateRoute extends APIRoute {
       if (sourceFile == null) {
         return APIResponse.modelNotFound<SourceFile>();
       }
-      List<SourceText> sourceTexts = await sourceFile.sourceTexts;
-
-      for (SourceText source in sourceTexts) {
-        await source.delete();
-      }
-
-      Storage? storage = await sourceFile.storage;
-      if (storage != null) {
-        storage = storage.copyWith(
-            type: StorageType.general,
-            usageCount: storage.usageCount > 0 ? storage.usageCount - 1 : 0);
-        await storage.update();
-      }
 
       await sourceFile.delete();
 
@@ -610,17 +599,220 @@ class TranslateRoute extends APIRoute {
         requiredFields: ["uuid"],
         authConfig: AuthConfig(role: UserRoleType.translationManager));
 
-    // /// Get mod source info by uuid
-    // router.getRoute("/mod-source-info/<uuid>", (req, data) async {
-    //   final String uuid = data.fields["uuid"]!;
+    /// Get mod source info by uuid
+    router.getRoute("/mod-source-info/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
 
-    //   final ModSourceInfo? modSourceInfo = await ModSourceInfo.getByUUID(uuid);
+      final ModSourceInfo? modSourceInfo = await ModSourceInfo.getByUUID(uuid);
 
-    //   if (modSourceInfo == null) {
-    //     return APIResponse.modelNotFound<ModSourceInfo>();
-    //   }
+      if (modSourceInfo == null) {
+        return APIResponse.modelNotFound<ModSourceInfo>();
+      }
 
-    //   return APIResponse.success(data: modSourceInfo.outputMap());
-    // }, requiredFields: ["uuid"]);
+      return APIResponse.success(data: modSourceInfo.outputMap());
+    }, requiredFields: ["uuid"]);
+
+    /// List mod source info
+    router.getRoute("/mod-source-info", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+      final String? name = fields["name"];
+      final String? namespace = fields["namespace"];
+
+      int limit =
+          fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
+      final int skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) ?? 0 : 0;
+
+      // Max limit is 50
+      if (limit > 50) {
+        limit = 50;
+      }
+      List<ModSourceInfo> infos = [];
+
+      if (namespace != null) {
+        final List<ModSourceInfo> results = await DataBase.instance
+            .getCollection<ModSourceInfo>()
+            .find(where
+                .match("namespace", "(?i)$namespace")
+                .limit(limit)
+                .skip(skip))
+            .map((e) => ModSourceInfo.fromMap(e))
+            .toList();
+
+        infos.addAll(results);
+      }
+
+      if (name != null) {
+        List<MinecraftMod> mods = await MinecraftHeader.searchMods(
+            filter: name, limit: limit, skip: skip);
+
+        for (MinecraftMod mod in mods) {
+          if (infos.map((e) => e.modUUID).contains(mod.uuid)) {
+            continue;
+          }
+
+          final ModSourceInfo? modSourceInfo =
+              await ModSourceInfo.getByModUUID(mod.uuid);
+          if (modSourceInfo != null) {
+            infos.add(modSourceInfo);
+          }
+        }
+      }
+
+      if (namespace == null && name == null) {
+        final List<ModSourceInfo> results = await DataBase.instance
+            .getModelsByField([], limit: limit, skip: skip);
+
+        infos.addAll(results);
+      }
+
+      return APIResponse.success(data: {
+        "infos": infos.map((e) => e.outputMap()).toList(),
+        "limit": limit,
+        "skip": skip,
+      });
+    });
+
+    /// Add mod source info
+    router.postRoute("/mod-source-info", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+      final String? modUUID = fields["modUUID"];
+      final String namespace = fields["namespace"]!;
+      final List<String>? patchouliAddons = fields["patchouliAddons"] != null
+          ? fields["patchouliAddons"]!.cast<String>()
+          : null;
+
+      if (namespace.isAllEmpty) {
+        return APIResponse.badRequest(message: "Namespace can't be empty");
+      }
+
+      if (modUUID != null) {
+        final MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
+        if (mod == null) {
+          return APIResponse.modelNotFound<MinecraftMod>();
+        }
+
+        final ModSourceInfo? modSourceInfo =
+            await ModSourceInfo.getByModUUID(modUUID);
+
+        if (modSourceInfo != null) {
+          return APIResponse.badRequest(
+              message:
+                  "This mod uuid has already been added by another mod source info");
+        }
+      }
+
+      if (patchouliAddons != null) {
+        for (String addonUUID in patchouliAddons) {
+          SourceText? sourceText = await SourceText.getByUUID(addonUUID);
+          if (sourceText == null) {
+            return APIResponse.modelNotFound<SourceText>();
+          }
+        }
+      }
+
+      final ModSourceInfo info = ModSourceInfo(
+          uuid: Uuid().v4(),
+          modUUID: modUUID,
+          namespace: namespace,
+          patchouliAddons: patchouliAddons);
+
+      await info.insert();
+
+      return APIResponse.success(data: info.outputMap());
+    },
+        requiredFields: ["namespace"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
+
+    /// Edit mod source info
+    router.patchRoute("/mod-source-info/<uuid>", (req, data) async {
+      Map<String, dynamic> fields = data.fields;
+      final String uuid = fields["uuid"]!;
+
+      ModSourceInfo? modSourceInfo = await ModSourceInfo.getByUUID(uuid);
+      if (modSourceInfo == null) {
+        return APIResponse.modelNotFound<ModSourceInfo>();
+      }
+
+      final String? modUUID = fields["modUUID"];
+      final String? namespace = fields["namespace"];
+      final List<String>? patchouliAddons = fields["patchouliAddons"] != null
+          ? fields["patchouliAddons"]!.cast<String>()
+          : null;
+
+      if (modUUID != null) {
+        final MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
+        if (mod == null) {
+          return APIResponse.modelNotFound<MinecraftMod>();
+        }
+
+        final ModSourceInfo? modSourceInfo =
+            await ModSourceInfo.getByModUUID(modUUID);
+
+        if (modSourceInfo != null) {
+          return APIResponse.badRequest(
+              message:
+                  "This mod uuid has already been added by another mod source info");
+        }
+      }
+
+      if (patchouliAddons != null) {
+        List<String> needCheckUUIDs = patchouliAddons
+            .where((e) =>
+                (modSourceInfo!.patchouliAddons?.contains(e) ?? false) == false)
+            .toList();
+
+        for (String uuid in needCheckUUIDs) {
+          SourceText? sourceText = await SourceText.getByUUID(uuid);
+          if (sourceText == null) {
+            return APIResponse.modelNotFound<SourceText>();
+          }
+        }
+      }
+
+      if (namespace != null && (namespace.isAllEmpty)) {
+        return APIResponse.badRequest(message: "Namespace can't be empty");
+      }
+
+      modSourceInfo = modSourceInfo.copyWith(
+          modUUID: modUUID,
+          namespace: namespace,
+          patchouliAddons: patchouliAddons);
+
+      await modSourceInfo.update();
+
+      return APIResponse.success(data: modSourceInfo.outputMap());
+    },
+        requiredFields: ["uuid"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
+
+    /// Delete mod source info
+    router.deleteRoute("/mod-source-info/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
+
+      ModSourceInfo? modSourceInfo = await ModSourceInfo.getByUUID(uuid);
+      if (modSourceInfo == null) {
+        return APIResponse.modelNotFound<ModSourceInfo>();
+      }
+
+      List<SourceFile> files = await modSourceInfo.files;
+      for (SourceFile file in files) {
+        await file.delete();
+      }
+
+      List<String>? patchouliAddons = modSourceInfo.patchouliAddons;
+      if (patchouliAddons != null) {
+        for (String addonUUID in patchouliAddons) {
+          SourceText? sourceText = await SourceText.getByUUID(addonUUID);
+          await sourceText?.delete();
+        }
+      }
+
+      await modSourceInfo.delete();
+
+      return APIResponse.success(data: null);
+    },
+        requiredFields: ["uuid"],
+        authConfig: AuthConfig(role: UserRoleType.translationManager));
   }
 }

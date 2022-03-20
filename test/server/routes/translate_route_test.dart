@@ -5,6 +5,8 @@ import "package:intl/locale.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/auth/user_role.dart";
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
@@ -125,7 +127,7 @@ void main() async {
       expect(data["userUUID"], userUUID);
 
       /// Delete the test translation vote.
-      (await TranslationVote.getByUUID(data["uuid"]))!.delete();
+      await (await TranslationVote.getByUUID(data["uuid"]))!.delete();
     });
 
     test("add translation vote (unknown translation uuid)", () async {
@@ -157,7 +159,7 @@ void main() async {
       expect(responseJson["message"], contains("already voted"));
 
       /// Delete the test translation vote.
-      (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
+      await (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
     });
 
     test("add translation vote (unauthorized)", () async {
@@ -186,7 +188,7 @@ void main() async {
       expect(data[0]["uuid"], translationVoteUUID);
 
       /// Delete the test translation vote.
-      (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
+      await (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
     });
 
     test("list translation vote (unknown translation uuid)", () async {
@@ -254,7 +256,7 @@ void main() async {
       expect(responseJson["message"], contains("can't cancel"));
 
       /// Delete the test translation vote.
-      (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
+      await (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
     });
     test("edit translation vote", () async {
       String translationVoteUUID = await addTestVote();
@@ -274,7 +276,7 @@ void main() async {
       expect(responseJson["message"], "success");
 
       /// Delete the test translation vote.
-      (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
+      await (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
     });
 
     test("edit translation vote (unknown translation vote uuid)", () async {
@@ -320,7 +322,7 @@ void main() async {
       expect(responseJson["message"], contains("can't edit"));
 
       /// Delete the test translation vote.
-      (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
+      await (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
     });
   });
 
@@ -346,7 +348,7 @@ void main() async {
       expect(data["content"], "你好，世界！");
 
       /// Delete the test translation.
-      (await Translation.getByUUID(data["uuid"]))!.delete();
+      await (await Translation.getByUUID(data["uuid"]))!.delete();
     });
 
     test("add translation (unknown source text uuid)", () async {
@@ -425,7 +427,7 @@ void main() async {
       expect(data["uuid"], translationUUID);
 
       /// Delete the test translation.
-      (await Translation.getByUUID(translationUUID))!.delete();
+      await (await Translation.getByUUID(translationUUID))!.delete();
     });
     test("get translation (unknown uuid)", () async {
       final response = await get(
@@ -456,7 +458,7 @@ void main() async {
       expect(data[1]["uuid"], translationUUID);
 
       /// Delete the test translation.
-      (await Translation.getByUUID(translationUUID))!.delete();
+      await (await Translation.getByUUID(translationUUID))!.delete();
     });
 
     test("list translation (unknown source text uuid)", () async {
@@ -525,7 +527,7 @@ void main() async {
       expect(responseJson["message"], contains("can't delete"));
 
       /// Delete the test translation.
-      (await Translation.getByUUID(translationUUID))!.delete();
+      await (await Translation.getByUUID(translationUUID))!.delete();
     });
   });
   group("source text", () {
@@ -726,7 +728,7 @@ void main() async {
       expect(responseJson["data"]["type"], "patchouli");
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("edit source text (not permission)", () async {
@@ -750,7 +752,7 @@ void main() async {
       expect(responseJson["message"], "Forbidden");
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("edit source text (unknown uuid)", () async {
@@ -774,7 +776,7 @@ void main() async {
       expect(responseJson["message"], contains("not found"));
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("edit source text (empty source)", () async {
@@ -798,7 +800,7 @@ void main() async {
       expect(responseJson["message"], contains("can't be empty"));
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("edit source text (empty game versions)", () async {
@@ -822,7 +824,7 @@ void main() async {
       expect(responseJson["message"], contains("can't be empty"));
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("edit source text (empty key)", () async {
@@ -846,7 +848,7 @@ void main() async {
       expect(responseJson["message"], contains("can't be empty"));
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("edit source text (all is empty)", () async {
@@ -865,7 +867,7 @@ void main() async {
       expect(responseJson["message"], contains("need to provide"));
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("delete source text", () async {
@@ -922,7 +924,7 @@ void main() async {
       expect(responseJson["message"], contains("not found"));
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("delete source text (type is patchouli)", () async {
@@ -1012,7 +1014,7 @@ void main() async {
         expect(data["type"], "gsonLang");
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await (await SourceFile.getByUUID(data["uuid"]))!.delete();
       });
 
       test("add source file (minecraft lang)", () async {
@@ -1050,7 +1052,7 @@ void main() async {
         expect(data["type"], "minecraftLang");
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await (await SourceFile.getByUUID(data["uuid"]))!.delete();
       });
 
       test("add source file (patchouli book)", () async {
@@ -1092,7 +1094,7 @@ void main() async {
         expect(data["type"], "patchouli");
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await (await SourceFile.getByUUID(data["uuid"]))!.delete();
       });
 
       test("add source file (not permission)", () async {
@@ -1271,7 +1273,7 @@ void main() async {
         expect(data["uuid"], sourceFileUUID);
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
       test("get source file (unknown uuid)", () async {
         final response = await get(
@@ -1300,7 +1302,7 @@ void main() async {
         expect(data[0]["uuid"], sourceFileUUID);
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
       test("list source file (search by mod source)", () async {
@@ -1323,7 +1325,7 @@ void main() async {
         expect(data[0]["uuid"], testData.uuid);
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(testData.uuid))!.delete();
+        await (await SourceFile.getByUUID(testData.uuid))!.delete();
       });
 
       test("list source text (limit 100)", () async {
@@ -1379,7 +1381,7 @@ void main() async {
         expect(responseJson["data"]["type"], "minecraftLang");
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
         await info.delete();
       });
 
@@ -1405,7 +1407,7 @@ void main() async {
         expect(responseJson["message"], "Forbidden");
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
       test("edit source file (unknown uuid)", () async {
@@ -1467,7 +1469,7 @@ void main() async {
         expect(responseJson["data"]["type"], "minecraftLang");
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
         await info.delete();
       });
 
@@ -1490,7 +1492,7 @@ void main() async {
         expect(responseJson["message"], contains("not found"));
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
       test("edit source file (empty path)", () async {
@@ -1512,7 +1514,7 @@ void main() async {
         expect(responseJson["message"], contains("can't be empty"));
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
       test("edit source file (change storage, empty game versions)", () async {
@@ -1540,7 +1542,7 @@ void main() async {
             contains("you must provide game versions"));
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
       test("edit source file (unknown storage)", () async {
@@ -1562,7 +1564,7 @@ void main() async {
         expect(responseJson["message"], contains("not found"));
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
       test("edit source file (invalid file content)", () async {
@@ -1592,7 +1594,7 @@ void main() async {
         expect(responseJson["message"], contains("Handle file failed"));
 
         /// Delete the test source file.
-        (await SourceFile.getByUUID(sourceFileUUID))!.delete();
+        await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
     });
 
@@ -1616,6 +1618,406 @@ void main() async {
       test("delete source file (unknown uuid)", () async {
         final response = await delete(
             Uri.parse(host + "/translate/source-file/test"),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+      });
+    });
+  });
+
+  group("mod source info", () {
+    Future<String> addTestModSourceInfo() async {
+      ModSourceInfo info = ModSourceInfo(uuid: Uuid().v4(), namespace: "test");
+      await info.insert();
+      return info.uuid;
+    }
+
+    group("add", () {
+      test("add mod source info", () async {
+        String testTextUUID = await addTestSourceText();
+        MinecraftMod mod = MinecraftMod(
+            uuid: Uuid().v4(),
+            name: "test",
+            id: "test",
+            supportVersions: [],
+            relationMods: [],
+            integration: ModIntegrationPlatform(),
+            side: [],
+            createTime: DateTime.now().toUtc(),
+            lastUpdate: DateTime.now().toUtc());
+        await mod.insert();
+
+        final response =
+            await post(Uri.parse(host + "/translate/mod-source-info"),
+                body: json.encode({
+                  "modUUID": mod.uuid,
+                  "namespace": "test",
+                  "patchouliAddons": [testTextUUID]
+                }),
+                headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+
+        Map data = json.decode(response.body)["data"];
+
+        expect(response.statusCode, 200);
+        expect(data["uuid"], isNotNull);
+        expect(data["modUUID"], mod.uuid);
+        expect(data["namespace"], "test");
+        expect(data["patchouliAddons"], [testTextUUID]);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(data["uuid"]))!.delete();
+        await (await SourceText.getByUUID(testTextUUID))!.delete();
+        await mod.delete();
+      });
+
+      test("add mod source info (empty namespace)", () async {
+        final response = await post(
+            Uri.parse(host + "/translate/mod-source-info"),
+            body: json.encode({"namespace": "   "}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 400);
+        expect(responseJson["message"], contains("can't be empty"));
+      });
+
+      test("add mod source info (unknown mod uuid)", () async {
+        final response = await post(
+            Uri.parse(host + "/translate/mod-source-info"),
+            body: json.encode({"namespace": "test", "modUUID": "test"}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+      });
+
+      test(
+          "add mod source info (already been added by another mod source info)",
+          () async {
+        MinecraftMod mod = MinecraftMod(
+            uuid: Uuid().v4(),
+            name: "test",
+            id: "test",
+            supportVersions: [],
+            relationMods: [],
+            integration: ModIntegrationPlatform(),
+            side: [],
+            createTime: DateTime.now().toUtc(),
+            lastUpdate: DateTime.now().toUtc());
+        await mod.insert();
+        ModSourceInfo info = ModSourceInfo(
+            uuid: Uuid().v4(), namespace: "test2", modUUID: mod.uuid);
+        await info.insert();
+
+        final response = await post(
+            Uri.parse(host + "/translate/mod-source-info"),
+            body: json.encode({"namespace": "test", "modUUID": mod.uuid}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 400);
+        expect(responseJson["message"],
+            contains("already been added by another mod source info"));
+
+        await mod.delete();
+        await info.delete();
+      });
+
+      test("add mod source info (unknown patchouli addons text uuid)",
+          () async {
+        final response =
+            await post(Uri.parse(host + "/translate/mod-source-info"),
+                body: json.encode({
+                  "namespace": "test",
+                  "patchouliAddons": ["test"]
+                }),
+                headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+      });
+    });
+
+    group("get and list", () {
+      test("get mod source info", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info/$modSourceInfoUUID"),
+            headers: {"Content-Type": "application/json"});
+
+        Map data = json.decode(response.body)["data"];
+
+        expect(response.statusCode, 200);
+        expect(data["uuid"], modSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+      test("get mod source info (unknown uuid)", () async {
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info/test"),
+            headers: {"Content-Type": "application/json"});
+
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+      });
+
+      test("list mod source info", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info")
+                .replace(queryParameters: {"limit": "10", "skip": "0"}),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 1);
+        expect(data[0]["uuid"], modSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list source file (search by mod namespace)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info").replace(
+                queryParameters: {
+                  "limit": "10",
+                  "skip": "0",
+                  "namespace": "test",
+                  "name": "test"
+                }),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 1);
+        expect(data[0]["uuid"], modSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list source text (limit 100)", () async {
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info")
+                .replace(queryParameters: {"limit": "100", "skip": "0"}),
+            headers: {"Content-Type": "application/json"});
+
+        Map data = json.decode(response.body)["data"];
+
+        expect(response.statusCode, 200);
+        expect(data["limit"], 50);
+        expect(data["skip"], 0);
+        expect(data["infos"].length, 0);
+      });
+    });
+    group("edit", () {
+      test("edit source file", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+        MinecraftMod mod = MinecraftMod(
+            uuid: Uuid().v4(),
+            name: "test2",
+            id: "test_2",
+            supportVersions: [],
+            relationMods: [],
+            integration: ModIntegrationPlatform(),
+            side: [],
+            createTime: DateTime.now().toUtc(),
+            lastUpdate: DateTime.now().toUtc());
+        await mod.insert();
+        String testTextUUID = await addTestSourceText();
+
+        final response = await patch(
+            Uri.parse(host + "/translate/mod-source-info/$modSourceInfoUUID"),
+            body: json.encode({
+              "modUUID": mod.uuid,
+              "namespace": "test_2",
+              "patchouliAddons": [testTextUUID]
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 200);
+        expect(responseJson["message"], "success");
+        expect(responseJson["data"]["uuid"], modSourceInfoUUID);
+        expect(responseJson["data"]["modUUID"], mod.uuid);
+        expect(responseJson["data"]["namespace"], "test_2");
+        expect(responseJson["data"]["patchouliAddons"].length, 1);
+        expect(responseJson["data"]["patchouliAddons"][0], testTextUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+        await (await SourceText.getByUUID(testTextUUID))!.delete();
+        await mod.delete();
+      });
+
+      test("edit source file (empty namespace)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await patch(
+            Uri.parse(host + "/translate/mod-source-info/$modSourceInfoUUID"),
+            body: json.encode({
+              "namespace": "   ",
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 400);
+        expect(responseJson["message"], contains("can't be empty"));
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("edit source file (unknown mod uuid)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await patch(
+            Uri.parse(host + "/translate/mod-source-info/$modSourceInfoUUID"),
+            body: json.encode({"namespace": "test", "modUUID": "test"}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("edit source file (unknown patchouli addons text uuid)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await patch(
+            Uri.parse(host + "/translate/mod-source-info/$modSourceInfoUUID"),
+            body: json.encode({
+              "namespace": "test",
+              "patchouliAddons": ["test"]
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 404);
+        expect(responseJson["message"], contains("not found"));
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("edit source file (already been added by another mod source info)",
+          () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        MinecraftMod mod = MinecraftMod(
+            uuid: Uuid().v4(),
+            name: "test",
+            id: "test",
+            supportVersions: [],
+            relationMods: [],
+            integration: ModIntegrationPlatform(),
+            side: [],
+            createTime: DateTime.now().toUtc(),
+            lastUpdate: DateTime.now().toUtc());
+        await mod.insert();
+        ModSourceInfo info = ModSourceInfo(
+            uuid: Uuid().v4(), namespace: "test2", modUUID: mod.uuid);
+        await info.insert();
+
+        final response = await patch(
+            Uri.parse(host + "/translate/mod-source-info/$modSourceInfoUUID"),
+            body: json.encode({"namespace": "test", "modUUID": mod.uuid}),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 400);
+        expect(responseJson["message"],
+            contains("already been added by another mod source info"));
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+        await mod.delete();
+        await info.delete();
+      });
+    });
+    group("delete", () {
+      test("delete mod source info", () async {
+        String sourceTextUUID =
+            await addTestSourceText(type: SourceTextType.patchouli);
+        ModSourceInfo info = ModSourceInfo(
+            uuid: Uuid().v4(),
+            namespace: "test",
+            patchouliAddons: [sourceTextUUID]);
+        await info.insert();
+
+        final response = await delete(
+            Uri.parse(host + "/translate/mod-source-info/${info.uuid}"),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+        Map responseJson = json.decode(response.body);
+
+        expect(response.statusCode, 200);
+        expect(responseJson["message"], "success");
+        expect(await SourceFile.getByUUID(info.uuid), null);
+        expect(await SourceText.getByUUID(sourceTextUUID), null);
+      });
+
+      test("delete mod source info (unknown uuid)", () async {
+        final response = await delete(
+            Uri.parse(host + "/translate/mod-source-info/test"),
             headers: {
               "Content-Type": "application/json",
               "Authorization": "Bearer $translationManagerToken"

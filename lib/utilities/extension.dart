@@ -45,6 +45,8 @@ extension StringCasingExtension on String {
   }
 
   bool toBool() => this == "true";
+
+  bool get isAllEmpty => isEmpty || trim().isEmpty;
 }
 
 extension RequestExtension on Request {
