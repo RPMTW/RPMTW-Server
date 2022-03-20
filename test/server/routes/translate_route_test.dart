@@ -98,7 +98,7 @@ void main() async {
   Future<String> addTestSourceText(
       {SourceTextType type = SourceTextType.general}) async {
     final SourceText source = SourceText(
-        uuid: mockSourceTextUUID,
+        uuid: Uuid().v4(),
         source: "Hello, World!",
         gameVersions: [],
         key: "test.title.hello_world",
@@ -551,7 +551,7 @@ void main() async {
       expect(data["type"], "general");
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(data["uuid"]))!.delete();
+      await (await SourceText.getByUUID(data["uuid"]))!.delete();
     });
 
     test("add source text (not permission)", () async {
@@ -639,7 +639,7 @@ void main() async {
       expect(data["uuid"], sourceTextUUID);
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
     test("get source text (unknown uuid)", () async {
       final response = await get(
@@ -664,11 +664,11 @@ void main() async {
           json.decode(response.body)["data"]["sources"].cast<Map>();
 
       expect(response.statusCode, 200);
-      expect(data.length, 1);
-      expect(data[0]["uuid"], sourceTextUUID);
+      expect(data.length, 2);
+      expect(data[1]["uuid"], sourceTextUUID);
 
       /// Delete the test source text.
-      (await SourceText.getByUUID(sourceTextUUID))!.delete();
+      await (await SourceText.getByUUID(sourceTextUUID))!.delete();
     });
 
     test("list source text (search by source and key)", () async {
@@ -685,7 +685,7 @@ void main() async {
           json.decode(response.body)["data"]["sources"].cast<Map>();
 
       expect(response.statusCode, 200);
-      expect(data.length, 0);
+      expect(data.length, 1);
     });
 
     test("list source text (limit 100)", () async {
@@ -699,7 +699,7 @@ void main() async {
       expect(response.statusCode, 200);
       expect(data["limit"], 50);
       expect(data["skip"], 0);
-      expect(data["sources"].length, 0);
+      expect(data["sources"].length, 1);
     });
 
     test("edit source text", () async {
