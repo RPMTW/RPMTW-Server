@@ -5,5 +5,5 @@ services:
     env_file:
       - .env
     ports:
-      - 2096
-      - 2087
+      - 2096:2096
+      - 2087:2087
