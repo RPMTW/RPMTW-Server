@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  rpmtw_server:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - 2096
+      - 2087
