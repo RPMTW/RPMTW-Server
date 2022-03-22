@@ -1060,5 +1060,7 @@ class TranslateRoute extends APIRoute {
       return APIResponse.success(
           data: result.map((key, value) => MapEntry(key, value.toMap())));
     }, requiredFields: ["text", "language"]);
+
+    
   }
 }
