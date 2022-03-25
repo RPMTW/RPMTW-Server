@@ -1,26 +1,27 @@
-import 'package:grammer/grammer.dart';
+import "package:grammer/grammer.dart";
 import "package:intl/locale.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
-import 'package:rpmtw_server/database/models/auth/user_role.dart';
-import 'package:rpmtw_server/database/models/auth_route.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import "package:rpmtw_server/database/models/auth/user_role.dart";
+import "package:rpmtw_server/database/models/auth_route.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
-import 'package:rpmtw_server/database/models/model_field.dart';
-import 'package:rpmtw_server/database/models/storage/storage.dart';
-import 'package:rpmtw_server/database/models/translate/glossary.dart';
+import "package:rpmtw_server/database/models/model_field.dart";
+import "package:rpmtw_server/database/models/storage/storage.dart";
+import "package:rpmtw_server/database/models/translate/glossary.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
-import 'package:rpmtw_server/database/models/translate/translation_export_format.dart';
+import "package:rpmtw_server/database/models/translate/translation_export_format.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
-import 'package:rpmtw_server/handler/minecraft_handler.dart';
-import 'package:rpmtw_server/handler/translate_handler.dart';
+import "package:rpmtw_server/handler/minecraft_handler.dart";
+import "package:rpmtw_server/handler/translate_handler.dart";
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/extension.dart";
+import "package:shelf_router/shelf_router.dart";
 
 class TranslateRoute extends APIRoute {
   @override
@@ -28,6 +29,68 @@ class TranslateRoute extends APIRoute {
 
   @override
   void router(router) {
+    vote(router);
+    translation(router);
+    sourceText(router);
+    sourceFile(router);
+    modSourceInfo(router);
+    glossary(router);
+
+    /// Export translation
+    router.getRoute("/export", (req, data) async {
+      final List<String> namespaces =
+          data.fields["namespaces"]!.toString().split(",");
+      final Locale language = Locale.parse(data.fields["language"]!);
+      final TranslationExportFormat format =
+          TranslationExportFormat.values.byName(data.fields["format"]!);
+      final MinecraftVersion? version =
+          await MinecraftVersion.getByID(data.fields["version"]!);
+
+      if (version == null ||
+          TranslateHandler.supportedVersion.contains(version.id) == false) {
+        return APIResponse.badRequest(message: "Invalid game version");
+      }
+
+      List<ModSourceInfo> infos = [];
+      for (String namespace in namespaces) {
+        ModSourceInfo? info = await ModSourceInfo.getByNamespace(namespace);
+        if (info != null) {
+          infos.add(info);
+        }
+      }
+
+      List<SourceText> texts = [];
+
+      for (ModSourceInfo info in infos) {
+        final List<SourceFile> files = await info.files;
+
+        if (format == TranslationExportFormat.json) {
+          for (SourceFile file in files) {
+            (await file.sourceTexts).forEach(texts.add);
+          }
+        } else if (format == TranslationExportFormat.patchouli) {
+          final List<SourceText>? _texts = await info.patchouliAddonTexts;
+          if (_texts != null) {
+            (await info.patchouliAddonTexts)?.forEach(texts.add);
+          }
+        }
+      }
+      texts = texts.where((e) => e.gameVersions.contains(version)).toList();
+
+      Map<String, String> output = {};
+      for (SourceText text in texts) {
+        Translation? translation =
+            await TranslateHandler.getBestTranslation(text, language);
+        if (translation != null) {
+          output[text.key] = translation.content;
+        }
+      }
+
+      return APIResponse.success(data: output);
+    }, requiredFields: ["namespaces", "format", "language", "version"]);
+  }
+
+  void vote(Router router) {
     /// List all translation votes by translation uuid
     router.getRoute("/vote", (req, data) async {
       final String translationUUID = data.fields["translationUUID"];
@@ -89,7 +152,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (vote.userUUID != user.uuid) {
-        return APIResponse.badRequest(message: "You can't edit this vote");
+        return APIResponse.badRequest(message: "You cannot edit this vote");
       }
 
       vote = vote.copyWith(type: type);
@@ -110,14 +173,16 @@ class TranslateRoute extends APIRoute {
       }
 
       if (vote.userUUID != user.uuid) {
-        return APIResponse.badRequest(message: "You can't cancel this vote");
+        return APIResponse.badRequest(message: "You cannot cancel this vote");
       }
 
       await vote.delete();
 
       return APIResponse.success(data: null);
     }, requiredFields: ["uuid"], authConfig: AuthConfig());
+  }
 
+  void translation(Router router) {
     /// Get translation by uuid
     router.getRoute("/translation/<uuid>", (req, data) async {
       final String uuid = data.fields["uuid"]!;
@@ -164,7 +229,7 @@ class TranslateRoute extends APIRoute {
 
       if (content.isAllEmpty) {
         return APIResponse.badRequest(
-            message: "Translation content can't be empty");
+            message: "Translation content cannot be empty");
       }
 
       if (!TranslateHandler.supportedLanguage.contains(language)) {
@@ -198,14 +263,16 @@ class TranslateRoute extends APIRoute {
 
       if (translation.translatorUUID != user.uuid) {
         return APIResponse.badRequest(
-            message: "You can't delete this translation");
+            message: "You cannot delete this translation");
       }
 
       await translation.delete();
 
       return APIResponse.success(data: null);
     }, requiredFields: ["uuid"], authConfig: AuthConfig());
+  }
 
+  void sourceText(Router router) {
     /// Get source text by uuid
     router.getRoute("/source-text/<uuid>", (req, data) async {
       final String uuid = data.fields["uuid"]!;
@@ -257,15 +324,15 @@ class TranslateRoute extends APIRoute {
           SourceTextType.values.byName(data.fields["type"]!);
 
       if (source.isAllEmpty) {
-        return APIResponse.badRequest(message: "Source can't be empty");
+        return APIResponse.badRequest(message: "Source cannot be empty");
       }
 
       if (gameVersions.isEmpty) {
-        return APIResponse.badRequest(message: "Game versions can't be empty");
+        return APIResponse.badRequest(message: "Game versions cannot be empty");
       }
 
       if (key.isAllEmpty) {
-        return APIResponse.badRequest(message: "Key can't be empty");
+        return APIResponse.badRequest(message: "Key cannot be empty");
       }
 
       final SourceText sourceText = SourceText(
@@ -303,15 +370,15 @@ class TranslateRoute extends APIRoute {
           : null;
 
       if (source != null && source.isAllEmpty) {
-        return APIResponse.badRequest(message: "Source can't be empty");
+        return APIResponse.badRequest(message: "Source cannot be empty");
       }
 
       if (gameVersions != null && gameVersions.isEmpty) {
-        return APIResponse.badRequest(message: "Game versions can't be empty");
+        return APIResponse.badRequest(message: "Game versions cannot be empty");
       }
 
       if (key != null && key.isAllEmpty) {
-        return APIResponse.badRequest(message: "Key can't be empty");
+        return APIResponse.badRequest(message: "Key cannot be empty");
       }
 
       if (source == null &&
@@ -371,7 +438,9 @@ class TranslateRoute extends APIRoute {
     },
         requiredFields: ["uuid"],
         authConfig: AuthConfig(role: UserRoleType.translationManager));
+  }
 
+  void sourceFile(Router router) {
     /// Get source file by uuid
     router.getRoute("/source-file/<uuid>", (req, data) async {
       final String uuid = data.fields["uuid"]!;
@@ -434,7 +503,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (gameVersions.isEmpty) {
-        return APIResponse.badRequest(message: "Game versions can't be empty");
+        return APIResponse.badRequest(message: "Game versions cannot be empty");
       }
 
       Storage? storage = await Storage.getByUUID(storageUUID);
@@ -446,7 +515,7 @@ class TranslateRoute extends APIRoute {
       await storage.update();
 
       if (path.isAllEmpty) {
-        return APIResponse.badRequest(message: "Path can't be empty");
+        return APIResponse.badRequest(message: "Path cannot be empty");
       }
 
       String fileString = await storage.readAsString();
@@ -520,7 +589,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (path != null && path.isAllEmpty) {
-        return APIResponse.badRequest(message: "Path can't be empty");
+        return APIResponse.badRequest(message: "Path cannot be empty");
       }
 
       List<SourceText>? sourceTexts;
@@ -605,7 +674,9 @@ class TranslateRoute extends APIRoute {
     },
         requiredFields: ["uuid"],
         authConfig: AuthConfig(role: UserRoleType.translationManager));
+  }
 
+  void modSourceInfo(Router router) {
     /// Get mod source info by uuid
     router.getRoute("/mod-source-info/<uuid>", (req, data) async {
       final String uuid = data.fields["uuid"]!;
@@ -687,7 +758,7 @@ class TranslateRoute extends APIRoute {
           : null;
 
       if (namespace.isAllEmpty) {
-        return APIResponse.badRequest(message: "Namespace can't be empty");
+        return APIResponse.badRequest(message: "Namespace cannot be empty");
       }
 
       if (modUUID != null) {
@@ -775,7 +846,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (namespace != null && (namespace.isAllEmpty)) {
-        return APIResponse.badRequest(message: "Namespace can't be empty");
+        return APIResponse.badRequest(message: "Namespace cannot be empty");
       }
 
       modSourceInfo = modSourceInfo.copyWith(
@@ -818,60 +889,9 @@ class TranslateRoute extends APIRoute {
     },
         requiredFields: ["uuid"],
         authConfig: AuthConfig(role: UserRoleType.translationManager));
+  }
 
-    /// Export translation
-    router.getRoute("/export", (req, data) async {
-      final List<String> namespaces =
-          data.fields["namespaces"]!.toString().split(",");
-      final Locale language = Locale.parse(data.fields["language"]!);
-      final TranslationExportFormat format =
-          TranslationExportFormat.values.byName(data.fields["format"]!);
-      final MinecraftVersion? version =
-          await MinecraftVersion.getByID(data.fields["version"]!);
-
-      if (version == null ||
-          TranslateHandler.supportedVersion.contains(version.id) == false) {
-        return APIResponse.badRequest(message: "Invalid game version");
-      }
-
-      List<ModSourceInfo> infos = [];
-      for (String namespace in namespaces) {
-        ModSourceInfo? info = await ModSourceInfo.getByNamespace(namespace);
-        if (info != null) {
-          infos.add(info);
-        }
-      }
-
-      List<SourceText> texts = [];
-
-      for (ModSourceInfo info in infos) {
-        final List<SourceFile> files = await info.files;
-
-        if (format == TranslationExportFormat.json) {
-          for (SourceFile file in files) {
-            (await file.sourceTexts).forEach(texts.add);
-          }
-        } else if (format == TranslationExportFormat.patchouli) {
-          final List<SourceText>? _texts = await info.patchouliAddonTexts;
-          if (_texts != null) {
-            (await info.patchouliAddonTexts)?.forEach(texts.add);
-          }
-        }
-      }
-      texts = texts.where((e) => e.gameVersions.contains(version)).toList();
-
-      Map<String, String> output = {};
-      for (SourceText text in texts) {
-        Translation? translation =
-            await TranslateHandler.getBestTranslation(text, language);
-        if (translation != null) {
-          output[text.key] = translation.content;
-        }
-      }
-
-      return APIResponse.success(data: output);
-    }, requiredFields: ["namespaces", "format", "language", "version"]);
-
+  void glossary(Router router) {
     /// Get glossary
     router.getRoute("/glossary/<uuid>", (req, data) async {
       final String uuid = data.fields["uuid"];
@@ -905,15 +925,15 @@ class TranslateRoute extends APIRoute {
       }
 
       if (term.isAllEmpty) {
-        return APIResponse.badRequest(message: "Term can't be empty");
+        return APIResponse.badRequest(message: "Term cannot be empty");
       }
 
       if (translation.isAllEmpty) {
-        return APIResponse.badRequest(message: "Translation can't be empty");
+        return APIResponse.badRequest(message: "Translation cannot be empty");
       }
 
       if (description != null && description.isAllEmpty) {
-        return APIResponse.badRequest(message: "Description can't be empty");
+        return APIResponse.badRequest(message: "Description cannot be empty");
       }
 
       final Glossary glossary = Glossary(
@@ -982,15 +1002,15 @@ class TranslateRoute extends APIRoute {
       }
 
       if (term != null && term.isAllEmpty) {
-        return APIResponse.badRequest(message: "Term can't be empty");
+        return APIResponse.badRequest(message: "Term cannot be empty");
       }
 
       if (translation != null && translation.isAllEmpty) {
-        return APIResponse.badRequest(message: "Translation can't be empty");
+        return APIResponse.badRequest(message: "Translation cannot be empty");
       }
 
       if (description != null && description.isAllEmpty) {
-        return APIResponse.badRequest(message: "Description can't be empty");
+        return APIResponse.badRequest(message: "Description cannot be empty");
       }
 
       Glossary? glossary = await Glossary.getByUUID(uuid);
@@ -1060,7 +1080,5 @@ class TranslateRoute extends APIRoute {
       return APIResponse.success(
           data: result.map((key, value) => MapEntry(key, value.toMap())));
     }, requiredFields: ["text", "language"]);
-
-    
   }
 }

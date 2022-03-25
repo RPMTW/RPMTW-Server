@@ -3,13 +3,14 @@ import "package:rpmtw_server/database/models/auth/user_role.dart";
 class UserRolePermission {
   final List<UserRoleType> _roles;
 
-  bool get general => _hasPermission(UserRoleType.general) || _roles.isEmpty;
+  bool get general => _roles.isEmpty || _hasPermission(UserRoleType.general);
   bool get admin => _hasPermission(UserRoleType.admin);
   bool get bot => _hasPermission(UserRoleType.bot);
   bool get translationManager =>
-      _hasPermission(UserRoleType.translationManager);
-  bool get wikiManager => _hasPermission(UserRoleType.wikiManager);
-  bool get cosmicChatManager => _hasPermission(UserRoleType.cosmicChatManager);
+      _hasPermission(UserRoleType.translationManager, byID: false);
+  bool get wikiManager => _hasPermission(UserRoleType.wikiManager, byID: false);
+  bool get cosmicChatManager =>
+      _hasPermission(UserRoleType.cosmicChatManager, byID: false);
 
   const UserRolePermission(this._roles);
 
@@ -30,7 +31,11 @@ class UserRolePermission {
     }
   }
 
-  bool _hasPermission(UserRoleType role) {
-    return _roles.any((e) => e.id >= role.id);
+  bool _hasPermission(UserRoleType role, {bool byID = true}) {
+    if (byID) {
+      return _roles.any((r) => r.id >= role.id);
+    } else {
+      return _roles.any((r) => r == role);
+    }
   }
 }

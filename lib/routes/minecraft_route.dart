@@ -1,4 +1,5 @@
 import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/data/user_view_count_filter.dart";
 import "package:rpmtw_server/database/models/auth_route.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
@@ -8,8 +9,8 @@ import "package:rpmtw_server/database/models/storage/storage.dart";
 import "package:rpmtw_server/handler/minecraft_handler.dart";
 import "package:rpmtw_server/routes/base_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
-import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/extension.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 
 class MinecraftRoute extends APIRoute {
   @override
@@ -46,7 +47,7 @@ class MinecraftRoute extends APIRoute {
           type: WikiChangeLogType.addedMod,
           dataUUID: mod.uuid,
           changedData: mod.toMap(),
-          time: DateTime.now().toUtc(),
+          time: Utility.getUTCTime(),
           userUUID: req.user!.uuid);
 
       await changeLog.insert();
@@ -64,7 +65,7 @@ class MinecraftRoute extends APIRoute {
       ModRequestBodyParsedResult result =
           await MinecraftHeader.parseModRequestBody(data.fields);
 
-      DateTime time = DateTime.now().toUtc();
+      DateTime time = Utility.getUTCTime();
 
       if (result.imageStorageUUID != null) {
         Storage? storage = await Storage.getByUUID(result.imageStorageUUID!);
@@ -112,7 +113,7 @@ class MinecraftRoute extends APIRoute {
           type: WikiChangeLogType.editedMod,
           dataUUID: mod.uuid,
           changedData: mod.toMap(),
-          time: DateTime.now().toUtc(),
+          time: Utility.getUTCTime(),
           userUUID: req.user!.uuid);
 
       await mod.update();
@@ -133,8 +134,7 @@ class MinecraftRoute extends APIRoute {
       bool recordViewCount =
           _recordViewCount == null ? false : _recordViewCount.toBool();
 
-      if (recordViewCount &&
-          UserViewCountFilter.needUpdateViewCount(req.ip, mod.uuid)) {
+      if (recordViewCount && ViewCountHandler.needUpdate(req.ip, mod.uuid)) {
         mod = mod.copyWith(viewCount: mod.viewCount + 1);
 
         // Update view count

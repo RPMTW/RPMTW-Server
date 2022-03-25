@@ -81,10 +81,17 @@ extension RequestExtension on Request {
 }
 
 typedef RouteHandler = Future<Response> Function(Request req, RouteData data);
+typedef CheckRequestHandler = Future<Response?> Function(
+    Request req, RouteData data);
 
 extension RouterExtension on Router {
-  void addRoute(String verb, String route, RouteHandler handler,
-      List<String> requiredFields, AuthConfig? authConfig) {
+  void addRoute(
+      String verb,
+      String route,
+      RouteHandler handler,
+      List<String> requiredFields,
+      AuthConfig? authConfig,
+      CheckRequestHandler? checker) {
     Future<Response> _handler(Request request) async {
       try {
         if (authConfig != null) {
@@ -152,12 +159,21 @@ extension RouterExtension on Router {
             : bodyJson ?? {})
           ..addAll(request.params);
 
-        final bool validateFields =
+        final String? validateFields =
             Utility.validateRequiredFields(fields, requiredFields);
-        if (!validateFields) {
-          return APIResponse.missingRequiredFields();
+
+        if (validateFields != null) {
+          return APIResponse.missingRequiredFields(validateFields);
         } else {
-          return await handler(request, RouteData(fields, bytes));
+          RouteData data = RouteData(fields, bytes);
+          if (checker != null) {
+            Response? response = await checker(request, data);
+            if (response != null) {
+              return response;
+            }
+          }
+
+          return await handler(request, data);
         }
       } catch (e, stack) {
         logger.e(e, null, stack);
@@ -169,23 +185,34 @@ extension RouterExtension on Router {
   }
 
   void getRoute(String route, RouteHandler handler,
-      {List<String> requiredFields = const [], AuthConfig? authConfig}) {
-    return addRoute("GET", route, handler, requiredFields, authConfig);
+      {List<String> requiredFields = const [],
+      AuthConfig? authConfig,
+      CheckRequestHandler? checker}) {
+    return addRoute("GET", route, handler, requiredFields, authConfig, checker);
   }
 
   void postRoute(String route, RouteHandler handler,
-      {List<String> requiredFields = const [], AuthConfig? authConfig}) {
-    return addRoute("POST", route, handler, requiredFields, authConfig);
+      {List<String> requiredFields = const [],
+      AuthConfig? authConfig,
+      CheckRequestHandler? checker}) {
+    return addRoute(
+        "POST", route, handler, requiredFields, authConfig, checker);
   }
 
   void patchRoute(String route, RouteHandler handler,
-      {List<String> requiredFields = const [], AuthConfig? authConfig}) {
-    return addRoute("PATCH", route, handler, requiredFields, authConfig);
+      {List<String> requiredFields = const [],
+      AuthConfig? authConfig,
+      CheckRequestHandler? checker}) {
+    return addRoute(
+        "PATCH", route, handler, requiredFields, authConfig, checker);
   }
 
   void deleteRoute(String route, RouteHandler handler,
-      {List<String> requiredFields = const [], AuthConfig? authConfig}) {
-    return addRoute("DELETE", route, handler, requiredFields, authConfig);
+      {List<String> requiredFields = const [],
+      AuthConfig? authConfig,
+      CheckRequestHandler? checker}) {
+    return addRoute(
+        "DELETE", route, handler, requiredFields, authConfig, checker);
   }
 }
 

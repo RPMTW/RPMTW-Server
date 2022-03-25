@@ -18,11 +18,11 @@ class CurseForgeRoute extends APIRoute {
       try {
         final Map<String, String> queryParameters = req.url.queryParameters;
 
-        bool validateFields =
+        String? validateFields =
             Utility.validateRequiredFields(queryParameters, ["path"]);
 
-        if (!validateFields) {
-          return APIResponse.missingRequiredFields();
+        if (validateFields != null) {
+          return APIResponse.missingRequiredFields(validateFields);
         }
 
         final Uri url =

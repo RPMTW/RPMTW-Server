@@ -6,6 +6,7 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import "package:rpmtw_server/database/models/minecraft/mod_integration.dart";
 import "package:rpmtw_server/database/models/minecraft/mod_side.dart";
 import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 
 class MinecraftHeader {
   static Future<ModRequestBodyParsedResult> parseModRequestBody(
@@ -57,7 +58,7 @@ class MinecraftHeader {
 
   static Future<MinecraftMod> createMod(
       ModRequestBodyParsedResult result) async {
-    DateTime nowTime = DateTime.now().toUtc();
+    DateTime nowTime = Utility.getUTCTime();
 
     MinecraftMod mod = MinecraftMod(
         uuid: Uuid().v4(),

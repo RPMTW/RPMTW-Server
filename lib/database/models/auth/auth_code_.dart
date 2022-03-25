@@ -4,6 +4,7 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 
 class AuthCode extends BaseModel {
   static const String collectionName = "auth_codes";
@@ -29,11 +30,11 @@ class AuthCode extends BaseModel {
         uuid: Uuid().v4(),
         code: code,
         expiresAt:
-            DateTime.now().toUtc().add(Duration(minutes: 30)), // 驗證碼有效時間為 30 分鐘
+            Utility.getUTCTime().add(Duration(minutes: 30)), // 驗證碼有效時間為 30 分鐘
         email: email);
   }
 
-  bool get isExpired => DateTime.now().toUtc().isAfter(expiresAt);
+  bool get isExpired => Utility.getUTCTime().isAfter(expiresAt);
 
   AuthCode copyWith({
     int? code,

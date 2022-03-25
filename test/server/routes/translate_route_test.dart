@@ -5,15 +5,16 @@ import "package:intl/locale.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/auth/user_role.dart";
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
-import 'package:rpmtw_server/database/models/translate/glossary.dart';
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
+import "package:rpmtw_server/database/models/minecraft/mod_integration.dart";
+import "package:rpmtw_server/database/models/translate/glossary.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 import "package:test/test.dart";
 
 import "../../test_utility.dart";
@@ -259,7 +260,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't cancel"));
+      expect(responseJson["message"], contains("cannot cancel"));
 
       /// Delete the test translation vote.
       await (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
@@ -325,7 +326,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't edit"));
+      expect(responseJson["message"], contains("cannot edit"));
 
       /// Delete the test translation vote.
       await (await TranslationVote.getByUUID(translationVoteUUID))!.delete();
@@ -387,7 +388,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("content can't be empty"));
+      expect(responseJson["message"], contains("content cannot be empty"));
     });
 
     test("add translation (unsupported language)", () async {
@@ -539,7 +540,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't delete"));
+      expect(responseJson["message"], contains("cannot delete"));
 
       /// Delete the test translation.
       await (await Translation.getByUUID(translationUUID))!.delete();
@@ -604,7 +605,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't be empty"));
+      expect(responseJson["message"], contains("cannot be empty"));
     });
 
     test("add source text (empty gameVersions)", () async {
@@ -622,7 +623,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't be empty"));
+      expect(responseJson["message"], contains("cannot be empty"));
     });
 
     test("add source text (empty key)", () async {
@@ -640,7 +641,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't be empty"));
+      expect(responseJson["message"], contains("cannot be empty"));
     });
 
     test("get source text", () async {
@@ -812,7 +813,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't be empty"));
+      expect(responseJson["message"], contains("cannot be empty"));
 
       /// Delete the test source text.
       await (await SourceText.getByUUID(sourceTextUUID))!.delete();
@@ -836,7 +837,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't be empty"));
+      expect(responseJson["message"], contains("cannot be empty"));
 
       /// Delete the test source text.
       await (await SourceText.getByUUID(sourceTextUUID))!.delete();
@@ -860,7 +861,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("can't be empty"));
+      expect(responseJson["message"], contains("cannot be empty"));
 
       /// Delete the test source text.
       await (await SourceText.getByUUID(sourceTextUUID))!.delete();
@@ -1212,7 +1213,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
         await info.delete();
       });
 
@@ -1244,7 +1245,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
         await info.delete();
       });
 
@@ -1532,7 +1533,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
 
         /// Delete the test source file.
         await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
@@ -1669,8 +1670,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: DateTime.now().toUtc(),
-            lastUpdate: DateTime.now().toUtc());
+            createTime: Utility.getUTCTime(),
+            lastUpdate: Utility.getUTCTime());
         await mod.insert();
 
         final response =
@@ -1711,7 +1712,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
       });
 
       test("add mod source info (unknown mod uuid)", () async {
@@ -1740,8 +1741,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: DateTime.now().toUtc(),
-            lastUpdate: DateTime.now().toUtc());
+            createTime: Utility.getUTCTime(),
+            lastUpdate: Utility.getUTCTime());
         await mod.insert();
         ModSourceInfo info = ModSourceInfo(
             uuid: Uuid().v4(), namespace: "test2", modUUID: mod.uuid);
@@ -1881,8 +1882,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: DateTime.now().toUtc(),
-            lastUpdate: DateTime.now().toUtc());
+            createTime: Utility.getUTCTime(),
+            lastUpdate: Utility.getUTCTime());
         await mod.insert();
         String testTextUUID = await addTestSourceText();
 
@@ -1928,7 +1929,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
 
         /// Delete the test mod source info.
         await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
@@ -1987,8 +1988,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: DateTime.now().toUtc(),
-            lastUpdate: DateTime.now().toUtc());
+            createTime: Utility.getUTCTime(),
+            lastUpdate: Utility.getUTCTime());
         await mod.insert();
         ModSourceInfo info = ModSourceInfo(
             uuid: Uuid().v4(), namespace: "test2", modUUID: mod.uuid);
@@ -2221,8 +2222,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: DateTime.now().toUtc(),
-            lastUpdate: DateTime.now().toUtc());
+            createTime: Utility.getUTCTime(),
+            lastUpdate: Utility.getUTCTime());
         await mod.insert();
 
         final response = await post(Uri.parse(host + "/translate/glossary"),
@@ -2295,7 +2296,7 @@ void main() async {
 
         Map responseJson = json.decode(response.body);
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
       });
 
       test("add glossary (empty translation)", () async {
@@ -2309,7 +2310,7 @@ void main() async {
 
         Map responseJson = json.decode(response.body);
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
       });
 
       test("add glossary (empty description)", () async {
@@ -2327,7 +2328,7 @@ void main() async {
 
         Map responseJson = json.decode(response.body);
         expect(response.statusCode, 400);
-        expect(responseJson["message"], contains("can't be empty"));
+        expect(responseJson["message"], contains("cannot be empty"));
       });
     });
 
@@ -2392,8 +2393,7 @@ void main() async {
           expect(data["glossaries"].length, 1);
           expect(data["glossaries"][0]["term"], "Creeper");
           expect(data["glossaries"][0]["translation"], "苦力怕");
-          expect(
-              data["glossaries"][0]["description"], "This is a Creeper");
+          expect(data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2416,8 +2416,7 @@ void main() async {
           expect(data["glossaries"].length, 1);
           expect(data["glossaries"][0]["term"], "Creeper");
           expect(data["glossaries"][0]["translation"], "苦力怕");
-          expect(
-              data["glossaries"][0]["description"], "This is a Creeper");
+          expect(data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2440,8 +2439,7 @@ void main() async {
           expect(data["glossaries"].length, 1);
           expect(data["glossaries"][0]["term"], "Creeper");
           expect(data["glossaries"][0]["translation"], "苦力怕");
-          expect(
-              data["glossaries"][0]["description"], "This is a Creeper");
+          expect(data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2464,8 +2462,7 @@ void main() async {
           expect(data["glossaries"].length, 1);
           expect(data["glossaries"][0]["term"], "Creeper");
           expect(data["glossaries"][0]["translation"], "苦力怕");
-          expect(
-              data["glossaries"][0]["description"], "This is a Creeper");
+          expect(data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
 
@@ -2506,8 +2503,7 @@ void main() async {
           expect(data["glossaries"].length, 1);
           expect(data["glossaries"][0]["term"], "Creeper");
           expect(data["glossaries"][0]["translation"], "苦力怕");
-          expect(
-              data["glossaries"][0]["description"], "This is a Creeper");
+          expect(data["glossaries"][0]["description"], "This is a Creeper");
           expect(data["glossaries"][0]["language"], "zh-TW");
           expect(data["glossaries"][0]["modUUID"], null);
           expect(data["limit"], 50);
@@ -2529,8 +2525,8 @@ void main() async {
               relationMods: [],
               integration: ModIntegrationPlatform(),
               side: [],
-              createTime: DateTime.now().toUtc(),
-              lastUpdate: DateTime.now().toUtc());
+              createTime: Utility.getUTCTime(),
+              lastUpdate: Utility.getUTCTime());
           await mod.insert();
 
           final response = await patch(
@@ -2609,7 +2605,7 @@ void main() async {
 
           Map responseJson = json.decode(response.body);
           expect(response.statusCode, 400);
-          expect(responseJson["message"], contains("can't be empty"));
+          expect(responseJson["message"], contains("cannot be empty"));
 
           /// Delete the test data.
           await (await Glossary.getByUUID(uuid))!.delete();
@@ -2630,7 +2626,7 @@ void main() async {
 
           Map responseJson = json.decode(response.body);
           expect(response.statusCode, 400);
-          expect(responseJson["message"], contains("can't be empty"));
+          expect(responseJson["message"], contains("cannot be empty"));
 
           /// Delete the test data.
           await (await Glossary.getByUUID(uuid))!.delete();
@@ -2651,7 +2647,7 @@ void main() async {
 
           Map responseJson = json.decode(response.body);
           expect(response.statusCode, 400);
-          expect(responseJson["message"], contains("can't be empty"));
+          expect(responseJson["message"], contains("cannot be empty"));
 
           /// Delete the test data.
           await (await Glossary.getByUUID(uuid))!.delete();

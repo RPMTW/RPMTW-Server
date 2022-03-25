@@ -1,8 +1,8 @@
 import "package:intl/locale.dart";
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:rpmtw_server/database/models/index_fields.dart";
 
 class Glossary extends BaseModel {
   static const String collectionName = "glossaries";
@@ -51,7 +51,7 @@ class Glossary extends BaseModel {
       "translation": translation,
       "description": description,
       "language": language.toLanguageTag(),
-      'modUUID': modUUID,
+      "modUUID": modUUID,
     };
   }
 
@@ -62,7 +62,7 @@ class Glossary extends BaseModel {
       translation: map["translation"],
       description: map["description"],
       language: Locale.parse(map["language"]),
-      modUUID: map['modUUID'],
+      modUUID: map["modUUID"],
     );
   }
 

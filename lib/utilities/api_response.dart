@@ -18,8 +18,8 @@ class APIResponse {
           }),
           headers: _baseHeaders);
 
-  static Response missingRequiredFields() =>
-      badRequest(message: Messages.missingRequiredFields);
+  static Response missingRequiredFields(String fieldName) =>
+      badRequest(message: "${Messages.missingRequiredFields} ($fieldName)");
 
   static Response success({required dynamic data}) {
     assert(data is Map || data is List || data == null,

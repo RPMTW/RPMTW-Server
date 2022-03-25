@@ -47,7 +47,6 @@ Future<void> run({Parser? envParser}) async {
   if (!kTestMode) {
     _pipeline.addMiddleware(rateLimiter.rateLimiter());
   }
-  _pipeline.addHandler(RootRoute().router);
 
   final Handler _handler = _pipeline.addHandler(RootRoute().router);
 

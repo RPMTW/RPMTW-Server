@@ -1,0 +1,1 @@
+enum CommentType { translate, wiki }

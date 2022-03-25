@@ -1,3 +1,4 @@
+import "package:rpmtw_server/routes/comment_route.dart";
 import "package:rpmtw_server/routes/cosmic_chat_route.dart";
 import "package:rpmtw_server/routes/curseforge_route.dart";
 import "package:rpmtw_server/routes/minecraft_route.dart";
@@ -18,6 +19,7 @@ class RootRoute {
     CurseForgeRoute().register(router);
     CosmicChatRoute().register(router);
     TranslateRoute().register(router);
+    CommentRoute().register(router);
 
     router.getRoute("/", (req, data) async {
       return APIResponse.success(data: {"message": "Hello RPMTW World"});

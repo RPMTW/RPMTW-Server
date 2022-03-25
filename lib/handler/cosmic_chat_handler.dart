@@ -7,6 +7,7 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
 import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
 import "package:rpmtw_server/utilities/scam_detection.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 import "package:socket_io/socket_io.dart";
 
 import "package:rpmtw_server/database/models/auth/user.dart";
@@ -163,7 +164,7 @@ class CosmicChatHandler {
               message: message,
               nickname: nickname,
               avatarUrl: avatar,
-              sentAt: DateTime.now().toUtc(),
+              sentAt: Utility.getUTCTime(),
               ip: ip,
               userType: user != null
                   ? CosmicChatUserType.rpmtw
@@ -220,7 +221,7 @@ class CosmicChatHandler {
             message: message,
             nickname: nickname,
             avatarUrl: avatarUrl,
-            sentAt: DateTime.now().toUtc(),
+            sentAt: Utility.getUTCTime(),
             ip: client.request.connectionInfo!.remoteAddress,
             userType: CosmicChatUserType.discord,
             replyMessageUUID: replyMessageUUID);

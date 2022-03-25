@@ -4,6 +4,7 @@ import "package:dotenv/dotenv.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/auth_code_.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
+import "package:rpmtw_server/database/models/comment/comment.dart";
 import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
@@ -16,6 +17,8 @@ import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import "package:rpmtw_server/data/user_view_count_filter.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 
 import "../utilities/data.dart";
 import "models/auth/user.dart";
@@ -57,6 +60,7 @@ class DataBase {
       ModSourceInfo.collectionName,
       SourceFile.collectionName,
       Glossary.collectionName,
+      Comment.collectionName,
     ];
 
     List<List<IndexField>> indexFields = [
@@ -74,6 +78,7 @@ class DataBase {
       ModSourceInfo.indexFields,
       SourceFile.indexFields,
       Glossary.indexFields,
+      Comment.indexFields,
     ];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
@@ -145,6 +150,7 @@ class DataBase {
       "ModSourceInfo": collectionList[11],
       "SourceFile": collectionList[12],
       "Glossary": collectionList[13],
+      "Comment": collectionList[14],
     };
 
     return modelTypeMap[runtimeType ?? T.toString()]!;
@@ -166,6 +172,7 @@ class DataBase {
       "ModSourceInfo": ModSourceInfo.fromMap,
       "SourceFile": SourceFile.fromMap,
       "Glossary": Glossary.fromMap,
+      "Comment": Comment.fromMap,
     }.cast<String, T Function(Map<String, dynamic>)>();
 
     T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;
@@ -270,9 +277,9 @@ class DataBase {
   }
 
   Timer startTimer() {
-    _startAllTimer(DateTime.now().toUtc());
+    _startAllTimer(Utility.getUTCTime());
     Timer timer = Timer.periodic(Duration(hours: 1), (timer) async {
-      DateTime time = DateTime.now().toUtc();
+      DateTime time = Utility.getUTCTime();
       await _startAllTimer(time);
     });
     return timer;
@@ -282,7 +289,7 @@ class DataBase {
     await _storageTimer(time);
     await _authCodeTimer(time);
     await _minecraftVersionManifest(time);
-    _clearUserViewCountFilter(time);
+    ViewCountHandler.deleteFilters(time);
     await _wikiChangelogTimer(time);
   }
 
@@ -351,9 +358,6 @@ class DataBase {
       await manifest.insert();
     }
   }
-
-  void _clearUserViewCountFilter(DateTime time) =>
-      UserViewCountFilter.clearUserViewCountFilter(time);
 
   Future<void> _wikiChangelogTimer(DateTime time) async {
     /// 變更日誌超過指定時間後將刪除

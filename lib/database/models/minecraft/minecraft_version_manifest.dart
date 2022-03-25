@@ -7,6 +7,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 
 class MinecraftVersionManifest extends BaseModel {
   static const String collectionName = "minecraft_version_manifest";
@@ -68,7 +69,7 @@ class MinecraftVersionManifest extends BaseModel {
     return MinecraftVersionManifest(
         manifest: manifest,
         uuid: Uuid().v4(),
-        lastUpdated: DateTime.now().toUtc());
+        lastUpdated: Utility.getUTCTime());
   }
 
   static Future<MinecraftVersionManifest> getFromCache() async {
