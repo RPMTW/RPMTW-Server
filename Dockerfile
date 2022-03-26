@@ -13,13 +13,13 @@ RUN apt-get install -y wget unzip
 COPY . .
 RUN wget $EXEC_DOWNLOAD_URL
 RUN unzip server.zip
-RUN mv server/server /bin
+RUN chmod +x server
 
 # Build minimal serving image from AOT-compiled `/server`
 # and the pre-built AOT-runtime in the `/runtime/` directory of the base image.
 FROM scratch
 COPY --from=build /runtime/ /
-COPY --from=build /app/bin/server /app/bin/
+COPY --from=build /app/server /app/bin/
 
 # Start server.
 EXPOSE 2096

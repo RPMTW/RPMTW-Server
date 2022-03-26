@@ -11,7 +11,7 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2      
+      - uses: actions/checkout@v2
       - name: Cache Dart
         uses: actions/cache@v2
         with:
@@ -41,6 +41,7 @@ jobs:
           passphrase: ${{ secrets.RPMTW_SERVER_SSH_PASSPHRASE }}
           script: |
             cd ./RPMTW-Server
+            sudo git restore .
             sudo git pull
             sudo docker-compose pull
             sudo docker-compose build
