@@ -291,6 +291,7 @@ class DataBase {
     await _minecraftVersionManifest(time);
     ViewCountHandler.deleteFilters(time);
     await _wikiChangelogTimer(time);
+    await _commentTimer(time);
   }
 
   Future<void> _storageTimer(DateTime time) async {
@@ -373,6 +374,23 @@ class DataBase {
 
     for (WikiChangeLog log in changelogs) {
       await log.delete();
+    }
+  }
+
+  /// When the comment is hidden and the time is over 7 days ( a week ), the comment will be deleted
+  Future<void> _commentTimer(DateTime time) async {
+    SelectorBuilder selector = where
+        .lte("updatedAt",
+            time.subtract(Duration(days: 7)).millisecondsSinceEpoch)
+        .eq("isHidden", true);
+
+    List<Comment> comments = await getCollection<Comment>()
+        .find(selector)
+        .map((map) => Comment.fromMap(map))
+        .toList();
+
+    for (Comment comment in comments) {
+      await comment.delete();
     }
   }
 }
