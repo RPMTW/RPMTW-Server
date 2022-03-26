@@ -24,8 +24,8 @@ class CosmicChatHandler {
   static final List<String> _cachedMinecraftUUIDs = [];
 
   Future<void> init() async {
-    /// 2096 is cloudflare supported proxy https port
-    int port = int.parse(env["COSMIC_CHAT_PORT"] ?? "2096");
+    /// 2087 is cloudflare supported proxy https port
+    int port = int.parse(env["COSMIC_CHAT_PORT"] ?? "2087");
     _io = Server();
     final InternetAddress ip = InternetAddress.anyIPv4;
 
