@@ -372,7 +372,7 @@ void main() async {
         User user = User(
             uuid: Uuid().v4(),
             username: "RPMTW Discord Bot",
-            email: "",
+            email: "discordBot@rpmtw.com",
             emailVerified: true,
             passwordHash: "",
             loginIPs: [],
