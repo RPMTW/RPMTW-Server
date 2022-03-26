@@ -2206,6 +2206,7 @@ void main() async {
           language: Locale.parse("zh-TW"),
           translation: "苦力怕");
       await glossary.insert();
+      
       return glossary.uuid;
     }
 

@@ -1,7 +1,7 @@
 import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_info.dart";
 import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
 import "package:rpmtw_server/handler/cosmic_chat_handler.dart";
-import "package:rpmtw_server/routes/base_route.dart";
+import 'package:rpmtw_server/routes/api_route.dart';
 import "package:rpmtw_server/utilities/api_response.dart";
 import "package:rpmtw_server/utilities/extension.dart";
 

@@ -8,7 +8,7 @@ import "package:shelf/shelf.dart";
 import "../database/database.dart";
 import "../database/models/storage/storage.dart";
 import "../utilities/extension.dart";
-import "base_route.dart";
+import 'api_route.dart';
 
 class StorageRoute extends APIRoute {
   @override

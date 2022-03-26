@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
+import 'package:rpmtw_server/database/models/comment/comment.dart';
+import 'package:rpmtw_server/database/models/comment/comment_type.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
@@ -17,6 +19,7 @@ void main() async {
 
   late final String token;
   late final String userUUID;
+  late final String mockSourceTextUUID;
 
   setUpAll(() {
     return Future.sync(() async {
@@ -33,12 +36,40 @@ void main() async {
       await user.insert();
       token = AuthHandler.generateAuthToken(user.uuid);
       userUUID = user.uuid;
+
+      /// Add a test source text.
+      final SourceText source = SourceText(
+          uuid: Uuid().v4(),
+          source: "Hello, World!",
+          gameVersions: [],
+          key: "test.title.hello_world",
+          type: SourceTextType.general);
+
+      await source.insert();
+
+      mockSourceTextUUID = source.uuid;
     });
   });
 
   tearDownAll(() {
     return TestUttily.tearDownAll();
   });
+
+  Future<String> addTestComment() async {
+    final Comment comment = Comment(
+        uuid: Uuid().v4(),
+        content: "Great translation!",
+        type: CommentType.translate,
+        userUUID: userUUID,
+        parentUUID: mockSourceTextUUID,
+        createdAt: Utility.getUTCTime(),
+        updatedAt: Utility.getUTCTime(),
+        isHidden: false);
+
+    await comment.insert();
+
+    return comment.uuid;
+  }
 
   group("add comment", () {
     test("add comment (translate type)", () async {
@@ -151,6 +182,55 @@ void main() async {
       expect(responseJson["message"], contains("cannot be empty"));
 
       await source.delete();
+    });
+  });
+
+  group("get/list comment", () {
+    test("get comment", () async {
+      final commentUUID = await addTestComment();
+
+      final response = await get(
+        Uri.parse(host + "/comment/$commentUUID"),
+      );
+
+      expect(response.statusCode, 200);
+      final Map data = json.decode(response.body)["data"];
+      expect(data["uuid"], commentUUID);
+      expect(data["content"], "Great translation!");
+      expect(data["type"], "translate");
+      expect(data["userUUID"], userUUID);
+
+      (await Comment.getByUUID(commentUUID))!.delete();
+    });
+
+    test("get comment (unknown uuid)", () async {
+      final response = await get(Uri.parse(host + "/comment/test"),
+          headers: {"Authorization": "Bearer $token"});
+
+      expect(response.statusCode, 404);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], contains("not found"));
+    });
+
+    test("list comment", () async {
+      final commentUUID = await addTestComment();
+
+      final response = await get(
+        Uri.parse(host + "/comment/").replace(queryParameters: {
+          "type": "translate",
+          "parentUUID": mockSourceTextUUID
+        }),
+      );
+
+      expect(response.statusCode, 200);
+      final List data = json.decode(response.body)["data"];
+      expect(data.length, 1);
+      expect(data[0]["uuid"], commentUUID);
+      expect(data[0]["content"], "Great translation!");
+      expect(data[0]["type"], "translate");
+      expect(data[0]["userUUID"], userUUID);
+
+      (await Comment.getByUUID(commentUUID))!.delete();
     });
   });
 }

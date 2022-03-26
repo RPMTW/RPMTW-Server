@@ -81,6 +81,7 @@ class Comment extends BaseModel {
   @override
   Map<String, dynamic> toMap() {
     return {
+      "uuid": uuid,
       "content": content,
       "type": type.name,
       "userUUID": userUUID,
@@ -106,8 +107,8 @@ class Comment extends BaseModel {
     );
   }
 
-  static Future<Comment?> getByUUID(String uuid) =>
-      DataBase.instance.getModelByUUID<Comment>(uuid);
+  static Future<Comment?> getByUUID(String uuid) async =>
+      await DataBase.instance.getModelByUUID<Comment>(uuid);
 
   static Future<List<Comment>> list(
           {required CommentType type,
