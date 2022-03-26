@@ -3,7 +3,6 @@ FROM dart:stable AS build
 
 # Resolve app dependencies.
 WORKDIR /app
-ENV EXEC_DOWNLOAD_URL="https://nightly.link/RPMTW/RPMTW-Server/workflows/deploy/main/server.zip"
 COPY pubspec.* ./
 COPY .env ./
 RUN apt-get update
