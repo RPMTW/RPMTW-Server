@@ -50,15 +50,6 @@ class MinecraftVersionManifest extends BaseModel {
     );
   }
 
-  String toJson() => json.encode(toMap());
-
-  factory MinecraftVersionManifest.fromJson(String source) =>
-      MinecraftVersionManifest.fromMap(json.decode(source));
-
-  @override
-  String toString() =>
-      "MinecraftVersionManifestModels(manifest: $manifest, uuid: $uuid, lastUpdated: $lastUpdated)";
-
   static Future<MinecraftVersionManifest> getFromWeb() async {
     _Manifest manifest;
     String mojangMetaAPI = "https://launchermeta.mojang.com/mc/game";

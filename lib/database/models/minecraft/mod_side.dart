@@ -1,5 +1,3 @@
-import "dart:convert";
-
 class ModSide {
   /// 執行環境
   final ModSideEnvironment environment;
@@ -34,27 +32,6 @@ class ModSide {
       requireType: ModRequireType.values.byName(map["requireType"]),
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory ModSide.fromJson(String source) =>
-      ModSide.fromMap(json.decode(source));
-
-  @override
-  String toString() =>
-      "ModSide(environment: $environment, requireType: $requireType)";
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is ModSide &&
-        other.environment == environment &&
-        other.requireType == requireType;
-  }
-
-  @override
-  int get hashCode => environment.hashCode ^ requireType.hashCode;
 }
 
 enum ModSideEnvironment {

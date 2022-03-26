@@ -1,5 +1,3 @@
-import "dart:convert";
-
 class ModIntegrationPlatform {
   final String? curseForgeID;
   final String? modrinthID;
@@ -35,25 +33,4 @@ class ModIntegrationPlatform {
       modrinthID: map["modrinthID"],
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory ModIntegrationPlatform.fromJson(String source) =>
-      ModIntegrationPlatform.fromMap(json.decode(source));
-
-  @override
-  String toString() =>
-      "ModIntegration(curseForgeID: $curseForgeID, modrinthID: $modrinthID)";
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is ModIntegrationPlatform &&
-        other.curseForgeID == curseForgeID &&
-        other.modrinthID == modrinthID;
-  }
-
-  @override
-  int get hashCode => curseForgeID.hashCode ^ modrinthID.hashCode;
 }

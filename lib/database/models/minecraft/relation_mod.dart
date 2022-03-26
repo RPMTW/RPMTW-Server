@@ -1,5 +1,3 @@
-import "dart:convert";
-
 class RelationMod {
   // 被串連的模組 UUID
   final String modUUID;
@@ -42,28 +40,6 @@ class RelationMod {
       type: RelationType.values.byName(map["type"]),
     );
   }
-
-  String toJson() => json.encode(toMap());
-
-  factory RelationMod.fromJson(String source) =>
-      RelationMod.fromMap(json.decode(source));
-
-  @override
-  String toString() =>
-      "RelationMod(modUUID: $modUUID, condition: $condition, type: $type)";
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is RelationMod &&
-        other.modUUID == modUUID &&
-        other.condition == condition &&
-        other.type == type;
-  }
-
-  @override
-  int get hashCode => modUUID.hashCode ^ condition.hashCode ^ type.hashCode;
 }
 
 enum RelationType {
