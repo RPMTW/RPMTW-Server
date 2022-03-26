@@ -1,17 +1,19 @@
 import "dart:convert";
 import "dart:io";
+import 'dart:convert';
 
 import "package:dotenv/dotenv.dart";
 import "package:http/http.dart" as http;
 import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/models/auth/ban_info.dart";
-import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
-import "package:rpmtw_server/utilities/scam_detection.dart";
-import "package:rpmtw_server/utilities/utility.dart";
+import 'package:rpmtw_server/utilities/extension.dart';
 import "package:socket_io/socket_io.dart";
 
+import "package:rpmtw_server/database/models/auth/ban_info.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
+import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
 import "package:rpmtw_server/utilities/data.dart";
+import "package:rpmtw_server/utilities/scam_detection.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 
 class CosmicChatHandler {
   static late final Server _io;
@@ -21,7 +23,7 @@ class CosmicChatHandler {
   /// Number of online users.
   static int get onlineUsers => _io.sockets.sockets.length;
 
-  static final List<String> _cachedMinecraftUUIDs = [];
+  static final List<_CacheMinecraftInfo> _cachedMinecraftInfos = [];
 
   Future<void> init() async {
     /// 2087 is cloudflare supported proxy https port
@@ -82,7 +84,11 @@ class CosmicChatHandler {
       }
 
       if (minecraftUUID != null) {
-        if (_cachedMinecraftUUIDs.contains(minecraftUUID)) {
+        _CacheMinecraftInfo? info = _cachedMinecraftInfos
+            .firstWhereOrNull((e) => e.uuid == minecraftUUID);
+        if (info != null) {
+          minecraftUUIDValid = true;
+          minecraftUsername = info.name;
           initCheckList[1] = true;
         }
 
@@ -95,7 +101,8 @@ class CosmicChatHandler {
             Map data = json.decode(response.body);
             minecraftUUIDValid = true;
             minecraftUsername = data["name"];
-            _cachedMinecraftUUIDs.add(minecraftUUID);
+            _cachedMinecraftInfos.add(
+                _CacheMinecraftInfo(uuid: minecraftUUID, name: data["name"]));
           }
 
           initCheckList[1] = true;
@@ -115,74 +122,88 @@ class CosmicChatHandler {
       bool isInit() => initCheckList.reduce((a, b) => a && b);
       bool isAuthenticated() =>
           user != null || (minecraftUUIDValid && minecraftUsername != null);
+      List<dynamic> queue = [];
 
       client.on("clientMessage", (_data) async {
-        final bool init = isInit();
-        final List dataList = _data as List;
-        late final List bytes =
-            dataList.first is List ? dataList.first : dataList;
-        late final Function? ack =
-            dataList.last is Function ? dataList.last : null;
+        Future<void> handle(dynamic sourceData) async {
+          final List dataList = sourceData as List;
+          late final List bytes =
+              dataList.first is List ? dataList.first : dataList;
+          late final Function? ack =
+              dataList.last is Function ? dataList.last : null;
+
+          if (banInfo != null) {
+            return ack?.call(json.encode({
+              "status": "banned",
+            }));
+          }
+          if (!isAuthenticated()) {
+            return ack?.call(json.encode({
+              "status": "unauthorized",
+            }));
+          }
+
+          Map data = json.decode(utf8.decode((bytes).cast<int>()));
+          String? message = data["message"];
+
+          if (message != null && message.isNotEmpty) {
+            String username = user?.username ?? minecraftUsername!;
+            String? userUUID = user?.uuid;
+            String? nickname = data["nickname"];
+            String? replyMessageUUID = data["replyMessageUUID"];
+
+            if (user?.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
+              username = "RPMTW 維護者兼創辦人";
+            }
+
+            late String avatar;
+
+            if (userUUID != null) {
+              avatar =
+                  "${kTestMode ? "http://localhost:8080" : "https://api.rpmtw.com:2096"}/storage/$userUUID/download";
+            } else if (minecraftUUID != null) {
+              avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
+            }
+
+            if (replyMessageUUID != null) {
+              CosmicChatMessage? replyMessage =
+                  await CosmicChatMessage.getByUUID(replyMessageUUID);
+              if (replyMessage == null) {
+                return client.error("Invalid reply message UUID");
+              }
+            }
+
+            CosmicChatMessage msg = CosmicChatMessage(
+                uuid: Uuid().v4(),
+                username: username,
+                message: message,
+                nickname: nickname,
+                avatarUrl: avatar,
+                sentAt: Utility.getUTCTime(),
+                ip: ip,
+                userType: user != null
+                    ? CosmicChatUserType.rpmtw
+                    : CosmicChatUserType.minecraft,
+                replyMessageUUID: replyMessageUUID);
+            sendMessage(msg, ack: ack);
+          }
+        }
 
         /// The server has not completed the initialization process and therefore does not process the message.
-        if (!init) {
-          return;
-        }
-
-        if (!isAuthenticated()) {
-          return ack?.call(json.encode({
-            "status": "unauthorized",
-          }));
-        }
-        if (banInfo != null) {
-          return ack?.call(json.encode({
-            "status": "banned",
-          }));
-        }
-
-        Map data = json.decode(utf8.decode((bytes).cast<int>()));
-        String? message = data["message"];
-
-        if (message != null && message.isNotEmpty) {
-          String username = user?.username ?? minecraftUsername!;
-          String? userUUID = user?.uuid;
-          String? nickname = data["nickname"];
-          String? replyMessageUUID = data["replyMessageUUID"];
-
-          if (user?.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
-            username = "RPMTW 維護者兼創辦人";
-          }
-
-          late String avatar;
-
-          if (userUUID != null) {
-            avatar =
-                "${kTestMode ? "http://localhost:8080" : "https://api.rpmtw.com:2096"}/storage/$userUUID/download";
-          } else if (minecraftUUID != null) {
-            avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
-          }
-
-          if (replyMessageUUID != null) {
-            CosmicChatMessage? replyMessage =
-                await CosmicChatMessage.getByUUID(replyMessageUUID);
-            if (replyMessage == null) {
-              return client.error("Invalid reply message UUID");
+        if (!isInit()) {
+          queue.add(_data);
+          while (true) {
+            if (isInit()) {
+              while (queue.isNotEmpty) {
+                handle(queue.removeAt(0));
+              }
+              break;
+            } else {
+              await Future.delayed(Duration(milliseconds: 500));
             }
           }
-
-          CosmicChatMessage msg = CosmicChatMessage(
-              uuid: Uuid().v4(),
-              username: username,
-              message: message,
-              nickname: nickname,
-              avatarUrl: avatar,
-              sentAt: Utility.getUTCTime(),
-              ip: ip,
-              userType: user != null
-                  ? CosmicChatUserType.rpmtw
-                  : CosmicChatUserType.minecraft,
-              replyMessageUUID: replyMessageUUID);
-          sendMessage(msg, ack: ack);
+        } else {
+          await handle(_data);
         }
       });
     } catch (e, stackTrace) {
@@ -263,4 +284,13 @@ class CosmicChatHandler {
       ack?.call(json.encode({"status": "success"}));
     }
   }
+}
+
+class _CacheMinecraftInfo {
+  final String uuid;
+  final String name;
+  const _CacheMinecraftInfo({
+    required this.uuid,
+    required this.name,
+  });
 }

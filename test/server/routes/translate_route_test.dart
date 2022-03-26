@@ -1115,6 +1115,90 @@ void main() async {
         await info.delete();
       });
 
+      test("add source file (plain text)", () async {
+        ModSourceInfo info =
+            ModSourceInfo(uuid: Uuid().v4(), namespace: "iceandfire");
+        await info.insert();
+
+        late String storageUUID;
+        final _response = await post(Uri.parse(host + "/storage/create"),
+            body: TestData.iceAndFireBestiaryAlchemy.getFileString(),
+            headers: {
+              "Content-Type": "application/json",
+            });
+        storageUUID = json.decode(_response.body)["data"]["uuid"];
+
+        final response = await post(Uri.parse(host + "/translate/source-file"),
+            body: json.encode({
+              "modSourceInfoUUID": info.uuid,
+              "storageUUID": storageUUID,
+              "path": "assets/iceandfire/lang/bestiary/en_us_0/alchemy_0.txt",
+              "type": "plainText",
+              "gameVersions": ["1.16.5"]
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+
+        Map data = json.decode(response.body)["data"];
+
+        expect(response.statusCode, 200);
+        expect(data["uuid"], isNotNull);
+        expect(data["modSourceInfoUUID"], info.uuid);
+        expect(data["storageUUID"], storageUUID);
+        expect(data["path"],
+            "assets/iceandfire/lang/bestiary/en_us_0/alchemy_0.txt");
+        expect(data["type"], "plainText");
+
+        /// Delete the test source file.
+        await (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await info.delete();
+      });
+
+      test("add source file (custom json)", () async {
+        ModSourceInfo info =
+            ModSourceInfo(uuid: Uuid().v4(), namespace: "tconstruct");
+        await info.insert();
+
+        late String storageUUID;
+        final _response = await post(Uri.parse(host + "/storage/create"),
+            body:
+                TestData.tconstructMaterialsAndYouIntroWelcome.getFileString(),
+            headers: {
+              "Content-Type": "application/json",
+            });
+        storageUUID = json.decode(_response.body)["data"]["uuid"];
+
+        final response = await post(Uri.parse(host + "/translate/source-file"),
+            body: json.encode({
+              "modSourceInfoUUID": info.uuid,
+              "storageUUID": storageUUID,
+              "path":
+                  "assets/tconstruct/book/materials_and_you/en_us/intro/welcome.json",
+              "type": "customJson",
+              "gameVersions": ["1.18.2"]
+            }),
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $translationManagerToken"
+            });
+
+        Map data = json.decode(response.body)["data"];
+
+        expect(response.statusCode, 200);
+        expect(data["uuid"], isNotNull);
+        expect(data["modSourceInfoUUID"], info.uuid);
+        expect(data["storageUUID"], storageUUID);
+        expect(data["path"],
+            "assets/tconstruct/book/materials_and_you/en_us/intro/welcome.json");
+        expect(data["type"], "customJson");
+
+        /// Delete the test source file.
+        await (await SourceFile.getByUUID(data["uuid"]))!.delete();
+        await info.delete();
+      });
+
       test("add source file (not permission)", () async {
         final response = await post(Uri.parse(host + "/translate/source-file"),
             body: json.encode({
@@ -2053,7 +2137,7 @@ void main() async {
     });
   });
   group("export", () {
-    test("export translation (json format)", () async {
+    test("export translation (minecraft json format)", () async {
       ModSourceInfo info =
           ModSourceInfo(uuid: Uuid().v4(), namespace: "tconstruct");
       await info.insert();
@@ -2083,7 +2167,7 @@ void main() async {
 
       final response = await get(
           Uri.parse(host + "/translate/export").replace(queryParameters: {
-            "format": "json",
+            "format": "minecraftJson",
             "language": "zh-TW",
             "version": "1.16",
             "namespaces": "tconstruct"
@@ -2149,6 +2233,68 @@ void main() async {
       await info.delete();
     });
 
+    test("export translation (custom text format)", () async {
+      ModSourceInfo info =
+          ModSourceInfo(uuid: Uuid().v4(), namespace: "iceandfire");
+      await info.insert();
+
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.iceAndFireBestiaryAlchemy.getFileString(),
+          headers: {
+            "Content-Type": "application/json",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
+      String path = "assets/iceandfire/lang/bestiary/en_us_0/alchemy_0.txt";
+
+      final _response2 = await post(Uri.parse(host + "/translate/source-file"),
+          body: json.encode({
+            "modSourceInfoUUID": info.uuid,
+            "storageUUID": storageUUID,
+            "path": path,
+            "type": "plainText",
+            "gameVersions": ["1.16.5"]
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $translationManagerToken"
+          });
+      expect(_response2.statusCode, 200);
+      Map _data2 = json.decode(_response2.body)["data"];
+
+      SourceText _source =
+          (await SourceText.list(source: "Dragon blood can also be used"))
+              .first;
+
+      /// Add a test translation.
+      Translation translation = Translation(
+          sourceUUID: _source.uuid,
+          content: "龍血也可以用來",
+          translatorUUID: userUUID,
+          language: Locale.parse("zh-TW"),
+          uuid: Uuid().v4());
+
+      await translation.insert();
+
+      final response = await get(
+          Uri.parse(host + "/translate/export").replace(queryParameters: {
+            "format": "customText",
+            "language": "zh-TW",
+            "version": "1.16",
+            "namespaces": "iceandfire"
+          }),
+          headers: {"Content-Type": "application/json"});
+
+      Map data = json.decode(response.body)["data"];
+
+      expect(response.statusCode, 200);
+      expect(data[path], contains("龍血也可以用來"));
+
+      /// Delete the test data.
+      await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
+      await info.delete();
+    });
+
     test("export translation (invalid game version)", () async {
       ModSourceInfo info =
           ModSourceInfo(uuid: Uuid().v4(), namespace: "tconstruct");
@@ -2179,7 +2325,7 @@ void main() async {
 
       final response = await get(
           Uri.parse(host + "/translate/export").replace(queryParameters: {
-            "format": "json",
+            "format": "minecraftJson",
             "language": "zh-TW",
             "version": "22w11a",
             "namespaces": "tconstruct"
@@ -2206,7 +2352,7 @@ void main() async {
           language: Locale.parse("zh-TW"),
           translation: "苦力怕");
       await glossary.insert();
-      
+
       return glossary.uuid;
     }
 

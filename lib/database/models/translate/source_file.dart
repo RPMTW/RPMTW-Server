@@ -143,5 +143,9 @@ enum SourceFileType {
 
   /// Plain text format
   /// Each line of text is a source entry, and the key in the source entry uses the md5 hash value of the source content
-  plainText
+  plainText,
+
+  /// Custom json format
+  /// e.g. Tinkers Construct book...
+  customJson
 }

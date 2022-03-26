@@ -12,7 +12,9 @@ enum TestData {
   tinkersConstructLang,
   justEnoughItemsLang,
   twilightForestPatchouliEntries,
-  rpmtwPlatformLogo
+  rpmtwPlatformLogo,
+  iceAndFireBestiaryAlchemy,
+  tconstructMaterialsAndYouIntroWelcome
 }
 
 extension TestDataExtension on TestData {
@@ -28,6 +30,10 @@ extension TestDataExtension on TestData {
         return "twilightforest_patchouli_book_guide_entrie_ur_ghast.json";
       case TestData.rpmtwPlatformLogo:
         return "rpmtw-platform-logo.png";
+      case TestData.iceAndFireBestiaryAlchemy:
+        return "iceandfire_bestiary_alchemy_0.txt";
+      case TestData.tconstructMaterialsAndYouIntroWelcome:
+        return "tconstruct_materials_and_you_intro_welcome.json";
       default:
         return name;
     }

@@ -20,6 +20,7 @@ import "package:rpmtw_server/handler/minecraft_handler.dart";
 import "package:rpmtw_server/handler/translate_handler.dart";
 import 'package:rpmtw_server/routes/api_route.dart';
 import "package:rpmtw_server/utilities/api_response.dart";
+import 'package:rpmtw_server/utilities/data.dart';
 import "package:rpmtw_server/utilities/extension.dart";
 import "package:shelf_router/shelf_router.dart";
 
@@ -59,30 +60,65 @@ class TranslateRoute extends APIRoute {
         }
       }
 
-      List<SourceText> texts = [];
+      Map<String, String> output = {};
+
+      Future<void> handleTexts(List<SourceText> texts) async {
+        texts = texts.where((e) => e.gameVersions.contains(version)).toList();
+
+        for (SourceText text in texts) {
+          Translation? translation =
+              await TranslateHandler.getBestTranslation(text, language);
+          if (translation != null) {
+            output[text.key] = translation.content;
+          }
+        }
+      }
 
       for (ModSourceInfo info in infos) {
         final List<SourceFile> files = await info.files;
 
-        if (format == TranslationExportFormat.json) {
+        if (format == TranslationExportFormat.minecraftJson) {
+          List<SourceText> texts = [];
           for (SourceFile file in files) {
             (await file.sourceTexts).forEach(texts.add);
           }
+          await handleTexts(texts);
         } else if (format == TranslationExportFormat.patchouli) {
-          final List<SourceText>? _texts = await info.patchouliAddonTexts;
-          if (_texts != null) {
-            (await info.patchouliAddonTexts)?.forEach(texts.add);
+          final List<SourceText>? texts = await info.patchouliAddonTexts;
+          if (texts != null) {
+            await handleTexts(texts);
           }
-        }
-      }
-      texts = texts.where((e) => e.gameVersions.contains(version)).toList();
+        } else if (format == TranslationExportFormat.customText) {
+          List<SourceFile> customTextFiles = files
+              .where((e) =>
+                  e.type == SourceFileType.plainText ||
+                  e.type == SourceFileType.customJson)
+              .toList();
 
-      Map<String, String> output = {};
-      for (SourceText text in texts) {
-        Translation? translation =
-            await TranslateHandler.getBestTranslation(text, language);
-        if (translation != null) {
-          output[text.key] = translation.content;
+          for (SourceFile file in customTextFiles) {
+            final List<SourceText> texts = (await file.sourceTexts)
+                .where((e) => e.gameVersions.contains(version))
+                .toList();
+
+            Storage? sourceStorage = await file.storage;
+            if (sourceStorage == null) {
+              logger.e(
+                  "[Export translation] Source file (${file.uuid}) storage not found.");
+              continue;
+            }
+
+            String content = await sourceStorage.readAsString();
+
+            for (SourceText text in texts) {
+              Translation? translation =
+                  await TranslateHandler.getBestTranslation(text, language);
+              if (translation != null) {
+                content = content.replaceAll(text.source, translation.content);
+              }
+            }
+
+            output[file.path] = content;
+          }
         }
       }
 

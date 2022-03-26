@@ -225,3 +225,13 @@ class RouteData {
 
   RouteData(this.fields, this.bytes);
 }
+
+extension ListExtension<E> on List<E> {
+  E? firstWhereOrNull(bool Function(E element) test, {E Function()? orElse}) {
+    try {
+      return firstWhere(test, orElse: orElse);
+    } catch (e) {
+      return null;
+    }
+  }
+}

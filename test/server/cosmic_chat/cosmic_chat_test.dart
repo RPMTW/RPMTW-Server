@@ -47,7 +47,6 @@ void main() async {
     Map? response;
 
     socket.onConnect((_) async {
-      await wait();
       socket.emitWithAck("clientMessage", encodeMessage({"message": message}),
           ack: (_response) {
         response = json.decode(_response.toString());
@@ -97,7 +96,6 @@ void main() async {
       socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
 
       socket.onConnect((_) async {
-        await wait();
         socket.emitWithAck("clientMessage", encodeMessage({"message": message}),
             ack: (_response) {
           response = json.decode(_response.toString());
@@ -139,7 +137,6 @@ void main() async {
       await _info.insert();
 
       socket.onConnect((_) async {
-        await wait();
         socket.emitWithAck("clientMessage", encodeMessage({"message": message}),
             ack: (_response) {
           response = json.decode(_response.toString());
@@ -167,7 +164,6 @@ void main() async {
       socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
 
       socket.onConnect((_) async {
-        await wait();
         socket.emitWithAck(
             "clientMessage",
             encodeMessage(
@@ -211,7 +207,6 @@ void main() async {
       socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
 
       socket.onConnect((_) async {
-        await wait();
         socket.emitWithAck(
             "clientMessage",
             encodeMessage(
@@ -247,7 +242,6 @@ void main() async {
       socket.opts!["extraHeaders"] = {"minecraft_uuid": minecraftUUID};
 
       socket.onConnect((_) async {
-        await wait();
         socket.emitWithAck("clientMessage",
             encodeMessage({"message": message, "replyMessageUUID": "test"}),
             ack: (_response) {
@@ -275,7 +269,6 @@ void main() async {
       expect(data["onlineUsers"], 0);
       expect(data["protocolVersion"], 1);
     });
-
     test("get info (socket connected)", () async {
       socket.onConnect((data) async {
         final response = await get(Uri.parse(host + "/cosmic-chat/info"));
@@ -309,7 +302,6 @@ void main() async {
     socket.opts!["extraHeaders"] = {"rpmtw_auth_token": userToken};
 
     socket.onConnect((_) async {
-      await wait();
       socket.emitWithAck("clientMessage", encodeMessage({"message": message}),
           ack: (_response) {
         response = json.decode(_response.toString());
@@ -341,7 +333,6 @@ void main() async {
     Map? response;
 
     socket.onConnect((_) async {
-      await wait();
       socket.emitWithAck("clientMessage", encodeMessage({"message": message}),
           ack: (_response) {
         response = json.decode(_response.toString());

@@ -157,8 +157,11 @@ class TranslateHandler {
         }
       });
     } else if (type == SourceFileType.plainText) {
-      List<String> lines =
-          LineSplitter().convert(string).where((l) => l.isAllEmpty).toList();
+      List<String> lines = LineSplitter()
+          .convert(string)
+          .where((l) => !l.isAllEmpty)
+          .toSet()
+          .toList();
 
       for (String line in lines) {
         texts.add(SourceText(
@@ -168,6 +171,44 @@ class TranslateHandler {
             type: SourceTextType.plainText,
             gameVersions: gameVersions));
       }
+    } else if (type == SourceFileType.customJson) {
+      Map<String, dynamic> json = JSON5.parse(string);
+
+      void _add(dynamic _json, {String? key}) {
+        assert(_json is Map || _json is List, "map must be a Map or List");
+
+        if (_json is Map) {
+          _json.forEach((_key, _value) {
+            if (_value is Map || _value is List) {
+              _add(_value, key: key != null ? "$key.$_key" : _key);
+            } else if (_value is String) {
+              texts.add(SourceText(
+                  uuid: Uuid().v4(),
+                  source: _value,
+                  key: key != null ? "$key.$_key" : _key,
+                  type: SourceTextType.general,
+                  gameVersions: gameVersions));
+            }
+          });
+        } else if (_json is List) {
+          for (dynamic value in _json) {
+            int index = _json.indexOf(value);
+
+            if (value is Map || value is List) {
+              _add(value, key: key != null ? "$key.$index" : index.toString());
+            } else if (value is String) {
+              texts.add(SourceText(
+                  uuid: Uuid().v4(),
+                  source: value,
+                  key: key != null ? "$key.$index" : index.toString(),
+                  type: SourceTextType.general,
+                  gameVersions: gameVersions));
+            }
+          }
+        }
+      }
+
+      _add(json);
     }
 
     return texts.toSet().toList();

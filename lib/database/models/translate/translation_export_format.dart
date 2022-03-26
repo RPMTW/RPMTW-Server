@@ -1,1 +1,1 @@
-enum TranslationExportFormat { json, patchouli }
+enum TranslationExportFormat { minecraftJson, customText, patchouli }

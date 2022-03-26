@@ -1,6 +1,7 @@
 import "package:pub_semver/pub_semver.dart";
 
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
+import 'package:rpmtw_server/utilities/extension.dart';
 import "package:rpmtw_server/utilities/utility.dart";
 
 class MinecraftVersion {
@@ -57,11 +58,7 @@ class MinecraftVersion {
     final List<MinecraftVersion> _allVersions =
         (await MinecraftVersionManifest.getFromCache()).manifest.versions;
 
-    try {
-      return _allVersions.firstWhere((e) => id.contains(e.id));
-    } catch (e) {
-      return null;
-    }
+    return _allVersions.firstWhereOrNull((e) => id.contains(e.id));
   }
 
   static Future<List<MinecraftVersion>> getByIDs(List<String> ids,
