@@ -55,7 +55,6 @@ class TestEnvParser extends Parser {
     Map<String, String> map = super.parse(lines);
     String secretKey = TestUttily.secretKey;
     map["DATA_BASE_SecretKey"] = secretKey;
-    map["COSMIC_CHAT_DISCORD_SecretKey"] = secretKey;
     return map;
   }
 }

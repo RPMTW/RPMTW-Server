@@ -1,5 +1,5 @@
 name: rpmtw_server
-description: RPMTW API Server
+description: RPMTW server, developed using Dart, is the backend of RPMTW services, e.g. Cosmic Chat, RPMWiki, RPMtranslator...
 version: 1.0.0
 # homepage: https://www.example.com
 publish_to: "none"

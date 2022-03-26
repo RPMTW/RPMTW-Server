@@ -33,7 +33,7 @@ class UserRolePermission {
 
   bool _hasPermission(UserRoleType role, {bool byID = true}) {
     if (byID) {
-      return _roles.any((r) => r.id >= role.id);
+      return _roles.any((r) => r.id >= role.id) || admin;
     } else {
       return _roles.any((r) => r == role);
     }
