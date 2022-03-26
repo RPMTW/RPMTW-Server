@@ -293,8 +293,8 @@ void main() async {
       final _response = await post(Uri.parse(host + "/auth/user/create"),
           body: json.encode({
             "password": "testPassword1234",
-            "email": "test2@gmail.com",
-            "username": "test2",
+            "email": "test1@gmail.com",
+            "username": "test1",
           }),
           headers: {"Content-Type": "application/json"});
       String _token = json.decode(_response.body)["data"]["token"];
@@ -312,6 +312,113 @@ void main() async {
       expect(responseJson["message"], contains("cannot edit"));
 
       (await Comment.getByUUID(commentUUID))!.delete();
+    });
+  });
+
+  group("delete comment", () {
+    test("delete comment", () async {
+      final commentUUID = await addTestComment();
+
+      final response = await delete(
+        Uri.parse(host + "/comment/$commentUUID"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      expect(response.statusCode, 200);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], "success");
+      expect((await Comment.getByUUID(commentUUID))?.isHidden, true);
+
+      (await Comment.getByUUID(commentUUID))!.delete();
+    });
+
+    test("delete comment (unknown uuid)", () async {
+      final response = await delete(Uri.parse(host + "/comment/test"),
+          headers: {"Authorization": "Bearer $token"});
+
+      expect(response.statusCode, 404);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], contains("not found"));
+    });
+
+    test("delete comment (not owner)", () async {
+      final commentUUID = await addTestComment();
+
+      /// Create a test user account.
+      final _response = await post(Uri.parse(host + "/auth/user/create"),
+          body: json.encode({
+            "password": "testPassword1234",
+            "email": "test2@gmail.com",
+            "username": "test2",
+          }),
+          headers: {"Content-Type": "application/json"});
+      String _token = json.decode(_response.body)["data"]["token"];
+
+      final response = await delete(
+        Uri.parse(host + "/comment/$commentUUID"),
+        headers: {"Authorization": "Bearer $_token"},
+      );
+
+      expect(response.statusCode, 403);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], contains("cannot delete"));
+
+      (await Comment.getByUUID(commentUUID))!.delete();
+    });
+
+    group("reply comment", () {
+      test("reply comment", () async {
+        final commentUUID = await addTestComment();
+
+        final response = await post(
+          Uri.parse(host + "/comment/$commentUUID/reply"),
+          headers: {"Authorization": "Bearer $token"},
+          body: json.encode({
+            "content": "Thank you.",
+          }),
+        );
+
+        expect(response.statusCode, 200);
+        final Map data = json.decode(response.body)["data"];
+        expect(data["uuid"], isNotNull);
+        expect(data["content"], "Thank you.");
+        expect(data["type"], "translate");
+        expect(data["userUUID"], userUUID);
+
+        (await Comment.getByUUID(commentUUID))!.delete();
+      });
+
+      test("reply comment (unknown uuid)", () async {
+        final response = await post(
+          Uri.parse(host + "/comment/test/reply"),
+          headers: {"Authorization": "Bearer $token"},
+          body: json.encode({
+            "content": "Thank you.",
+          }),
+        );
+
+        expect(response.statusCode, 404);
+        final Map responseJson = json.decode(response.body);
+        expect(responseJson["message"], contains("not found"));
+      });
+
+      test("reply comment (empty content)", () async {
+        final commentUUID = await addTestComment();
+
+        final response = await post(
+          Uri.parse(host + "/comment/$commentUUID/reply"),
+          headers: {"Authorization": "Bearer $token"},
+          body: json.encode({
+            "content": " ",
+          }),
+        );
+
+        expect(response.statusCode, 400);
+        final Map responseJson = json.decode(response.body);
+        expect(responseJson["message"], contains("cannot be empty"));
+
+        (await Comment.getByUUID(commentUUID))!.delete();
+      });
     });
   });
 }

@@ -60,7 +60,6 @@ class CommentRoute extends APIRoute {
       final CommentType type = CommentType.values.byName(data.fields["type"]!);
       final String parentUUID = data.fields["parentUUID"]!;
       final String content = data.fields["content"]!;
-      final String? replyCommentUUID = data.fields["replyCommentUUID"];
 
       if (content.isAllEmpty) {
         return APIResponse.fieldEmpty("content");
@@ -74,8 +73,7 @@ class CommentRoute extends APIRoute {
           parentUUID: parentUUID,
           createdAt: Utility.getUTCTime(),
           updatedAt: Utility.getUTCTime(),
-          isHidden: false,
-          replyCommentUUID: replyCommentUUID);
+          isHidden: false);
 
       await comment.insert();
 
@@ -98,8 +96,7 @@ class CommentRoute extends APIRoute {
       }
 
       if (comment.userUUID != user.uuid) {
-        return APIResponse.forbidden(
-            message: "You cannot edit this comment.");
+        return APIResponse.forbidden(message: "You cannot edit this comment.");
       }
 
       if (content.isAllEmpty) {
@@ -142,8 +139,39 @@ class CommentRoute extends APIRoute {
 
       await hide(comment);
 
-      return APIResponse.success(data: comment.outputMap());
+      return APIResponse.success(data: null);
     }, requiredFields: ["uuid"], authConfig: AuthConfig());
+
+    /// Reply to a comment.
+    router.postRoute("/<uuid>/reply", (req, data) async {
+      final String uuid = data.fields["uuid"]!;
+      final String content = data.fields["content"]!;
+
+      final Comment? comment = await Comment.getByUUID(uuid);
+
+      if (comment == null) {
+        return APIResponse.modelNotFound<Comment>();
+      }
+
+      if (content.isAllEmpty) {
+        return APIResponse.fieldEmpty("content");
+      }
+
+      final Comment reply = Comment(
+          uuid: Uuid().v4(),
+          content: content,
+          type: comment.type,
+          userUUID: req.user!.uuid,
+          parentUUID: comment.parentUUID,
+          createdAt: Utility.getUTCTime(),
+          updatedAt: Utility.getUTCTime(),
+          isHidden: comment.isHidden,
+          replyCommentUUID: comment.uuid);
+
+      await reply.insert();
+
+      return APIResponse.success(data: reply.outputMap());
+    }, requiredFields: ["uuid", "content"], authConfig: AuthConfig());
   }
 
   Future<Response?> _checkParentUUID(Request req, RouteData data) async {
