@@ -1,11 +1,11 @@
-import 'dart:convert';
+import "dart:convert";
 
-import 'package:http/http.dart';
-import 'package:test/test.dart';
-import '../../test_utility.dart';
+import "package:http/http.dart";
+import "package:test/test.dart";
+import "../../test_utility.dart";
 
 void main() async {
-  final host = 'http://0.0.0.0:8080';
+  final host = TestUttily.host;
 
   setUpAll(() {
     return TestUttily.setUpAll();
@@ -15,22 +15,22 @@ void main() async {
     return TestUttily.tearDownAll();
   });
 
-  test('Root', () async {
-    final response = await get(Uri.parse(host + '/'));
-    Map data = json.decode(response.body)['data'];
+  test("Root", () async {
+    final response = await get(Uri.parse(host + "/"));
+    Map data = json.decode(response.body)["data"];
     expect(response.statusCode, 200);
-    expect(data['message'], 'Hello RPMTW World');
+    expect(data["message"], "Hello RPMTW World");
   });
 
-  test('IP', () async {
-    final response = await get(Uri.parse(host + '/ip'));
-    Map data = json.decode(response.body)['data'];
+  test("IP", () async {
+    final response = await get(Uri.parse(host + "/ip"));
+    Map data = json.decode(response.body)["data"];
     expect(response.statusCode, 200);
-    expect(data['ip'], contains("127.0.0.1"));
+    expect(data["ip"], contains("127.0.0.1"));
   });
 
-  test('404', () async {
-    final response = await get(Uri.parse(host + '/foobar'));
+  test("404", () async {
+    final response = await get(Uri.parse(host + "/foobar"));
     expect(response.statusCode, 404);
   });
 }

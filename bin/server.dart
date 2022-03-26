@@ -1,18 +1,18 @@
-import 'dart:io';
+import "dart:io";
 
-import 'package:dotenv/dotenv.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/handler/auth_handler.dart';
-import 'package:rpmtw_server/handler/cosmic_chat_handler.dart';
-import 'package:rpmtw_server/routes/root_route.dart';
+import "package:dotenv/dotenv.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/handler/auth_handler.dart";
+import "package:rpmtw_server/handler/cosmic_chat_handler.dart";
+import "package:rpmtw_server/routes/root_route.dart";
 
-import 'package:rpmtw_server/utilities/data.dart';
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart';
-import 'package:shelf_cors_headers/shelf_cors_headers.dart';
-import 'package:shelf_rate_limiter/shelf_rate_limiter.dart';
+import "package:rpmtw_server/utilities/data.dart";
+import "package:shelf/shelf.dart";
+import "package:shelf/shelf_io.dart";
+import "package:shelf_cors_headers/shelf_cors_headers.dart";
+import "package:shelf_rate_limiter/shelf_rate_limiter.dart";
 
-import '../test/test_utility.dart';
+import "../test/test_utility.dart";
 
 HttpServer? server;
 
@@ -40,22 +40,21 @@ Future<void> run({Parser? envParser}) async {
       duration: Duration(seconds: 60),
       maxRequests: 100);
 
-  // final overrideHeaders = {
-  //   ACCESS_CONTROL_ALLOW_ORIGIN: "*",
-  // };
-
-  final Handler _handler = const Pipeline()
+  Pipeline _pipeline = const Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(corsHeaders())
-      .addMiddleware(rateLimiter.rateLimiter())
-      .addMiddleware(AuthHandler.authorizationToken())
-      .addHandler(RootRoute().router);
+      .addMiddleware(AuthHandler.handleBanIP());
+  if (!kTestMode) {
+    _pipeline.addMiddleware(rateLimiter.rateLimiter());
+  }
 
-  final int port = int.parse(env['API_PORT'] ?? '8080');
+  final Handler _handler = _pipeline.addHandler(RootRoute().router);
+
+  final int port = int.parse(env["API_PORT"] ?? "8080");
   server = await serve(_handler, ip, port);
   server?.autoCompress = true;
   loggerNoStack
-      .i('API Server listening on port http://${ip.host}:${server!.port}');
+      .i("API Server listening on port http://${ip.host}:${server!.port}");
 
   await CosmicChatHandler().init();
 }

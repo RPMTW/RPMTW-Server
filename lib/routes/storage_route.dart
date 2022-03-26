@@ -1,69 +1,64 @@
-import 'dart:typed_data';
+import "dart:typed_data";
 
-import 'package:byte_size/byte_size.dart';
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:shelf/shelf.dart';
-// ignore: implementation_imports
-import 'package:shelf_router/src/router.dart';
-import '../database/database.dart';
-import '../database/models/storage/storage.dart';
-import '../utilities/extension.dart';
-import 'base_route.dart';
+import "package:byte_size/byte_size.dart";
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/utilities/api_response.dart";
+import "package:rpmtw_server/utilities/utility.dart";
+import "package:shelf/shelf.dart";
+import "../database/database.dart";
+import "../database/models/storage/storage.dart";
+import "../utilities/extension.dart";
+import "api_route.dart";
 
-class StorageRoute implements BaseRoute {
+class StorageRoute extends APIRoute {
   @override
-  Router get router {
-    final Router router = Router();
+  String get routeName => "storage";
 
-    router.postRoute("/create", (Request req) async {
-      Stream<List<int>> stream = req.read();
-      String contentType = req.headers["content-type"] ??
-          req.headers["Content-Type"] ??
-          "application/octet-stream";
+  @override
+  void router(router) {
+    router.postRoute("/create", (req, data) async {
+      String contentType =
+          req.headers["content-type"] ?? "application/octet-stream";
 
       Storage storage = Storage(
           type: StorageType.temp,
           contentType: contentType,
           uuid: Uuid().v4(),
-          createAt: DateTime.now().toUtc().millisecondsSinceEpoch);
-      GridIn gridIn = DataBase.instance.gridFS.createFile(stream, storage.uuid);
+          createAt: Utility.getUTCTime());
+      GridIn gridIn =
+          DataBase.instance.gridFS.createFile(data.byteStream, storage.uuid);
       ByteSize size = ByteSize.FromBytes(req.contentLength!);
       if (size.MegaBytes > 8) {
         // 限制最大檔案大小為 8 MB
-        return ResponseExtension.badRequest(message: "File size is too large");
+        return APIResponse.badRequest(message: "File size is too large");
       }
       await gridIn.save();
       await storage.insert();
 
-      return ResponseExtension.success(data: storage.outputMap());
+      return APIResponse.success(data: storage.outputMap());
     });
 
-    router.getRoute("/<uuid>", (Request req) async {
-      String uuid = req.params['uuid']!;
+    router.getRoute("/<uuid>", (req, data) async {
+      String uuid = data.fields["uuid"]!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
-        return ResponseExtension.notFound();
+        return APIResponse.modelNotFound<Storage>();
       }
-      return ResponseExtension.success(data: storage.outputMap());
+      return APIResponse.success(data: storage.outputMap());
     });
 
-    router.getRoute("/<uuid>/download", (Request req) async {
-      String uuid = req.params['uuid']!;
+    router.getRoute("/<uuid>/download", (req, data) async {
+      String uuid = data.fields["uuid"]!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
-        return ResponseExtension.notFound("Storage not found");
+        return APIResponse.modelNotFound<Storage>();
       }
 
-      Uint8List? bytes = await storage.readAsBytes();
-      if (bytes == null) {
-        return ResponseExtension.notFound();
-      }
+      Uint8List bytes = await storage.readAsBytes();
 
       return Response.ok(bytes, headers: {
         "Content-Type": storage.contentType,
       });
     });
-
-    return router;
   }
 }

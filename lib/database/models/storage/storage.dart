@@ -1,44 +1,44 @@
-import 'dart:typed_data';
+import "dart:convert";
+import "dart:typed_data";
 
-import 'package:http/http.dart' as http;
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:http/http.dart" as http;
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/models/index_fields.dart";
 
-import '../../database.dart';
-import '../base_models.dart';
+import "../../database.dart";
+import "../base_models.dart";
 
-class Storage extends BaseModels {
+class Storage extends BaseModel {
   static const String collectionName = "storages";
-  static const List<IndexFields> indexFields = [
-    IndexFields("createAt", unique: false),
-    IndexFields("type", unique: false)
+  static const List<IndexField> indexFields = [
+    IndexField("createAt", unique: false),
+    IndexField("type", unique: false)
   ];
 
   final String contentType;
   final StorageType type;
-  final int createAt;
-
-  DateTime get createAtDateTime =>
-      DateTime.fromMillisecondsSinceEpoch(createAt).toUtc();
+  final DateTime createAt;
+  final int usageCount;
 
   const Storage(
       {required String uuid,
       this.contentType = "binary/octet-stream",
       required this.type,
-      required this.createAt})
+      required this.createAt,
+      this.usageCount = 0})
       : super(uuid: uuid);
 
-  Future<Uint8List?> readAsBytes() async {
+  Future<Uint8List> readAsBytes() async {
     GridFS fs = DataBase.instance.gridFS;
-    GridOut? gridOut = await fs.getFile(uuid);
-    if (gridOut == null) return null;
+    GridOut gridOut = (await fs.getFile(uuid))!;
+
     List<Map<String, dynamic>> chunks = await (fs.chunks
-        .find(where.eq('files_id', gridOut.id).sortBy('n'))
+        .find(where.eq("files_id", gridOut.id).sortBy("n"))
         .toList());
 
     List<List<int>> _chunks = [];
     for (Map<String, dynamic> chunk in chunks) {
-      final data = chunk['data'] as BsonBinary;
+      final data = chunk["data"] as BsonBinary;
       _chunks.add(data.byteList.toList());
     }
 
@@ -46,53 +46,44 @@ class Storage extends BaseModels {
     return Uint8List.fromList(await byteStream.toBytes());
   }
 
+  Future<String> readAsString({Encoding encoding = utf8}) async {
+    return encoding.decode(await readAsBytes());
+  }
+
   Storage copyWith(
-      {String? uuid, String? contentType, StorageType? type, int? createAt}) {
+      {String? contentType,
+      StorageType? type,
+      DateTime? createAt,
+      int? usageCount}) {
     return Storage(
-      uuid: uuid ?? this.uuid,
+      uuid: uuid,
       contentType: contentType ?? this.contentType,
       type: type ?? this.type,
       createAt: createAt ?? this.createAt,
+      usageCount: usageCount ?? this.usageCount,
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
     return {
-      'uuid': uuid,
-      'contentType': contentType,
-      'type': type.name,
-      'createAt': createAt
+      "uuid": uuid,
+      "contentType": contentType,
+      "type": type.name,
+      "createAt": createAt.millisecondsSinceEpoch,
+      "usageCount": usageCount,
     };
   }
 
   factory Storage.fromMap(Map<String, dynamic> map) {
     return Storage(
-        uuid: map['uuid'] ?? '',
-        contentType: map['contentType'],
-        type: StorageType.values.byName(map['type'] ?? 'temp'),
+        uuid: map["uuid"],
+        contentType: map["contentType"],
+        type: StorageType.values.byName(map["type"] ?? "temp"),
         createAt:
-            map['createAt'] ?? DateTime.now().toUtc().millisecondsSinceEpoch);
+            DateTime.fromMillisecondsSinceEpoch(map["createAt"], isUtc: true),
+        usageCount: map["usageCount"]);
   }
-
-  @override
-  String toString() =>
-      'Storage(uuid: $uuid,contentType: $contentType, type: $type, createAt: $createAt)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is Storage &&
-        other.uuid == uuid &&
-        other.contentType == contentType &&
-        other.type == type &&
-        other.createAt == createAt;
-  }
-
-  @override
-  int get hashCode =>
-      uuid.hashCode ^ contentType.hashCode ^ type.hashCode ^ createAt.hashCode;
 
   static Future<Storage?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<Storage>(uuid);

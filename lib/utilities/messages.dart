@@ -1,3 +1,3 @@
 class Messages {
-  static const String missingRequiredFields = 'Missing required fields';
+  static const String missingRequiredFields = "Missing required fields";
 }

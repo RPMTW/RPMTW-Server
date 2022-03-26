@@ -1,48 +1,46 @@
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
-import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
-import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
-import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
-import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/minecraft/relation_mod.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
+import "package:rpmtw_server/database/models/minecraft/mod_integration.dart";
+import "package:rpmtw_server/database/models/minecraft/mod_side.dart";
+import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
+import "package:rpmtw_server/utilities/utility.dart";
 
 class MinecraftHeader {
   static Future<ModRequestBodyParsedResult> parseModRequestBody(
       Map<String, dynamic> body) async {
-    String? name = body['name'];
+    String? name = body["name"];
 
-    List<MinecraftVersion> allVersions =
-        (await MinecraftVersionManifest.getFromCache()).manifest.versions;
     List<MinecraftVersion>? supportedVersions;
     try {
-      supportedVersions = List<MinecraftVersion>.from(body['supportVersions']
-          ?.map((x) => allVersions.firstWhere((e) => e.id == x)));
+      supportedVersions = await MinecraftVersion.getByIDs(
+          body["supportVersions"]!.cast<String>());
     } catch (e) {
       supportedVersions = null;
     }
 
-    String? id = body['id'];
-    String? description = body['description'];
-    List<RelationMod>? relationMods = body['relationMods'] != null
+    String? id = body["id"];
+    String? description = body["description"];
+    List<RelationMod>? relationMods = body["relationMods"] != null
         ? List<RelationMod>.from(
-            body['relationMods']!.map((x) => RelationMod.fromMap(x)))
+            body["relationMods"]!.map((x) => RelationMod.fromMap(x)))
         : null;
-    ModIntegrationPlatform? integration = body['integration'] != null
-        ? ModIntegrationPlatform.fromMap(body['integration'])
+    ModIntegrationPlatform? integration = body["integration"] != null
+        ? ModIntegrationPlatform.fromMap(body["integration"])
         : null;
-    List<ModSide>? side = body['side'] != null
+    List<ModSide>? side = body["side"] != null
         ? List<ModSide>.from(
-            body['side']!.map((x) => ModSide.fromMap(x)).toList())
+            body["side"]!.map((x) => ModSide.fromMap(x)).toList())
         : null;
-    List<ModLoader>? loader = body['loader'] != null
+    List<ModLoader>? loader = body["loader"] != null
         ? List<ModLoader>.from(
-            body['loader']?.map((x) => ModLoader.values.byName(x)))
+            body["loader"]?.map((x) => ModLoader.values.byName(x)))
         : null;
-    String? translatedName = body['translatedName'];
-    String? introduction = body['introduction'];
-    String? imageStorageUUID = body['imageStorageUUID'];
+    String? translatedName = body["translatedName"];
+    String? introduction = body["introduction"];
+    String? imageStorageUUID = body["imageStorageUUID"];
 
     return ModRequestBodyParsedResult(
         name: name,
@@ -60,7 +58,7 @@ class MinecraftHeader {
 
   static Future<MinecraftMod> createMod(
       ModRequestBodyParsedResult result) async {
-    DateTime nowTime = DateTime.now().toUtc();
+    DateTime nowTime = Utility.getUTCTime();
 
     MinecraftMod mod = MinecraftMod(
         uuid: Uuid().v4(),
@@ -97,40 +95,27 @@ class MinecraftHeader {
       limit = 50;
     }
 
-    List<MinecraftMod> mods = [];
-
-    final DbCollection collection =
-        DataBase.instance.getCollection<MinecraftMod>();
-
-    SelectorBuilder builder = SelectorBuilder();
+    SelectorBuilder selector = SelectorBuilder();
     if (filter != null) {
       /// search by name or id
-      builder = builder
-          .match('id', filter)
-          .or(where.match('name', "(?i)$filter"))
-          .or(where.match('translatedName', "(?i)$filter"));
+      selector = selector
+          .match("id", filter)
+          .or(where.match("name", "(?i)$filter"))
+          .or(where.match("translatedName", "(?i)$filter"));
     }
-    builder = builder.limit(limit).skip(skip);
+    selector = selector.limit(limit).skip(skip);
 
     if (sort == 0) {
-      builder = builder.sortBy('createTime', descending: true);
+      selector = selector.sortBy("createTime", descending: true);
     } else if (sort == 1) {
-      builder = builder.sortBy('viewCount', descending: true);
+      selector = selector.sortBy("viewCount", descending: true);
     } else if (sort == 2) {
-      builder = builder.sortBy('name', descending: true);
+      selector = selector.sortBy("name", descending: true);
     } else if (sort == 3) {
-      builder = builder.sortBy('lastUpdate', descending: true);
+      selector = selector.sortBy("lastUpdate", descending: true);
     }
 
-    final List<Map<String, dynamic>> modMaps =
-        await collection.find(builder).toList();
-
-    for (final Map<String, dynamic> map in modMaps) {
-      MinecraftMod mod = MinecraftMod.fromMap(map);
-      mods.add(mod);
-    }
-
-    return mods;
+    return DataBase.instance.getModelsWithSelector<MinecraftMod>(selector);
   }
 
   static Future<List<WikiChangeLog>> filterChangelogs(
@@ -142,29 +127,19 @@ class MinecraftHeader {
       limit = 50;
     }
 
-    List<WikiChangeLog> changelogs = [];
-
-    final DbCollection collection =
-        DataBase.instance.getCollection<WikiChangeLog>();
-    SelectorBuilder builder = SelectorBuilder();
+    SelectorBuilder selector = SelectorBuilder();
 
     if (dataUUID != null && dataUUID.isNotEmpty) {
-      builder = builder.eq("dataUUID", dataUUID);
+      selector = selector.eq("dataUUID", dataUUID);
     }
     if (userUUID != null && userUUID.isNotEmpty) {
-      builder = builder.eq("userUUID", userUUID);
+      selector = selector.eq("userUUID", userUUID);
     }
 
-    builder = builder.limit(limit).skip(skip);
+    selector = selector.limit(limit).skip(skip);
 
-    final List<Map<String, dynamic>> changelogMaps =
-        await collection.find(builder).toList();
-
-    for (final Map<String, dynamic> map in changelogMaps) {
-      changelogs.add(WikiChangeLog.fromMap(map));
-    }
-
-    return changelogs;
+    return await DataBase.instance
+        .getModelsWithSelector<WikiChangeLog>(selector);
   }
 }
 

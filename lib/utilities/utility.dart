@@ -1,17 +1,17 @@
-import 'package:pub_semver/pub_semver.dart';
+import "package:pub_semver/pub_semver.dart";
 
 class Utility {
-  /// 驗證請求資料完整性，如果不完整則為回傳 false，完整則回傳 true
+  /// 驗證請求資料完整性，如果不完整則為回傳缺少的資料名稱，完整則回傳 null
   /// [data] 請求資料
   /// [fields] 必填欄位
-  static bool validateRequiredFields(
+  static String? validateRequiredFields(
       Map<String, dynamic> data, List<String> fields) {
     for (String field in fields) {
       if (data[field] == null) {
-        return false;
+        return field;
       }
     }
-    return true;
+    return null;
   }
 
   /// https://github.com/RPMTW/RPMLauncher/blob/fa2523e3b006cd5e3dfca315be3c61debf48b40b/lib/Utility/Utility.dart#L381
@@ -49,12 +49,16 @@ class Utility {
       }
 
       /// 例如 21w44a
-      RegExp _ = RegExp(r'(?:(?<yy>\d\d)w(?<ww>\d\d)[a-z])');
+      RegExp _ = RegExp(r"(?:(?<yy>\d\d)w(?<ww>\d\d)[a-z])");
       if (_.hasMatch(sourceVersion)) {
         RegExpMatch match = _.allMatches(sourceVersion).toList().first;
 
         String praseRelease(int year, int week) {
-          if (year == 21 && week >= 37) {
+          if (year == 22 && week >= 11) {
+            return "1.19.0";
+          } else if (year == 22 && week >= 3 && week <= 7) {
+            return "1.18.2";
+          } else if (year == 21 && week >= 37) {
             return "1.18.0";
           } else if (year == 21 && (week >= 3 && week <= 20)) {
             return "1.17.0";
@@ -119,5 +123,9 @@ class Utility {
     }
 
     return _comparableVersion;
+  }
+
+  static DateTime getUTCTime() {
+    return DateTime.now().toUtc();
   }
 }

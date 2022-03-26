@@ -5,7 +5,7 @@ on:
       - main
   pull_request:
 
-env: 
+env:
   CurseForge_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/dart-sdk
-          key: ${{ runner.os }}-dart-2.16.0-134.5.beta
+          key: ${{ runner.os }}-dart-2.16.1
       # https://dart.dev/get-dart/archive
       - uses: dart-lang/setup-dart@v1.3
         with:
@@ -35,7 +35,11 @@ jobs:
           mongodb-version: 5.0
 
       - name: Dart Analyze
-        uses: zgosalvez/github-actions-analyze-dart@524d7c3e24b8bd8feab6c5513871a6bc87b2d97b
+        uses: invertase/github-action-dart-analyzer@v1
+        with:
+          fatal-warnings: false
+          annotate: true
+          annotate-only: false
       - name: Generate Coverage
         run: |
           dart test --coverage="coverage"
