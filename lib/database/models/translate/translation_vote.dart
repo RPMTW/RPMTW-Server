@@ -48,7 +48,7 @@ class TranslationVote extends BaseModel {
     return TranslationVote(
       uuid: map["uuid"],
       type: TranslationVoteType.values.byName(map["type"]),
-      translationUUID: map["translationUUID"] ?? "",
+      translationUUID: map["translationUUID"],
       userUUID: map["userUUID"] ?? "",
     );
   }
