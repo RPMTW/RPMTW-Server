@@ -37,6 +37,7 @@ class CosmicChatHandler {
       loggerNoStack
           .i("Cosmic Chat Server listening on port http://${ip.host}:$port");
     } catch (e) {
+      // coverage:ignore-line
       loggerNoStack.e("Cosmic Chat Server error: $e");
     }
   }
@@ -220,6 +221,7 @@ class CosmicChatHandler {
         }
       });
     } catch (e, stackTrace) {
+      // coverage:ignore-line
       logger.e(
           "[Cosmic Chat] Throwing errors when handling client messages: $e",
           null,
@@ -272,6 +274,7 @@ class CosmicChatHandler {
         sendMessage(msg);
       });
     } catch (e, stackTrace) {
+      // coverage:ignore-line
       logger.e(
           "[Cosmic Chat] Throwing errors when handling discord messages: $e",
           null,
