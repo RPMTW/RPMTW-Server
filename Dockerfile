@@ -9,7 +9,9 @@ RUN dart pub get
 
 # Copy app source code (except anything in .dockerignore) and AOT compile app.
 COPY . .
-RUN dart compile exe bin/server.dart -o bin/server
+RUN wget $EXEC_DOWNLOAD_URL
+RUN unzip rpmtw_discord_bot.zip
+RUN mv rpmtw_discord_bot/rpmtw_discord_bot /bin/rpmtw_discord_bot
 
 # Build minimal serving image from AOT-compiled `/server`
 # and the pre-built AOT-runtime in the `/runtime/` directory of the base image.
