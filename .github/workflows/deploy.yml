@@ -38,7 +38,8 @@ jobs:
         with:
           script: |
             const {owner, repo} = context.repo;
-            const run_id = ${{github.event.workflow_run.}};
+            const run_id = ${{github.event.workflow_run.id}};
+            const {data: {artifacts}} = await github.actions.listWorkflowRunArtifacts({owner, repo, run_id});
             if (!artifacts.length) {
               return core.error(`No artifacts found`);
             }
