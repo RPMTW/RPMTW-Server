@@ -1,7 +1,7 @@
 import "package:pub_semver/pub_semver.dart";
 
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
-import 'package:rpmtw_server/utilities/extension.dart';
+import "package:rpmtw_server/utilities/extension.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 
 class MinecraftVersion {

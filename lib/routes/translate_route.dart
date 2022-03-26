@@ -18,9 +18,9 @@ import "package:rpmtw_server/database/models/translate/translation_export_format
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/handler/minecraft_handler.dart";
 import "package:rpmtw_server/handler/translate_handler.dart";
-import 'package:rpmtw_server/routes/api_route.dart';
+import "package:rpmtw_server/routes/api_route.dart";
 import "package:rpmtw_server/utilities/api_response.dart";
-import 'package:rpmtw_server/utilities/data.dart';
+import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/extension.dart";
 import "package:shelf_router/shelf_router.dart";
 
