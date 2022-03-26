@@ -82,7 +82,7 @@ class Storage extends BaseModel {
         type: StorageType.values.byName(map["type"] ?? "temp"),
         createAt:
             DateTime.fromMillisecondsSinceEpoch(map["createAt"], isUtc: true),
-        usageCount: map["usageCount"]);
+        usageCount: map["usageCount"] ?? 0);
   }
 
   static Future<Storage?> getByUUID(String uuid) async =>
