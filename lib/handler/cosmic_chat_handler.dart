@@ -21,6 +21,8 @@ class CosmicChatHandler {
   /// Number of online users.
   static int get onlineUsers => _io.sockets.sockets.length;
 
+  static final List<String> _cachedMinecraftUUIDs = [];
+
   Future<void> init() async {
     /// 2096 is cloudflare supported proxy https port
     int port = int.parse(env["COSMIC_CHAT_PORT"] ?? "2096");
@@ -80,6 +82,10 @@ class CosmicChatHandler {
       }
 
       if (minecraftUUID != null) {
+        if (_cachedMinecraftUUIDs.contains(minecraftUUID)) {
+          initCheckList[1] = true;
+        }
+
         /// Verify that the minecraft account exists
         http
             .get(Uri.parse(
@@ -89,7 +95,9 @@ class CosmicChatHandler {
             Map data = json.decode(response.body);
             minecraftUUIDValid = true;
             minecraftUsername = data["name"];
+            _cachedMinecraftUUIDs.add(minecraftUUID);
           }
+
           initCheckList[1] = true;
         });
       } else {
@@ -109,6 +117,7 @@ class CosmicChatHandler {
           user != null || (minecraftUUIDValid && minecraftUsername != null);
 
       client.on("clientMessage", (_data) async {
+        final bool init = isInit();
         final List dataList = _data as List;
         late final List bytes =
             dataList.first is List ? dataList.first : dataList;
@@ -116,7 +125,10 @@ class CosmicChatHandler {
             dataList.last is Function ? dataList.last : null;
 
         /// The server has not completed the initialization process and therefore does not process the message.
-        if (!isInit()) return;
+        if (!init) {
+          return;
+        }
+
         if (!isAuthenticated()) {
           return ack?.call(json.encode({
             "status": "unauthorized",

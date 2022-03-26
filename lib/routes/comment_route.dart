@@ -63,7 +63,7 @@ class CommentRoute extends APIRoute {
       final String? replyCommentUUID = data.fields["replyCommentUUID"];
 
       if (content.isAllEmpty) {
-        return APIResponse.badRequest(message: "Content cannot be empty.");
+        return APIResponse.fieldEmpty("content");
       }
 
       final Comment comment = Comment(
@@ -103,7 +103,7 @@ class CommentRoute extends APIRoute {
       }
 
       if (content.isAllEmpty) {
-        return APIResponse.badRequest(message: "Content cannot be empty.");
+        return APIResponse.fieldEmpty("content");
       }
 
       final Comment newComment =

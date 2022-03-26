@@ -27,9 +27,10 @@ extension StringCasingExtension on String {
 
   String toTitleCaseWithSpace() {
     RegExp regExp = RegExp("[A-Z]");
-    List<int> matches = regExp.allMatches(this).map((e) => e.start).toList();
+    String string = toTitleCase();
+    List<int> matches = regExp.allMatches(string).map((e) => e.start).toList();
 
-    return splitMapJoin(regExp, onMatch: ((match) {
+    return string.splitMapJoin(regExp, onMatch: ((match) {
       String str = match.input.substring(match.start, match.end);
       if (matches.indexOf(match.start) == 0) {
         return str;

@@ -388,7 +388,7 @@ void main() async {
       Map responseJson = json.decode(response.body);
 
       expect(response.statusCode, 400);
-      expect(responseJson["message"], contains("content cannot be empty"));
+      expect(responseJson["message"], contains("cannot be empty"));
     });
 
     test("add translation (unsupported language)", () async {

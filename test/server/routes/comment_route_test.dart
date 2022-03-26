@@ -127,5 +127,30 @@ void main() async {
       final Map responseJson = json.decode(response.body);
       expect(responseJson["message"], contains("not found"));
     });
+
+    test("add comment (empty content)", () async {
+      final SourceText source = SourceText(
+          uuid: Uuid().v4(),
+          source: "Hello, World!",
+          gameVersions: [],
+          key: "test.title.hello_world",
+          type: SourceTextType.general);
+
+      await source.insert();
+
+      final response = await post(Uri.parse(host + "/comment/"),
+          headers: {"Authorization": "Bearer $token"},
+          body: json.encode({
+            "content": " ",
+            "parentUUID": source.uuid,
+            "type": "translate",
+          }));
+
+      expect(response.statusCode, 400);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], contains("cannot be empty"));
+
+      await source.delete();
+    });
   });
 }

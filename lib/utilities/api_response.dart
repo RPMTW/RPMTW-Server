@@ -21,6 +21,9 @@ class APIResponse {
   static Response missingRequiredFields(String fieldName) =>
       badRequest(message: "${Messages.missingRequiredFields} ($fieldName)");
 
+  static Response fieldEmpty(String fieldName) => badRequest(
+      message: "${fieldName.toTitleCaseWithSpace()} cannot be empty.");
+
   static Response success({required dynamic data}) {
     assert(data is Map || data is List || data == null,
         "Data must be a Map or List or null, but it is ${data.runtimeType}");

@@ -1,8 +1,11 @@
 import "dart:convert";
+import 'dart:io';
 
 import "package:http/http.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
+import 'package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 import "package:socket_io_client/socket_io_client.dart" as io;
 import "package:socket_io_client/socket_io_client.dart";
 import "package:test/test.dart";
@@ -64,6 +67,29 @@ void main() async {
     final String minecraftUUID = "977e69fb-0b15-40bf-b25e-4718485bf72f";
     late final String messageUUID;
 
+    setUpAll(() {
+      return Future.sync(() async {
+        CosmicChatMessage msg = CosmicChatMessage(
+            uuid: Uuid().v4(),
+            username: "SiongSng",
+            message: message,
+            avatarUrl: "https://crafthead.net/avatar/$minecraftUUID.png",
+            sentAt: Utility.getUTCTime(),
+            ip: InternetAddress.loopbackIPv4,
+            userType: CosmicChatUserType.minecraft);
+
+        msg.insert();
+        messageUUID = msg.uuid;
+      });
+    });
+
+    tearDownAll(() {
+      return Future.sync(() async {
+        CosmicChatMessage? msg = await CosmicChatMessage.getByUUID(messageUUID);
+        await msg!.delete();
+      });
+    });
+
     test("send message", () async {
       List<String> errors = [];
       List<Map> messages = [];
@@ -84,7 +110,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3.5);
+      await wait(scale: 4);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -95,7 +121,6 @@ void main() async {
       expect(messages.first["userType"], "minecraft");
       expect(messages.length, 1);
       expect(response!["status"], "success");
-      messageUUID = messages.first["uuid"];
     });
     test("send message (banned)", () async {
       List<String> errors = [];
@@ -127,7 +152,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3.5);
+      await wait(scale: 4);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, true);
@@ -202,7 +227,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3.5);
+      await wait(scale: 4.5);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -236,7 +261,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 2);
+      await wait(scale: 3.5);
 
       expect(errors.isEmpty, false);
       expect(errors.first, contains("Invalid"));

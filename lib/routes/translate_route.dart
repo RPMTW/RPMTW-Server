@@ -228,8 +228,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (content.isAllEmpty) {
-        return APIResponse.badRequest(
-            message: "Translation content cannot be empty");
+        return APIResponse.fieldEmpty("content");
       }
 
       if (!TranslateHandler.supportedLanguage.contains(language)) {
@@ -324,15 +323,15 @@ class TranslateRoute extends APIRoute {
           SourceTextType.values.byName(data.fields["type"]!);
 
       if (source.isAllEmpty) {
-        return APIResponse.badRequest(message: "Source cannot be empty");
+        return APIResponse.fieldEmpty("source");
       }
 
       if (gameVersions.isEmpty) {
-        return APIResponse.badRequest(message: "Game versions cannot be empty");
+        return APIResponse.fieldEmpty("gameVersions");
       }
 
       if (key.isAllEmpty) {
-        return APIResponse.badRequest(message: "Key cannot be empty");
+        return APIResponse.fieldEmpty("key");
       }
 
       final SourceText sourceText = SourceText(
@@ -370,15 +369,15 @@ class TranslateRoute extends APIRoute {
           : null;
 
       if (source != null && source.isAllEmpty) {
-        return APIResponse.badRequest(message: "Source cannot be empty");
+        return APIResponse.fieldEmpty("source");
       }
 
       if (gameVersions != null && gameVersions.isEmpty) {
-        return APIResponse.badRequest(message: "Game versions cannot be empty");
+        return APIResponse.fieldEmpty("gameVersions");
       }
 
       if (key != null && key.isAllEmpty) {
-        return APIResponse.badRequest(message: "Key cannot be empty");
+        return APIResponse.fieldEmpty("key");
       }
 
       if (source == null &&
@@ -503,7 +502,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (gameVersions.isEmpty) {
-        return APIResponse.badRequest(message: "Game versions cannot be empty");
+        return APIResponse.fieldEmpty("gameVersions");
       }
 
       Storage? storage = await Storage.getByUUID(storageUUID);
@@ -515,7 +514,7 @@ class TranslateRoute extends APIRoute {
       await storage.update();
 
       if (path.isAllEmpty) {
-        return APIResponse.badRequest(message: "Path cannot be empty");
+        return APIResponse.fieldEmpty("path");
       }
 
       String fileString = await storage.readAsString();
@@ -589,7 +588,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (path != null && path.isAllEmpty) {
-        return APIResponse.badRequest(message: "Path cannot be empty");
+        return APIResponse.fieldEmpty("path");
       }
 
       List<SourceText>? sourceTexts;
@@ -758,7 +757,7 @@ class TranslateRoute extends APIRoute {
           : null;
 
       if (namespace.isAllEmpty) {
-        return APIResponse.badRequest(message: "Namespace cannot be empty");
+        return APIResponse.fieldEmpty("namespace");
       }
 
       if (modUUID != null) {
@@ -846,7 +845,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (namespace != null && (namespace.isAllEmpty)) {
-        return APIResponse.badRequest(message: "Namespace cannot be empty");
+        return APIResponse.fieldEmpty("namespace");
       }
 
       modSourceInfo = modSourceInfo.copyWith(
@@ -925,15 +924,15 @@ class TranslateRoute extends APIRoute {
       }
 
       if (term.isAllEmpty) {
-        return APIResponse.badRequest(message: "Term cannot be empty");
+        return APIResponse.fieldEmpty("term");
       }
 
       if (translation.isAllEmpty) {
-        return APIResponse.badRequest(message: "Translation cannot be empty");
+        return APIResponse.fieldEmpty("translation");
       }
 
       if (description != null && description.isAllEmpty) {
-        return APIResponse.badRequest(message: "Description cannot be empty");
+        return APIResponse.fieldEmpty("description");
       }
 
       final Glossary glossary = Glossary(
@@ -1002,15 +1001,15 @@ class TranslateRoute extends APIRoute {
       }
 
       if (term != null && term.isAllEmpty) {
-        return APIResponse.badRequest(message: "Term cannot be empty");
+        return APIResponse.fieldEmpty("term");
       }
 
       if (translation != null && translation.isAllEmpty) {
-        return APIResponse.badRequest(message: "Translation cannot be empty");
+        return APIResponse.fieldEmpty("translation");
       }
 
       if (description != null && description.isAllEmpty) {
-        return APIResponse.badRequest(message: "Description cannot be empty");
+        return APIResponse.fieldEmpty("description");
       }
 
       Glossary? glossary = await Glossary.getByUUID(uuid);
