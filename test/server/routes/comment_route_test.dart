@@ -366,59 +366,84 @@ void main() async {
       (await Comment.getByUUID(commentUUID))!.delete();
     });
 
-    group("reply comment", () {
-      test("reply comment", () async {
-        final commentUUID = await addTestComment();
+    test("delete reply comment", () async {
+      final commentUUID = await addTestComment();
 
-        final response = await post(
-          Uri.parse(host + "/comment/$commentUUID/reply"),
-          headers: {"Authorization": "Bearer $token"},
-          body: json.encode({
-            "content": "Thank you.",
-          }),
-        );
+      /// reply comment
+      await post(
+        Uri.parse(host + "/comment/$commentUUID/reply"),
+        headers: {"Authorization": "Bearer $token"},
+        body: json.encode({
+          "content": "Thank you.",
+        }),
+      );
 
-        expect(response.statusCode, 200);
-        final Map data = json.decode(response.body)["data"];
-        expect(data["uuid"], isNotNull);
-        expect(data["content"], "Thank you.");
-        expect(data["type"], "translate");
-        expect(data["userUUID"], userUUID);
+      final response = await delete(
+        Uri.parse(host + "/comment/$commentUUID"),
+        headers: {"Authorization": "Bearer $token"},
+      );
 
-        (await Comment.getByUUID(commentUUID))!.delete();
-      });
+      expect(response.statusCode, 200);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], "success");
+      expect((await Comment.getByUUID(commentUUID))?.isHidden, true);
 
-      test("reply comment (unknown uuid)", () async {
-        final response = await post(
-          Uri.parse(host + "/comment/test/reply"),
-          headers: {"Authorization": "Bearer $token"},
-          body: json.encode({
-            "content": "Thank you.",
-          }),
-        );
+      (await Comment.getByUUID(commentUUID))!.delete();
+    });
+  });
 
-        expect(response.statusCode, 404);
-        final Map responseJson = json.decode(response.body);
-        expect(responseJson["message"], contains("not found"));
-      });
+  group("reply comment", () {
+    test("reply comment", () async {
+      final commentUUID = await addTestComment();
 
-      test("reply comment (empty content)", () async {
-        final commentUUID = await addTestComment();
+      final response = await post(
+        Uri.parse(host + "/comment/$commentUUID/reply"),
+        headers: {"Authorization": "Bearer $token"},
+        body: json.encode({
+          "content": "Thank you.",
+        }),
+      );
 
-        final response = await post(
-          Uri.parse(host + "/comment/$commentUUID/reply"),
-          headers: {"Authorization": "Bearer $token"},
-          body: json.encode({
-            "content": " ",
-          }),
-        );
+      expect(response.statusCode, 200);
+      final Map data = json.decode(response.body)["data"];
+      expect(data["uuid"], isNotNull);
+      expect(data["content"], "Thank you.");
+      expect(data["type"], "translate");
+      expect(data["userUUID"], userUUID);
 
-        expect(response.statusCode, 400);
-        final Map responseJson = json.decode(response.body);
-        expect(responseJson["message"], contains("cannot be empty"));
+      (await Comment.getByUUID(commentUUID))!.delete();
+    });
 
-        (await Comment.getByUUID(commentUUID))!.delete();
-      });
+    test("reply comment (unknown uuid)", () async {
+      final response = await post(
+        Uri.parse(host + "/comment/test/reply"),
+        headers: {"Authorization": "Bearer $token"},
+        body: json.encode({
+          "content": "Thank you.",
+        }),
+      );
+
+      expect(response.statusCode, 404);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], contains("not found"));
+    });
+
+    test("reply comment (empty content)", () async {
+      final commentUUID = await addTestComment();
+
+      final response = await post(
+        Uri.parse(host + "/comment/$commentUUID/reply"),
+        headers: {"Authorization": "Bearer $token"},
+        body: json.encode({
+          "content": " ",
+        }),
+      );
+
+      expect(response.statusCode, 400);
+      final Map responseJson = json.decode(response.body);
+      expect(responseJson["message"], contains("cannot be empty"));
+
+      (await Comment.getByUUID(commentUUID))!.delete();
     });
   });
 }
