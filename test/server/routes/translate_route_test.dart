@@ -2703,6 +2703,33 @@ void main() async {
         });
       });
 
+      test("edit glossary (set modUUID to none)", () {
+        return addTestGlossary().then((uuid) async {
+          final response = await patch(
+            Uri.parse(host + "/translate/glossary/$uuid"),
+            headers: {"Authorization": "Bearer $token"},
+            body: jsonEncode({
+              "term": "Creeper2",
+              "translation": "苦力怕2",
+              "description": "Hello world",
+              "language": "zh-TW"
+            }),
+          );
+
+          Map data = json.decode(response.body)["data"];
+
+          expect(response.statusCode, 200);
+          expect(data["term"], "Creeper2");
+          expect(data["translation"], "苦力怕2");
+          expect(data["description"], "Hello world");
+          expect(data["language"], "zh-TW");
+          expect(data["modUUID"], null);
+
+          /// Delete the test data.
+          await (await Glossary.getByUUID(uuid))!.delete();
+        });
+      });
+
       test("edit glossary (unknown uuid)", () async {
         final response =
             await patch(Uri.parse(host + "/translate/glossary/unknown"),
