@@ -11,7 +11,7 @@ RUN apt-get install -y wget gzip
 
 # Copy app source code (except anything in .dockerignore) and AOT compile app.
 COPY . .
-RUN wget -O server $EXEC_DOWNLOAD_URL
+RUN wget -O server.tar.gz $EXEC_DOWNLOAD_URL
 RUN tar zxvf server.tar.gz
 RUN mv server/bin/server server
 RUN chmod +x server
