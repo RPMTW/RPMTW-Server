@@ -31,7 +31,7 @@ class CommentRoute extends APIRoute {
       return APIResponse.success(data: comment.outputMap());
     }, requiredFields: ["uuid"]);
 
-    /// List all comments by type and parent uuid.
+    /// List all comments by type and parent or reply comment.
     router.getRoute("/", (req, data) async {
       Map<String, dynamic> fields = data.fields;
 
