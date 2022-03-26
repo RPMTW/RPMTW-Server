@@ -11,6 +11,7 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2      
       - name: Cache Dart
         uses: actions/cache@v2
         with:
@@ -22,7 +23,10 @@ jobs:
         with:
           sdk: 2.16.1
       - name: Build
-        run: dart compile exe bin/server.dart -o bin/server
+        run: |
+          cd ${{ github.workspace }}
+          dart pub get
+          dart compile exe bin/server.dart -o bin/server
       - name: Upload file to github artifacts
         uses: actions/upload-artifact@v3
         with:
