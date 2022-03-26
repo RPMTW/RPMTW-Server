@@ -4,8 +4,6 @@ services:
     build: .
     env_file:
       - .env
-    environment:
-      - EXEC_DOWNLOAD_URL=https://nightly.link/RPMTW/RPMTW-Server/workflows/deploy/main/server.zip
     ports:
       - 2096:2096
       - 2087:2087

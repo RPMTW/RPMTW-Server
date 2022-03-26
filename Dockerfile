@@ -3,6 +3,7 @@ FROM dart:stable AS build
 
 # Resolve app dependencies.
 WORKDIR /app
+ENV EXEC_DOWNLOAD_URL="https://nightly.link/RPMTW/RPMTW-Server/workflows/deploy/main/server.zip"
 COPY pubspec.* ./
 COPY .env ./
 RUN apt-get update
@@ -10,7 +11,7 @@ RUN apt-get install -y wget unzip
 
 # Copy app source code (except anything in .dockerignore) and AOT compile app.
 COPY . .
-RUN wget $$EXEC_DOWNLOAD_URL
+RUN wget $EXEC_DOWNLOAD_URL
 RUN unzip server.zip
 RUN mv server/server /bin
 
