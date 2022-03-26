@@ -53,12 +53,13 @@ class APIResponse {
           }),
           headers: _baseHeaders);
 
-  static Response forbidden() => Response(HttpStatus.forbidden,
-      body: json.encode({
-        "status": HttpStatus.forbidden,
-        "message": "Forbidden",
-      }),
-      headers: _baseHeaders);
+  static Response forbidden({String message = "Forbidden"}) =>
+      Response(HttpStatus.forbidden,
+          body: json.encode({
+            "status": HttpStatus.forbidden,
+            "message": message,
+          }),
+          headers: _baseHeaders);
 
   static Response notFound([String message = "Not Found"]) =>
       Response(HttpStatus.notFound,

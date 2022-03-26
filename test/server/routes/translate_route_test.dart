@@ -325,7 +325,7 @@ void main() async {
           });
       Map responseJson = json.decode(response.body);
 
-      expect(response.statusCode, 400);
+      expect(response.statusCode, 403);
       expect(responseJson["message"], contains("cannot edit"));
 
       /// Delete the test translation vote.
@@ -539,7 +539,7 @@ void main() async {
           });
       Map responseJson = json.decode(response.body);
 
-      expect(response.statusCode, 400);
+      expect(response.statusCode, 403);
       expect(responseJson["message"], contains("cannot delete"));
 
       /// Delete the test translation.

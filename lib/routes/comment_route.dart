@@ -98,7 +98,7 @@ class CommentRoute extends APIRoute {
       }
 
       if (comment.userUUID != user.uuid) {
-        return APIResponse.unauthorized(
+        return APIResponse.forbidden(
             message: "You cannot edit this comment.");
       }
 
@@ -110,7 +110,7 @@ class CommentRoute extends APIRoute {
           comment.copyWith(content: content, updatedAt: Utility.getUTCTime());
       await newComment.update();
 
-      return APIResponse.success(data: comment.outputMap());
+      return APIResponse.success(data: newComment.outputMap());
     }, requiredFields: ["uuid", "content"], authConfig: AuthConfig());
 
     /// Delete a comment.
@@ -124,7 +124,7 @@ class CommentRoute extends APIRoute {
       }
 
       if (comment.userUUID != req.user!.uuid) {
-        return APIResponse.unauthorized(
+        return APIResponse.forbidden(
             message: "You cannot delete this comment.");
       }
 

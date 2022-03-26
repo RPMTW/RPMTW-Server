@@ -152,7 +152,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (vote.userUUID != user.uuid) {
-        return APIResponse.badRequest(message: "You cannot edit this vote");
+        return APIResponse.forbidden(message: "You cannot edit this vote");
       }
 
       vote = vote.copyWith(type: type);
@@ -261,7 +261,7 @@ class TranslateRoute extends APIRoute {
       }
 
       if (translation.translatorUUID != user.uuid) {
-        return APIResponse.badRequest(
+        return APIResponse.forbidden(
             message: "You cannot delete this translation");
       }
 
