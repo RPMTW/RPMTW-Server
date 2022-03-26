@@ -32,7 +32,8 @@ jobs:
           name: server
           path: bin/server
           retention-days: 1
-      - uses: actions/github-script@v3
+      - name: Get artifact download url
+        uses: actions/github-script@v3
         id: get-artifact-download-url
         with:
           script: |
