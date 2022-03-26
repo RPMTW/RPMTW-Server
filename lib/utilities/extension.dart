@@ -222,6 +222,7 @@ class RouteData {
   final Uint8List bytes;
 
   Stream<List<int>> get byteStream => http.ByteStream.fromBytes(bytes);
+  String get body => utf8.decode(bytes);
 
   RouteData(this.fields, this.bytes);
 }

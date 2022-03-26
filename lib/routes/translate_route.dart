@@ -1023,11 +1023,23 @@ class TranslateRoute extends APIRoute {
     router.patchRoute("/glossary/<uuid>", (req, data) async {
       Map<String, dynamic> fields = data.fields;
       final String uuid = fields["uuid"]!;
+      Glossary? glossary = await Glossary.getByUUID(uuid);
+      if (glossary == null) {
+        return APIResponse.modelNotFound<Glossary>();
+      }
 
       final String? term = fields["term"];
       final String? translation = fields["translation"];
       final String? description = fields["description"];
-      final String? modUUID = fields["modUUID"];
+      late final String? modUUID;
+
+      /// Avoid not setting modUUID to null in the request json, resulting in setting modUUID to null.
+      String body = data.body;
+      if (body.contains("modUUID")) {
+        modUUID = fields["modUUID"];
+      } else {
+        modUUID = glossary.modUUID;
+      }
 
       if (modUUID != null) {
         MinecraftMod? mod = await MinecraftMod.getByUUID(modUUID);
@@ -1046,11 +1058,6 @@ class TranslateRoute extends APIRoute {
 
       if (description != null && description.isAllEmpty) {
         return APIResponse.fieldEmpty("description");
-      }
-
-      Glossary? glossary = await Glossary.getByUUID(uuid);
-      if (glossary == null) {
-        return APIResponse.modelNotFound<Glossary>();
       }
 
       glossary = glossary.copyWith(
