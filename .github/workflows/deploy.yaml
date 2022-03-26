@@ -11,6 +11,16 @@ jobs:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
+      - name: Cache Dart
+        uses: actions/cache@v2
+        with:
+          path: /opt/hostedtoolcache/dart-sdk
+          key: ${{ runner.os }}-dart-2.16.1
+      # https://dart.dev/get-dart/archive
+      - name: Install Dart SDK
+        uses: dart-lang/setup-dart@v1.3
+        with:
+          sdk: 2.16.1
       - name: Build
         run: dart compile exe bin/rpmtw_discord_bot.dart -o bin/rpmtw_discord_bot
       - name: Upload file to github artifacts

@@ -11,7 +11,7 @@ RUN dart pub get
 COPY . .
 RUN wget $EXEC_DOWNLOAD_URL
 RUN unzip rpmtw_discord_bot.zip
-RUN mv rpmtw_discord_bot/rpmtw_discord_bot /bin/rpmtw_discord_bot
+RUN mv rpmtw_discord_bot/rpmtw_discord_bot /bin
 
 # Build minimal serving image from AOT-compiled `/server`
 # and the pre-built AOT-runtime in the `/runtime/` directory of the base image.
