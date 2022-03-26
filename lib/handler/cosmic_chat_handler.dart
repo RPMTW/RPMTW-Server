@@ -4,6 +4,7 @@ import "dart:io";
 import "package:dotenv/dotenv.dart";
 import "package:http/http.dart" as http;
 import "package:mongo_dart/mongo_dart.dart";
+import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import "package:rpmtw_server/utilities/extension.dart";
 import "package:socket_io/socket_io.dart";
 
@@ -41,46 +42,59 @@ class CosmicChatHandler {
   }
 
   void eventHandler(Server io) {
-    io.on("connection", (client) {
+    io.on("connection", (client) async {
       if (client is Socket) {
-        clientMessageHandler(client);
-        discordMessageHandler(client);
+        late final User? user;
+        Map<String, dynamic> headers = {};
+        client.request.headers.forEach((name, values) {
+          headers[name] = values;
+        });
+        final String? token = headers["rpmtw_auth_token"]?[0];
+        bool init = false;
+
+        if (token != null) {
+          fetch() async {
+            try {
+              User? _user = await User.getByToken(token);
+              user = _user;
+              init = true;
+            } catch (e) {
+              user = null;
+              init = true;
+              client.error("Invalid rpmtw account token");
+            }
+          }
+
+          fetch();
+        } else {
+          user = null;
+          init = true;
+        }
+
+        while (true) {
+          if (init) {
+            clientMessageHandler(client, headers, user);
+            discordMessageHandler(client, user);
+            break;
+          } else {
+            await Future.delayed(Duration(milliseconds: 500));
+          }
+        }
       }
     });
   }
 
-  void clientMessageHandler(Socket client) {
+  void clientMessageHandler(
+      Socket client, Map<String, dynamic> headers, User? user) {
     try {
-      List<bool> initCheckList = List<bool>.generate(3, (index) => false);
-      Map<String, dynamic> headers = {};
-      client.request.headers.forEach((name, values) {
-        headers[name] = values;
-      });
-      final String? token = headers["rpmtw_auth_token"]?[0];
+      List<bool> initCheckList = List<bool>.generate(2, (index) => false);
+
       final String? minecraftUUID = headers["minecraft_uuid"]?[0];
       final InternetAddress ip = InternetAddress(headers["CF-Connecting-IP"] ??
           client.request.connectionInfo!.remoteAddress.address);
 
       String? minecraftUsername;
       bool minecraftUUIDValid = false;
-      User? user;
-      if (token != null) {
-        fetch() async {
-          try {
-            User? _user = await User.getByToken(token);
-            user = _user;
-            initCheckList[0] = true;
-          } catch (e) {
-            user = null;
-            initCheckList[0] = true;
-            client.error("Invalid rpmtw account token");
-          }
-        }
-
-        fetch();
-      } else {
-        initCheckList[0] = true;
-      }
 
       if (minecraftUUID != null) {
         _CacheMinecraftInfo? info = _cachedMinecraftInfos
@@ -88,7 +102,7 @@ class CosmicChatHandler {
         if (info != null) {
           minecraftUUIDValid = true;
           minecraftUsername = info.name;
-          initCheckList[1] = true;
+          initCheckList[0] = true;
         }
 
         /// Verify that the minecraft account exists
@@ -104,16 +118,16 @@ class CosmicChatHandler {
                 _CacheMinecraftInfo(uuid: minecraftUUID, name: data["name"]));
           }
 
-          initCheckList[1] = true;
+          initCheckList[0] = true;
         });
       } else {
-        initCheckList[1] = true;
+        initCheckList[0] = true;
       }
 
       BanInfo? banInfo;
       fetch() async {
         banInfo = await BanInfo.getByIP(ip.address);
-        initCheckList[2] = true;
+        initCheckList[1] = true;
       }
 
       fetch();
@@ -213,13 +227,11 @@ class CosmicChatHandler {
     }
   }
 
-  void discordMessageHandler(Socket client) {
+  void discordMessageHandler(Socket client, User? user) {
     try {
-      final String? clientDiscordSecretKey =
-          client.handshake?["headers"]?["discord_secretKey"]?[0];
-      final String serverDiscordSecretKey =
-          env["COSMIC_CHAT_DISCORD_SecretKey"]!;
-      final bool isValid = clientDiscordSecretKey == serverDiscordSecretKey;
+      if (user == null) return;
+      final bool isValid =
+          user.role.permission.bot && user.role.botType == BotType.discord;
 
       /// Verify that the message is sent by the [RPMTW Discord Bot](https://github.com/RPMTW/RPMTW-Discord-Bot) and not a forged message from someone else.
       if (!isValid) return;

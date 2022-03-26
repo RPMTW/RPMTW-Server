@@ -1,10 +1,14 @@
 import "dart:convert";
+import 'dart:ffi';
 import "dart:io";
 
 import "package:http/http.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
+import 'package:rpmtw_server/database/models/auth/user.dart';
+import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
+import 'package:rpmtw_server/handler/auth_handler.dart';
 import "package:rpmtw_server/utilities/utility.dart";
 import "package:socket_io_client/socket_io_client.dart" as io;
 import "package:socket_io_client/socket_io_client.dart";
@@ -302,6 +306,7 @@ void main() async {
     socket.opts!["extraHeaders"] = {"rpmtw_auth_token": userToken};
 
     socket.onConnect((_) async {
+      await wait();
       socket.emitWithAck("clientMessage", encodeMessage({"message": message}),
           ack: (_response) {
         response = json.decode(_response.toString());
@@ -333,6 +338,7 @@ void main() async {
     Map? response;
 
     socket.onConnect((_) async {
+      await wait();
       socket.emitWithAck("clientMessage", encodeMessage({"message": message}),
           ack: (_response) {
         response = json.decode(_response.toString());
@@ -359,6 +365,25 @@ void main() async {
     final String avatarUrl =
         "https://cdn.discordapp.com/avatars/645588343228334080/f56a0b0223d5f32b902edcb362d08a5d.png";
     late final String messageUUID;
+    late final String botToken;
+
+    setUpAll(() {
+      return Future.sync(() async {
+        User user = User(
+            uuid: Uuid().v4(),
+            username: "RPMTW Discord Bot",
+            email: "",
+            emailVerified: true,
+            passwordHash: "",
+            loginIPs: [],
+            role: UserRole(
+                botType: BotType.discord,
+                roles: [UserRoleType.general, UserRoleType.bot]));
+
+        await user.insert();
+        botToken = AuthHandler.generateAuthToken(user.uuid);
+      });
+    });
 
     test("send message (unauthorized)", () async {
       List<Map> messages = [];
@@ -383,11 +408,10 @@ void main() async {
     test("send message (invalid message)", () async {
       List<String> errors = [];
       List<Map> messages = [];
-      socket.opts!["extraHeaders"] = {
-        "discord_secretKey": TestUttily.secretKey
-      };
+      socket.opts!["extraHeaders"] = {"rpmtw_auth_token": botToken};
 
       socket.onConnect((_) async {
+        await wait();
         socket.emit(
             "discordMessage",
             utf8.encode(json.encode({
@@ -403,7 +427,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait();
+      await wait(scale: 2);
 
       expect(errors.first.toLowerCase(), contains("invalid"));
       expect(messages.isEmpty, true);
@@ -411,11 +435,10 @@ void main() async {
     test("send message", () async {
       List<String> errors = [];
       List<Map> messages = [];
-      socket.opts!["extraHeaders"] = {
-        "discord_secretKey": TestUttily.secretKey
-      };
+      socket.opts!["extraHeaders"] = {"rpmtw_auth_token": botToken};
 
       socket.onConnect((_) async {
+        await wait();
         socket.emit(
             "discordMessage",
             utf8.encode(json.encode({
@@ -431,7 +454,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait();
+      await wait(scale: 2);
       expect(errors.isEmpty, true);
       expect(messages.isNotEmpty, true);
       expect(messages.first["message"], message);
@@ -446,11 +469,10 @@ void main() async {
     test("reply message", () async {
       List<String> errors = [];
       List<Map> messages = [];
-      socket.opts!["extraHeaders"] = {
-        "discord_secretKey": TestUttily.secretKey
-      };
+      socket.opts!["extraHeaders"] = {"rpmtw_auth_token": botToken};
 
       socket.onConnect((_) async {
+        await wait();
         socket.emit(
             "discordMessage",
             utf8.encode(json.encode({
@@ -467,7 +489,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait();
+      await wait(scale: 2);
       expect(errors.isEmpty, true);
       expect(messages.isNotEmpty, true);
       expect(messages.first["message"], message);
@@ -481,11 +503,10 @@ void main() async {
     test("reply message (invalid uuid)", () async {
       List<String> errors = [];
       List<Map> messages = [];
-      socket.opts!["extraHeaders"] = {
-        "discord_secretKey": TestUttily.secretKey
-      };
+      socket.opts!["extraHeaders"] = {"rpmtw_auth_token": botToken};
 
       socket.onConnect((_) async {
+        await wait();
         socket.emit(
             "discordMessage",
             utf8.encode(json.encode({
@@ -502,7 +523,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait();
+      await wait(scale: 2);
       expect(errors.isEmpty, false);
       expect(errors.first, contains("Invalid"));
       expect(messages.isEmpty, true);
