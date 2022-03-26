@@ -1,17 +1,18 @@
 # Use latest stable channel SDK.
 FROM dart:stable AS build
+ARG EXEC_DOWNLOAD_URL
 
 # Resolve app dependencies.
 WORKDIR /app
 COPY pubspec.* ./
 COPY .env ./
 RUN apt-get update
-RUN apt-get install -y wget unzip
+RUN apt-get install -y wget gzip
 
 # Copy app source code (except anything in .dockerignore) and AOT compile app.
 COPY . .
 RUN wget $EXEC_DOWNLOAD_URL
-RUN unzip server.zip
+RUN tar zxvf server.tar.gz
 RUN chmod +x server
 
 # Build minimal serving image from AOT-compiled `/server`
