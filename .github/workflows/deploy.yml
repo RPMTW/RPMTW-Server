@@ -32,6 +32,18 @@ jobs:
           name: server
           path: bin/server
           retention-days: 1
+      - uses: actions/github-script@v3
+        id: get-artifact-download-url
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const run_id = ${{github.event.workflow_run.}};  
+            const {data: {artifacts}} = await github.actions.listWorkflowRunArtifacts({owner, repo, run_id});
+            if (!artifacts.length) {
+              return core.error(`No artifacts found`);
+            }
+            let url = `https://nightly.link/${owner}/${repo}/actions/artifacts/${artifacts[0].id}.zip`;
+            core.setOutput('url', url);
       - name: Build and setup on remote server
         uses: appleboy/ssh-action@master
         with:
@@ -44,6 +56,6 @@ jobs:
             sudo git restore .
             sudo git pull
             sudo docker-compose pull
-            sudo docker-compose build
+            sudo docker-compose build --build-arg EXEC_DOWNLOAD_URL=${{ steps.get-artifact-download-url.outputs.url }}
             sudo docker-compose down
             sudo docker-compose up -d
