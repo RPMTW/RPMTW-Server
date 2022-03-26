@@ -5,6 +5,8 @@ FROM dart:stable AS build
 WORKDIR /app
 COPY pubspec.* ./
 COPY .env ./
+RUN apt-get update
+RUN apt-get install wget unzip
 RUN dart pub get
 
 # Copy app source code (except anything in .dockerignore) and AOT compile app.

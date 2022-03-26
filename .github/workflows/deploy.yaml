@@ -24,7 +24,6 @@ jobs:
           sdk: 2.16.1
       - name: Build
         run: |
-          cd ${{ github.workspace }}
           dart pub get
           dart compile exe bin/server.dart -o bin/server
       - name: Upload file to github artifacts
