@@ -117,6 +117,32 @@ void main() async {
   }
 
   group("translation vote", () {
+    test("get vote", () async {
+      final String voteUUID = await addTestVote();
+      final Response response =
+          await get(Uri.parse(host + "/translate/vote/$voteUUID"));
+
+      expect(response.statusCode, 200);
+
+      final Map<String, dynamic> data = json.decode(response.body)["data"];
+      expect(data["uuid"], voteUUID);
+      expect(data["type"], TranslationVoteType.up.name);
+      expect(data["translationUUID"], mockTranslationUUID);
+      expect(data["userUUID"], userUUID);
+
+      (await TranslationVote.getByUUID(voteUUID))!.delete();
+    });
+
+    test("get vote (unknown uuid)", () async {
+      final Response response =
+          await get(Uri.parse(host + "/translate/vote/test"));
+
+      expect(response.statusCode, 404);
+
+      final Map<String, dynamic> responseJson = json.decode(response.body);
+      expect(responseJson["message"], contains("not found"));
+    });
+
     test("add translation vote", () async {
       final String type = "up";
       final response = await post(Uri.parse(host + "/translate/vote"),

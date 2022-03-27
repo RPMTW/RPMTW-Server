@@ -127,6 +127,18 @@ class TranslateRoute extends APIRoute {
   }
 
   void vote(Router router) {
+    /// Get vote
+    router.getRoute("/vote/<uuid>", (req, data) async {
+      final String uuid = data.fields["uuid"];
+      final TranslationVote? vote = await TranslationVote.getByUUID(uuid);
+
+      if (vote == null) {
+        return APIResponse.modelNotFound<TranslationVote>();
+      }
+
+      return APIResponse.success(data: vote.outputMap());
+    }, requiredFields: ["uuid"]);
+
     /// List all translation votes by translation uuid
     router.getRoute("/vote", (req, data) async {
       final String translationUUID = data.fields["translationUUID"];
