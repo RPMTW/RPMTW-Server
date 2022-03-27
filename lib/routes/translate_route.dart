@@ -438,9 +438,6 @@ class TranslateRoute extends APIRoute {
                   mainVersion: true)
               : null;
       final String? key = data.fields["key"];
-      final SourceTextType? type = data.fields["type"] != null
-          ? SourceTextType.values.byName(data.fields["type"]!)
-          : null;
 
       if (source != null && source.isAllEmpty) {
         return APIResponse.fieldEmpty("source");
@@ -454,16 +451,13 @@ class TranslateRoute extends APIRoute {
         return APIResponse.fieldEmpty("key");
       }
 
-      if (source == null &&
-          gameVersions == null &&
-          key == null &&
-          type == null) {
+      if (source == null && gameVersions == null && key == null) {
         return APIResponse.badRequest(
             message: "You need to provide at least one field to edit");
       }
 
       sourceText = sourceText.copyWith(
-          source: source, gameVersions: gameVersions, key: key, type: type);
+          source: source, gameVersions: gameVersions, key: key);
 
       await sourceText.update();
       return APIResponse.success(data: sourceText.outputMap());

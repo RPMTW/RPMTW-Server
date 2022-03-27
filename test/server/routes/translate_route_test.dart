@@ -759,8 +759,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -786,8 +785,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -810,8 +808,7 @@ void main() async {
               body: json.encode({
                 "source": "RPMTW is the best!",
                 "gameVersions": ["1.12.2", "1.18.2"],
-                "key": "test.patchouli.rpmtw",
-                "type": "patchouli"
+                "key": "test.patchouli.rpmtw"
               }),
               headers: {
             "Content-Type": "application/json",
@@ -834,8 +831,7 @@ void main() async {
           body: json.encode({
             "source": "",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -858,8 +854,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": [],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -882,8 +877,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "   ",
-            "type": "patchouli"
+            "key": "   "
           }),
           headers: {
             "Content-Type": "application/json",

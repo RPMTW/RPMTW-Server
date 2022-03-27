@@ -46,14 +46,13 @@ class SourceText extends BaseModel {
     String? source,
     List<MinecraftVersion>? gameVersions,
     String? key,
-    SourceTextType? type,
   }) {
     return SourceText(
       uuid: uuid,
       source: source ?? this.source,
       gameVersions: gameVersions ?? this.gameVersions,
       key: key ?? this.key,
-      type: type ?? this.type,
+      type: type,
     );
   }
 
