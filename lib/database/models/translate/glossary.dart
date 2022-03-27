@@ -4,7 +4,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 
-class Glossary extends BaseModel {
+class Glossary extends DBModel {
   static const String collectionName = "glossaries";
   static const List<IndexField> indexFields = [
     IndexField("term", unique: false),

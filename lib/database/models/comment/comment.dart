@@ -6,7 +6,7 @@ import "package:rpmtw_server/database/models/model_field.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 
-class Comment extends BaseModel {
+class Comment extends DBModel {
   static const String collectionName = "comments";
   static const List<IndexField> indexFields = [
     IndexField("type", unique: false),

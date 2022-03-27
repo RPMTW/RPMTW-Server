@@ -7,7 +7,7 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import "package:rpmtw_server/database/models/minecraft/mod_integration.dart";
 import "package:rpmtw_server/database/models/minecraft/mod_side.dart";
 
-class MinecraftMod extends BaseModel {
+class MinecraftMod extends DBModel {
   static const String collectionName = "minecraft_mods";
   static const List<IndexField> indexFields = [
     IndexField("name", unique: false),

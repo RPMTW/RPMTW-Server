@@ -6,7 +6,7 @@ import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
-class ModSourceInfo extends BaseModel {
+class ModSourceInfo extends DBModel {
   static const String collectionName = "mod_source_infos";
   static const List<IndexField> indexFields = [
     IndexField("namespace", unique: false),
