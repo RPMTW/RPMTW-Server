@@ -809,7 +809,7 @@ class TranslateRoute extends APIRoute {
       }
 
       return APIResponse.success(data: {
-        "infos": infos.map((e) => e.outputMap()).toList(),
+        "infos": infos.take(limit).map((e) => e.outputMap()).toList(),
         "limit": limit,
         "skip": skip,
       });
