@@ -117,7 +117,7 @@ void main() async {
   }
 
   group("translation vote", () {
-    test("get vote", () async {
+    test("get translation vote", () async {
       final String voteUUID = await addTestVote();
       final Response response =
           await get(Uri.parse(host + "/translate/vote/$voteUUID"));
@@ -133,7 +133,7 @@ void main() async {
       (await TranslationVote.getByUUID(voteUUID))!.delete();
     });
 
-    test("get vote (unknown uuid)", () async {
+    test("get translation vote (unknown uuid)", () async {
       final Response response =
           await get(Uri.parse(host + "/translate/vote/test"));
 
@@ -210,8 +210,11 @@ void main() async {
       String translationVoteUUID = await addTestVote();
 
       final response = await get(
-          Uri.parse(host + "/translate/vote").replace(
-              queryParameters: {"translationUUID": mockTranslationUUID}),
+          Uri.parse(host + "/translate/vote").replace(queryParameters: {
+            "translationUUID": mockTranslationUUID,
+            "limit": 10,
+            "skip": 0
+          }),
           headers: {"Content-Type": "application/json"});
 
       List<Map> data = json.decode(response.body)["data"].cast<Map>();
@@ -479,7 +482,9 @@ void main() async {
       final response = await get(
           Uri.parse(host + "/translate/translation").replace(queryParameters: {
             "sourceUUID": mockSourceTextUUID,
-            "language": "zh-TW"
+            "language": "zh-TW",
+            "limit": "10",
+            "skip": "0"
           }),
           headers: {"Content-Type": "application/json"});
 
