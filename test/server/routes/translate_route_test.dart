@@ -212,8 +212,8 @@ void main() async {
       final response = await get(
           Uri.parse(host + "/translate/vote").replace(queryParameters: {
             "translationUUID": mockTranslationUUID,
-            "limit": 10,
-            "skip": 0
+            "limit": "10",
+            "skip": "0"
           }),
           headers: {"Content-Type": "application/json"});
 
