@@ -2,12 +2,12 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 
 /// Model of database abstract class.
-abstract class BaseModel {
+abstract class DBModel {
   /// UUID of this model.
   /// This is unique key of this model.
   final String uuid;
 
-  const BaseModel({required this.uuid});
+  const DBModel({required this.uuid});
 
   Map<String, dynamic> toMap() {
     throw UnimplementedError();

@@ -134,7 +134,7 @@ class DataBase {
     loggerNoStack.i("Successfully connected to the database");
   }
 
-  DbCollection getCollection<T extends BaseModel>([String? runtimeType]) {
+  DbCollection getCollection<T extends DBModel>([String? runtimeType]) {
     Map<String, DbCollection> modelTypeMap = {
       "User": collectionList[0],
       "Storage": collectionList[1],
@@ -156,7 +156,7 @@ class DataBase {
     return modelTypeMap[runtimeType ?? T.toString()]!;
   }
 
-  T getModelByMap<T extends BaseModel>(Map<String, dynamic> map) {
+  T getModelByMap<T extends DBModel>(Map<String, dynamic> map) {
     Map<String, T Function(Map<String, dynamic>)> modelTypeMap = {
       "User": User.fromMap,
       "Storage": Storage.fromMap,
@@ -179,10 +179,10 @@ class DataBase {
     return factory(map);
   }
 
-  Future<T?> getModelByUUID<T extends BaseModel>(String uuid) =>
+  Future<T?> getModelByUUID<T extends DBModel>(String uuid) =>
       getModelByField<T>("uuid", uuid);
 
-  Future<T?> getModelByField<T extends BaseModel>(
+  Future<T?> getModelByField<T extends DBModel>(
       String fieldName, dynamic value) async {
     Map<String, dynamic>? map =
         await getCollection<T>().findOne(where.eq(fieldName, value));
@@ -190,14 +190,14 @@ class DataBase {
     return map != null ? getModelByMap<T>(map) : null;
   }
 
-  Future<T?> getModelWithSelector<T extends BaseModel>(
+  Future<T?> getModelWithSelector<T extends DBModel>(
       SelectorBuilder selector) async {
     Map<String, dynamic>? map = await getCollection<T>().findOne(selector);
 
     return map != null ? getModelByMap<T>(map) : null;
   }
 
-  Future<List<T>> getModelsWithSelector<T extends BaseModel>(
+  Future<List<T>> getModelsWithSelector<T extends DBModel>(
       SelectorBuilder selector) async {
     List<Map<String, dynamic>> maps =
         await getCollection<T>().find(selector).toList();
@@ -205,7 +205,7 @@ class DataBase {
     return maps.map((map) => getModelByMap<T>(map)).toList();
   }
 
-  Future<List<T>> getModelsByField<T extends BaseModel>(List<ModelField> field,
+  Future<List<T>> getModelsByField<T extends DBModel>(List<ModelField> field,
       {int? limit, int? skip}) async {
     SelectorBuilder selector = SelectorBuilder();
 
@@ -226,7 +226,7 @@ class DataBase {
     return list.map((m) => getModelByMap<T>(m)).toList();
   }
 
-  Future<WriteResult> insertOneModel<T extends BaseModel>(T model,
+  Future<WriteResult> insertOneModel<T extends DBModel>(T model,
       {WriteConcern? writeConcern, bool? bypassDocumentValidation}) async {
     WriteResult result = await getCollection<T>(model.runtimeType.toString())
         .insertOne(model.toMap(),
@@ -237,7 +237,7 @@ class DataBase {
     return result;
   }
 
-  Future<WriteResult> replaceOneModel<T extends BaseModel>(T model,
+  Future<WriteResult> replaceOneModel<T extends DBModel>(T model,
       {WriteConcern? writeConcern,
       CollationOptions? collation,
       String? hint,
@@ -257,7 +257,7 @@ class DataBase {
     return result;
   }
 
-  Future<WriteResult> deleteOneModel<T extends BaseModel>(T model,
+  Future<WriteResult> deleteOneModel<T extends DBModel>(T model,
       {WriteConcern? writeConcern,
       CollationOptions? collation,
       String? hint,
@@ -408,7 +408,7 @@ class InsertModelException implements Exception {
 }
 
 extension WriteResultExtension on WriteResult {
-  void exceptionHandler<T extends BaseModel>(T model) {
+  void exceptionHandler<T extends DBModel>(T model) {
     if (!success) {
       throw InsertModelException(T.toString(),
           writeError?.errmsg ?? writeConcernError?.errmsg ?? errmsg);

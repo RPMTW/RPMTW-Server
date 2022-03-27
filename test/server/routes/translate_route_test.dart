@@ -24,6 +24,8 @@ void main() async {
   final String mockTranslationUUID = "0d87bd04-d957-4e7c-a9b7-5eb0bb3a40c1";
   final String mockSourceTextUUID = "b1b02c50-f35c-4a99-a38f-7240e61917f1";
   final String mockModSourceInfoUUID = "5b77ac1c-506a-4fc1-8e13-760ccd5abf08";
+  final String mockModUUID = "505e0ded-8729-4417-bfed-05e5b9bcb3f3";
+
   late final String token;
   late final String translationManagerToken;
   late final String userUUID;
@@ -72,8 +74,20 @@ void main() async {
               translatorUUID: userUUID)
           .insert();
 
-      ModSourceInfo info =
-          ModSourceInfo(uuid: mockModSourceInfoUUID, namespace: "test");
+      MinecraftMod mod = MinecraftMod(
+          uuid: mockModUUID,
+          name: "test",
+          id: "test",
+          supportVersions: [],
+          relationMods: [],
+          integration: ModIntegrationPlatform(),
+          side: [],
+          createTime: Utility.getUTCTime(),
+          lastUpdate: Utility.getUTCTime());
+      await mod.insert();
+
+      ModSourceInfo info = ModSourceInfo(
+          uuid: mockModSourceInfoUUID, namespace: "test", modUUID: mockModUUID);
       await info.insert();
     });
   });
@@ -117,7 +131,7 @@ void main() async {
   }
 
   group("translation vote", () {
-    test("get vote", () async {
+    test("get translation vote", () async {
       final String voteUUID = await addTestVote();
       final Response response =
           await get(Uri.parse(host + "/translate/vote/$voteUUID"));
@@ -133,7 +147,7 @@ void main() async {
       (await TranslationVote.getByUUID(voteUUID))!.delete();
     });
 
-    test("get vote (unknown uuid)", () async {
+    test("get translation vote (unknown uuid)", () async {
       final Response response =
           await get(Uri.parse(host + "/translate/vote/test"));
 
@@ -210,8 +224,11 @@ void main() async {
       String translationVoteUUID = await addTestVote();
 
       final response = await get(
-          Uri.parse(host + "/translate/vote").replace(
-              queryParameters: {"translationUUID": mockTranslationUUID}),
+          Uri.parse(host + "/translate/vote").replace(queryParameters: {
+            "translationUUID": mockTranslationUUID,
+            "limit": "10",
+            "skip": "0"
+          }),
           headers: {"Content-Type": "application/json"});
 
       List<Map> data = json.decode(response.body)["data"].cast<Map>();
@@ -479,7 +496,9 @@ void main() async {
       final response = await get(
           Uri.parse(host + "/translate/translation").replace(queryParameters: {
             "sourceUUID": mockSourceTextUUID,
-            "language": "zh-TW"
+            "language": "zh-TW",
+            "limit": "10",
+            "skip": "0"
           }),
           headers: {"Content-Type": "application/json"});
 
@@ -754,8 +773,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -767,7 +785,7 @@ void main() async {
       expect(responseJson["message"], "success");
       expect(responseJson["data"]["source"], "RPMTW is the best!");
       expect(responseJson["data"]["key"], "test.patchouli.rpmtw");
-      expect(responseJson["data"]["type"], "patchouli");
+      expect(responseJson["data"]["type"], "general");
 
       /// Delete the test source text.
       await (await SourceText.getByUUID(sourceTextUUID))!.delete();
@@ -781,8 +799,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -805,8 +822,7 @@ void main() async {
               body: json.encode({
                 "source": "RPMTW is the best!",
                 "gameVersions": ["1.12.2", "1.18.2"],
-                "key": "test.patchouli.rpmtw",
-                "type": "patchouli"
+                "key": "test.patchouli.rpmtw"
               }),
               headers: {
             "Content-Type": "application/json",
@@ -829,8 +845,7 @@ void main() async {
           body: json.encode({
             "source": "",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -853,8 +868,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": [],
-            "key": "test.patchouli.rpmtw",
-            "type": "patchouli"
+            "key": "test.patchouli.rpmtw"
           }),
           headers: {
             "Content-Type": "application/json",
@@ -877,8 +891,7 @@ void main() async {
           body: json.encode({
             "source": "RPMTW is the best!",
             "gameVersions": ["1.12.2", "1.18.2"],
-            "key": "   ",
-            "type": "patchouli"
+            "key": "   "
           }),
           headers: {
             "Content-Type": "application/json",
@@ -1437,7 +1450,7 @@ void main() async {
         await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
-      test("list source file (search by mod source)", () async {
+      test("list source file (filter by mod source)", () async {
         String sourceFileUUID = await addTestSourceFile();
 
         final response = await get(
@@ -1943,7 +1956,7 @@ void main() async {
         await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
       });
 
-      test("list source file (search by mod namespace)", () async {
+      test("list mod source info (filter by namespace)", () async {
         String modSourceInfoUUID = await addTestModSourceInfo();
 
         final response = await get(
@@ -1951,8 +1964,7 @@ void main() async {
                 queryParameters: {
                   "limit": "10",
                   "skip": "0",
-                  "namespace": "test",
-                  "name": "test"
+                  "namespace": "test"
                 }),
             headers: {"Content-Type": "application/json"});
 
@@ -1961,6 +1973,77 @@ void main() async {
 
         expect(response.statusCode, 200);
         expect(data.length, 2);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
+        expect(data[1]["uuid"], modSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list mod source info (filter by name)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info").replace(
+                queryParameters: {
+                  "limit": "10",
+                  "skip": "0",
+                  "name": "test"
+                }),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 1);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list mod source info (filter by mod)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info").replace(
+                queryParameters: {
+                  "limit": "10",
+                  "skip": "0",
+                  "modUUID": mockModUUID
+                }),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 1);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list source file (filter by mod namespace)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info").replace(
+                queryParameters: {
+                  "limit": "10",
+                  "skip": "0",
+                  "namespace": "test"
+                }),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 2);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
         expect(data[1]["uuid"], modSourceInfoUUID);
 
         /// Delete the test mod source info.

@@ -3,7 +3,7 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 
-class BanInfo extends BaseModel {
+class BanInfo extends DBModel {
   static const String collectionName = "ban_infos";
   static const List<IndexField> indexFields = [
     IndexField("ip", unique: true),

@@ -438,9 +438,6 @@ class TranslateRoute extends APIRoute {
                   mainVersion: true)
               : null;
       final String? key = data.fields["key"];
-      final SourceTextType? type = data.fields["type"] != null
-          ? SourceTextType.values.byName(data.fields["type"]!)
-          : null;
 
       if (source != null && source.isAllEmpty) {
         return APIResponse.fieldEmpty("source");
@@ -454,16 +451,13 @@ class TranslateRoute extends APIRoute {
         return APIResponse.fieldEmpty("key");
       }
 
-      if (source == null &&
-          gameVersions == null &&
-          key == null &&
-          type == null) {
+      if (source == null && gameVersions == null && key == null) {
         return APIResponse.badRequest(
             message: "You need to provide at least one field to edit");
       }
 
       sourceText = sourceText.copyWith(
-          source: source, gameVersions: gameVersions, key: key, type: type);
+          source: source, gameVersions: gameVersions, key: key);
 
       await sourceText.update();
       return APIResponse.success(data: sourceText.outputMap());
@@ -768,6 +762,7 @@ class TranslateRoute extends APIRoute {
       Map<String, dynamic> fields = data.fields;
       final String? name = fields["name"];
       final String? namespace = fields["namespace"];
+      final String? modUUID = fields["modUUID"];
 
       int limit =
           fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
@@ -788,9 +783,7 @@ class TranslateRoute extends APIRoute {
                 .skip(skip));
 
         infos.addAll(results);
-      }
-
-      if (name != null) {
+      } else if (name != null) {
         List<MinecraftMod> mods = await MinecraftHeader.searchMods(
             filter: name, limit: limit, skip: skip);
 
@@ -801,21 +794,22 @@ class TranslateRoute extends APIRoute {
 
           final ModSourceInfo? modSourceInfo =
               await ModSourceInfo.getByModUUID(mod.uuid);
+
           if (modSourceInfo != null) {
             infos.add(modSourceInfo);
           }
         }
-      }
-
-      if (namespace == null && name == null) {
-        final List<ModSourceInfo> results = await DataBase.instance
-            .getModelsByField([], limit: limit, skip: skip);
+      } else {
+        final List<ModSourceInfo> results =
+            await DataBase.instance.getModelsByField<ModSourceInfo>([
+          if (modUUID != null) ModelField("modUUID", modUUID),
+        ], limit: limit, skip: skip);
 
         infos.addAll(results);
       }
 
       return APIResponse.success(data: {
-        "infos": infos.map((e) => e.outputMap()).toList(),
+        "infos": infos.take(limit).map((e) => e.outputMap()).toList(),
         "limit": limit,
         "skip": skip,
       });

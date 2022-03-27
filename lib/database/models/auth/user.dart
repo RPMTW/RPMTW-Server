@@ -7,7 +7,7 @@ import "package:rpmtw_server/handler/auth_handler.dart";
 
 import "../base_models.dart";
 
-class User extends BaseModel {
+class User extends DBModel {
   static const String collectionName = "users";
   static const List<IndexField> indexFields = [
     IndexField("email", unique: true)

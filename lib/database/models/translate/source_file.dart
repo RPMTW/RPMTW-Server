@@ -8,7 +8,7 @@ import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 
 /// Represents the source language file in a text format.
-class SourceFile extends BaseModel {
+class SourceFile extends DBModel {
   static const String collectionName = "source_files";
   static const List<IndexField> indexFields = [
     IndexField("modSourceInfoUUID", unique: false),
@@ -38,18 +38,6 @@ class SourceFile extends BaseModel {
       texts.add(text);
     }
     return texts;
-  }
-
-  Future<SourceFile> addSourceText(SourceText text) async {
-    if (sources.contains(text.uuid)) {
-      return this;
-    }
-
-    SourceFile newFile = copyWith(
-      sources: List.from(sources)..add(text.uuid),
-    );
-    await newFile.update();
-    return newFile;
   }
 
   const SourceFile(

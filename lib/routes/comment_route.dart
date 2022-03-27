@@ -53,7 +53,7 @@ class CommentRoute extends APIRoute {
 
       return APIResponse.success(
           data: comments.map((comment) => comment.outputMap()).toList());
-    }, requiredFields: ["type"], checker: _checkParentUUID);
+    }, requiredFields: ["type", "parentUUID"], checker: _checkParentUUID);
 
     /// Add a comment.
     router.postRoute("/", (req, data) async {

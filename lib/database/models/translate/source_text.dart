@@ -15,7 +15,7 @@ import "package:rpmtw_server/database/models/translate/source_file.dart";
 /// Represents a source text entry in a text format.
 /// Can be referenced by `sources` of [SourceFile] or `patchouliAddons` of [ModSourceInfo].
 /// Cannot be repeatedly referenced.
-class SourceText extends BaseModel {
+class SourceText extends DBModel {
   static const String collectionName = "source_texts";
   static const List<IndexField> indexFields = [
     IndexField("source", unique: false),
@@ -46,14 +46,13 @@ class SourceText extends BaseModel {
     String? source,
     List<MinecraftVersion>? gameVersions,
     String? key,
-    SourceTextType? type,
   }) {
     return SourceText(
       uuid: uuid,
       source: source ?? this.source,
       gameVersions: gameVersions ?? this.gameVersions,
       key: key ?? this.key,
-      type: type ?? this.type,
+      type: type,
     );
   }
 
