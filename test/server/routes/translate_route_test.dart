@@ -24,6 +24,8 @@ void main() async {
   final String mockTranslationUUID = "0d87bd04-d957-4e7c-a9b7-5eb0bb3a40c1";
   final String mockSourceTextUUID = "b1b02c50-f35c-4a99-a38f-7240e61917f1";
   final String mockModSourceInfoUUID = "5b77ac1c-506a-4fc1-8e13-760ccd5abf08";
+  final String mockModUUID = "505e0ded-8729-4417-bfed-05e5b9bcb3f3";
+
   late final String token;
   late final String translationManagerToken;
   late final String userUUID;
@@ -72,8 +74,20 @@ void main() async {
               translatorUUID: userUUID)
           .insert();
 
-      ModSourceInfo info =
-          ModSourceInfo(uuid: mockModSourceInfoUUID, namespace: "test");
+      MinecraftMod mod = MinecraftMod(
+          uuid: mockModUUID,
+          name: "test",
+          id: "test",
+          supportVersions: [],
+          relationMods: [],
+          integration: ModIntegrationPlatform(),
+          side: [],
+          createTime: Utility.getUTCTime(),
+          lastUpdate: Utility.getUTCTime());
+      await mod.insert();
+
+      ModSourceInfo info = ModSourceInfo(
+          uuid: mockModSourceInfoUUID, namespace: "test", modUUID: mockModUUID);
       await info.insert();
     });
   });
@@ -1974,7 +1988,7 @@ void main() async {
                 queryParameters: {
                   "limit": "10",
                   "skip": "0",
-                  "namespace": "abcd"
+                  "name": "test"
                 }),
             headers: {"Content-Type": "application/json"});
 
@@ -1982,7 +1996,8 @@ void main() async {
             json.decode(response.body)["data"]["infos"].cast<Map>();
 
         expect(response.statusCode, 200);
-        expect(data.length, 0);
+        expect(data.length, 1);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
 
         /// Delete the test mod source info.
         await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
@@ -1992,17 +2007,20 @@ void main() async {
         String modSourceInfoUUID = await addTestModSourceInfo();
 
         final response = await get(
-            Uri.parse(host + "/translate/mod-source-info")
-                .replace(queryParameters: {"limit": "10", "skip": "0"}),
+            Uri.parse(host + "/translate/mod-source-info").replace(
+                queryParameters: {
+                  "limit": "10",
+                  "skip": "0",
+                  "modUUID": mockModUUID
+                }),
             headers: {"Content-Type": "application/json"});
 
         List<Map> data =
             json.decode(response.body)["data"]["infos"].cast<Map>();
 
         expect(response.statusCode, 200);
-        expect(data.length, 2);
+        expect(data.length, 1);
         expect(data[0]["uuid"], mockModSourceInfoUUID);
-        expect(data[1]["uuid"], modSourceInfoUUID);
 
         /// Delete the test mod source info.
         await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
@@ -2016,8 +2034,7 @@ void main() async {
                 queryParameters: {
                   "limit": "10",
                   "skip": "0",
-                  "namespace": "test",
-                  "name": "test"
+                  "namespace": "test"
                 }),
             headers: {"Content-Type": "application/json"});
 
@@ -2026,6 +2043,7 @@ void main() async {
 
         expect(response.statusCode, 200);
         expect(data.length, 2);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
         expect(data[1]["uuid"], modSourceInfoUUID);
 
         /// Delete the test mod source info.

@@ -794,6 +794,7 @@ class TranslateRoute extends APIRoute {
 
           final ModSourceInfo? modSourceInfo =
               await ModSourceInfo.getByModUUID(mod.uuid);
+
           if (modSourceInfo != null) {
             infos.add(modSourceInfo);
           }
