@@ -762,6 +762,7 @@ class TranslateRoute extends APIRoute {
       Map<String, dynamic> fields = data.fields;
       final String? name = fields["name"];
       final String? namespace = fields["namespace"];
+      final String? modUUID = fields["modUUID"];
 
       int limit =
           fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
@@ -782,9 +783,7 @@ class TranslateRoute extends APIRoute {
                 .skip(skip));
 
         infos.addAll(results);
-      }
-
-      if (name != null) {
+      } else if (name != null) {
         List<MinecraftMod> mods = await MinecraftHeader.searchMods(
             filter: name, limit: limit, skip: skip);
 
@@ -799,11 +798,11 @@ class TranslateRoute extends APIRoute {
             infos.add(modSourceInfo);
           }
         }
-      }
-
-      if (namespace == null && name == null) {
-        final List<ModSourceInfo> results = await DataBase.instance
-            .getModelsByField([], limit: limit, skip: skip);
+      } else {
+        final List<ModSourceInfo> results =
+            await DataBase.instance.getModelsByField<ModSourceInfo>([
+          if (modUUID != null) ModelField("modUUID", modUUID),
+        ], limit: limit, skip: skip);
 
         infos.addAll(results);
       }

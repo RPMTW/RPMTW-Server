@@ -40,18 +40,6 @@ class SourceFile extends BaseModel {
     return texts;
   }
 
-  Future<SourceFile> addSourceText(SourceText text) async {
-    if (sources.contains(text.uuid)) {
-      return this;
-    }
-
-    SourceFile newFile = copyWith(
-      sources: List.from(sources)..add(text.uuid),
-    );
-    await newFile.update();
-    return newFile;
-  }
-
   const SourceFile(
       {required String uuid,
       required this.modSourceInfoUUID,
