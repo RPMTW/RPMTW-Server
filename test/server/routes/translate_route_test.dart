@@ -1436,7 +1436,7 @@ void main() async {
         await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
       });
 
-      test("list source file (search by mod source)", () async {
+      test("list source file (filter by mod source)", () async {
         String sourceFileUUID = await addTestSourceFile();
 
         final response = await get(
@@ -1942,7 +1942,73 @@ void main() async {
         await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
       });
 
-      test("list source file (search by mod namespace)", () async {
+      test("list mod source info (filter by namespace)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info").replace(
+                queryParameters: {
+                  "limit": "10",
+                  "skip": "0",
+                  "namespace": "test"
+                }),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 2);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
+        expect(data[1]["uuid"], modSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list mod source info (filter by name)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info").replace(
+                queryParameters: {
+                  "limit": "10",
+                  "skip": "0",
+                  "namespace": "abcd"
+                }),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 0);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list mod source info (filter by mod)", () async {
+        String modSourceInfoUUID = await addTestModSourceInfo();
+
+        final response = await get(
+            Uri.parse(host + "/translate/mod-source-info")
+                .replace(queryParameters: {"limit": "10", "skip": "0"}),
+            headers: {"Content-Type": "application/json"});
+
+        List<Map> data =
+            json.decode(response.body)["data"]["infos"].cast<Map>();
+
+        expect(response.statusCode, 200);
+        expect(data.length, 2);
+        expect(data[0]["uuid"], mockModSourceInfoUUID);
+        expect(data[1]["uuid"], modSourceInfoUUID);
+
+        /// Delete the test mod source info.
+        await (await ModSourceInfo.getByUUID(modSourceInfoUUID))!.delete();
+      });
+
+      test("list source file (filter by mod namespace)", () async {
         String modSourceInfoUUID = await addTestModSourceInfo();
 
         final response = await get(
