@@ -141,15 +141,29 @@ class TranslateRoute extends APIRoute {
 
     /// List all translation votes by translation uuid
     router.getRoute("/vote", (req, data) async {
-      final String translationUUID = data.fields["translationUUID"];
+      final Map<String, dynamic> fields = data.fields;
+
+      final String translationUUID = fields["translationUUID"];
+
+      int limit =
+          fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
+      final int skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) ?? 0 : 0;
+
+      // Max limit is 50
+      if (limit > 50) {
+        limit = 50;
+      }
+
       final Translation? translation =
           await Translation.getByUUID(translationUUID);
-
       if (translation == null) {
         return APIResponse.modelNotFound<Translation>();
       }
 
-      final List<TranslationVote> votes = await translation.votes;
+      final List<TranslationVote> votes =
+          await TranslationVote.getAllByTranslationUUID(translationUUID,
+              limit: limit, skip: skip);
 
       return APIResponse.success(
           data: votes.map((e) => e.outputMap()).toList());
@@ -253,10 +267,22 @@ class TranslateRoute extends APIRoute {
           fields["language"] != null ? Locale.parse(fields["language"]) : null;
       final String? translatorUUID = fields["translatorUUID"];
 
+      int limit =
+          fields["limit"] != null ? int.tryParse(fields["limit"]) ?? 50 : 50;
+      final int skip =
+          fields["skip"] != null ? int.tryParse(fields["skip"]) ?? 0 : 0;
+
+      // Max limit is 50
+      if (limit > 50) {
+        limit = 50;
+      }
+
       final List<Translation> translations = await Translation.list(
           sourceUUID: sourceTextUUID,
           language: language,
-          translatorUUID: translatorUUID);
+          translatorUUID: translatorUUID,
+          limit: limit,
+          skip: skip);
 
       return APIResponse.success(
           data: translations.map((e) => e.outputMap()).toList());

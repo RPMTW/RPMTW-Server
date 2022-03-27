@@ -56,10 +56,11 @@ class TranslationVote extends BaseModel {
   static Future<TranslationVote?> getByUUID(String uuid) async =>
       DataBase.instance.getModelByUUID<TranslationVote>(uuid);
 
-  static Future<List<TranslationVote>> getAllByTranslationUUID(
-          String uuid) async =>
+  static Future<List<TranslationVote>> getAllByTranslationUUID(String uuid,
+          {int? limit, int? skip}) async =>
       DataBase.instance.getModelsByField<TranslationVote>(
-          [ModelField("translationUUID", uuid)]);
+          [ModelField("translationUUID", uuid)],
+          limit: limit, skip: skip);
 }
 
 enum TranslationVoteType { up, down }
