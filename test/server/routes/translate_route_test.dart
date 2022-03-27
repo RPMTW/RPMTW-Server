@@ -771,7 +771,7 @@ void main() async {
       expect(responseJson["message"], "success");
       expect(responseJson["data"]["source"], "RPMTW is the best!");
       expect(responseJson["data"]["key"], "test.patchouli.rpmtw");
-      expect(responseJson["data"]["type"], "patchouli");
+      expect(responseJson["data"]["type"], "general");
 
       /// Delete the test source text.
       await (await SourceText.getByUUID(sourceTextUUID))!.delete();
