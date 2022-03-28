@@ -47,8 +47,8 @@ enum UserRoleType {
   // can create/edit source files/texts
   translationManager,
   wikiManager,
-  // can delete cosmic chat messages, ban cosmic chat users
-  cosmicChatManager,
+  // can delete universe chat messages, ban universe chat users
+  universeChatManager,
   // general user
   general,
 }
@@ -64,7 +64,7 @@ extension UserRoleTypeExtension on UserRoleType {
         return 4;
       case UserRoleType.wikiManager:
         return 3;
-      case UserRoleType.cosmicChatManager:
+      case UserRoleType.universeChatManager:
         return 2;
       case UserRoleType.general:
         return 1;

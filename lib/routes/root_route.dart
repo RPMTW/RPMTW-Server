@@ -1,5 +1,5 @@
 import "package:rpmtw_server/routes/comment_route.dart";
-import "package:rpmtw_server/routes/cosmic_chat_route.dart";
+import "package:rpmtw_server/routes/universe_chat_route.dart";
 import "package:rpmtw_server/routes/curseforge_route.dart";
 import "package:rpmtw_server/routes/minecraft_route.dart";
 import "package:rpmtw_server/routes/translate_route.dart";
@@ -17,7 +17,7 @@ class RootRoute {
     StorageRoute().register(router);
     MinecraftRoute().register(router);
     CurseForgeRoute().register(router);
-    CosmicChatRoute().register(router);
+    UniverseChatRoute().register(router);
     TranslateRoute().register(router);
     CommentRoute().register(router);
 

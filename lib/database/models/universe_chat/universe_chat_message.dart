@@ -4,8 +4,8 @@ import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/base_models.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 
-class CosmicChatMessage extends DBModel {
-  static const String collectionName = "cosmic_chat_message";
+class UniverseChatMessage extends DBModel {
+  static const String collectionName = "universe_chat_message";
   static const List<IndexField> indexFields = [
     IndexField("sentAt", unique: false),
     IndexField("ip", unique: false),
@@ -27,12 +27,12 @@ class CosmicChatMessage extends DBModel {
   /// IP address of the sender of the message (not public)
   final InternetAddress ip;
 
-  final CosmicChatUserType userType;
+  final UniverseChatUserType userType;
 
   /// Reply message uuid
   final String? replyMessageUUID;
 
-  const CosmicChatMessage({
+  const UniverseChatMessage({
     required String uuid,
     required this.username,
     required this.message,
@@ -44,17 +44,17 @@ class CosmicChatMessage extends DBModel {
     this.replyMessageUUID,
   }) : super(uuid: uuid);
 
-  CosmicChatMessage copyWith({
+  UniverseChatMessage copyWith({
     String? username,
     String? message,
     String? nickname,
     String? avatarUrl,
     DateTime? sentAt,
     InternetAddress? ip,
-    CosmicChatUserType? userType,
+    UniverseChatUserType? userType,
     String? replyMessageUUID,
   }) {
-    return CosmicChatMessage(
+    return UniverseChatMessage(
       uuid: uuid,
       username: username ?? this.username,
       message: message ?? this.message,
@@ -96,8 +96,8 @@ class CosmicChatMessage extends DBModel {
     };
   }
 
-  factory CosmicChatMessage.fromMap(Map<String, dynamic> map) {
-    return CosmicChatMessage(
+  factory UniverseChatMessage.fromMap(Map<String, dynamic> map) {
+    return UniverseChatMessage(
       uuid: map["uuid"],
       username: map["username"],
       message: map["message"],
@@ -105,16 +105,16 @@ class CosmicChatMessage extends DBModel {
       avatarUrl: map["avatarUrl"],
       sentAt: DateTime.fromMillisecondsSinceEpoch(map["sentAt"]),
       ip: InternetAddress(map["ip"]),
-      userType: CosmicChatUserType.values.byName(map["userType"]),
+      userType: UniverseChatUserType.values.byName(map["userType"]),
       replyMessageUUID: map["replyMessageUUID"],
     );
   }
 
-  static Future<CosmicChatMessage?> getByUUID(String uuid) async =>
-      DataBase.instance.getModelByUUID<CosmicChatMessage>(uuid);
+  static Future<UniverseChatMessage?> getByUUID(String uuid) async =>
+      DataBase.instance.getModelByUUID<UniverseChatMessage>(uuid);
 }
 
-enum CosmicChatUserType {
+enum UniverseChatUserType {
   /// RPMTW account
   rpmtw,
 

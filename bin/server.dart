@@ -3,7 +3,7 @@ import "dart:io";
 import "package:dotenv/dotenv.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
-import "package:rpmtw_server/handler/cosmic_chat_handler.dart";
+import "package:rpmtw_server/handler/universe_chat_handler.dart";
 import "package:rpmtw_server/routes/root_route.dart";
 
 import "package:rpmtw_server/utilities/data.dart";
@@ -56,5 +56,5 @@ Future<void> run({Parser? envParser}) async {
   loggerNoStack
       .i("API Server listening on port http://${ip.host}:${server!.port}");
 
-  await CosmicChatHandler().init();
+  await UniverseChatHandler().init();
 }

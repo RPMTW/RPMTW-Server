@@ -10,12 +10,12 @@ import "package:socket_io/socket_io.dart";
 
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
-import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
+import "package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart";
 import "package:rpmtw_server/utilities/data.dart";
 import "package:rpmtw_server/utilities/scam_detection.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 
-class CosmicChatHandler {
+class UniverseChatHandler {
   static late final Server _io;
 
   static Server get io => _io;
@@ -27,7 +27,7 @@ class CosmicChatHandler {
 
   Future<void> init() async {
     /// 2087 is cloudflare supported proxy https port
-    int port = int.parse(env["COSMIC_CHAT_PORT"] ?? "2087");
+    int port = int.parse(env["universe_chat_PORT"] ?? "2087");
     _io = Server();
     final InternetAddress ip = InternetAddress.anyIPv4;
 
@@ -35,10 +35,10 @@ class CosmicChatHandler {
       eventHandler(io);
       await io.listen(port);
       loggerNoStack
-          .i("Cosmic Chat Server listening on port http://${ip.host}:$port");
+          .i("Universe Chat Server listening on port http://${ip.host}:$port");
     } catch (e) {
       // coverage:ignore-line
-      loggerNoStack.e("Cosmic Chat Server error: $e");
+      loggerNoStack.e("Universe Chat Server error: $e");
     }
   }
 
@@ -180,14 +180,14 @@ class CosmicChatHandler {
             }
 
             if (replyMessageUUID != null) {
-              CosmicChatMessage? replyMessage =
-                  await CosmicChatMessage.getByUUID(replyMessageUUID);
+              UniverseChatMessage? replyMessage =
+                  await UniverseChatMessage.getByUUID(replyMessageUUID);
               if (replyMessage == null) {
                 return client.error("Invalid reply message UUID");
               }
             }
 
-            CosmicChatMessage msg = CosmicChatMessage(
+            UniverseChatMessage msg = UniverseChatMessage(
                 uuid: Uuid().v4(),
                 username: username,
                 message: message,
@@ -196,8 +196,8 @@ class CosmicChatHandler {
                 sentAt: Utility.getUTCTime(),
                 ip: ip,
                 userType: user != null
-                    ? CosmicChatUserType.rpmtw
-                    : CosmicChatUserType.minecraft,
+                    ? UniverseChatUserType.rpmtw
+                    : UniverseChatUserType.minecraft,
                 replyMessageUUID: replyMessageUUID);
             sendMessage(msg, ack: ack);
           }
@@ -223,7 +223,7 @@ class CosmicChatHandler {
     } catch (e, stackTrace) {
       // coverage:ignore-line
       logger.e(
-          "[Cosmic Chat] Throwing errors when handling client messages: $e",
+          "[Universe Chat] Throwing errors when handling client messages: $e",
           null,
           stackTrace);
     }
@@ -254,14 +254,14 @@ class CosmicChatHandler {
             avatarUrl.isEmpty) return client.error("Invalid discord message");
 
         if (replyMessageUUID != null) {
-          CosmicChatMessage? replyMessage =
-              await CosmicChatMessage.getByUUID(replyMessageUUID);
+          UniverseChatMessage? replyMessage =
+              await UniverseChatMessage.getByUUID(replyMessageUUID);
           if (replyMessage == null) {
             return client.error("Invalid reply message UUID");
           }
         }
 
-        CosmicChatMessage msg = CosmicChatMessage(
+        UniverseChatMessage msg = UniverseChatMessage(
             uuid: Uuid().v4(),
             username: username,
             message: message,
@@ -269,20 +269,20 @@ class CosmicChatHandler {
             avatarUrl: avatarUrl,
             sentAt: Utility.getUTCTime(),
             ip: client.request.connectionInfo!.remoteAddress,
-            userType: CosmicChatUserType.discord,
+            userType: UniverseChatUserType.discord,
             replyMessageUUID: replyMessageUUID);
         sendMessage(msg);
       });
     } catch (e, stackTrace) {
       // coverage:ignore-line
       logger.e(
-          "[Cosmic Chat] Throwing errors when handling discord messages: $e",
+          "[Universe Chat] Throwing errors when handling discord messages: $e",
           null,
           stackTrace);
     }
   }
 
-  Future<void> sendMessage(CosmicChatMessage msg, {Function? ack}) async {
+  Future<void> sendMessage(UniverseChatMessage msg, {Function? ack}) async {
     bool phishing = ScamDetection.detection(msg.message);
 
     /// Detect phishing

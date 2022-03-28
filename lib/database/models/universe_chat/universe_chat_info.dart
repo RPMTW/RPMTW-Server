@@ -1,11 +1,11 @@
-class CosmicChatInfo {
+class UniverseChatInfo {
   /// Number of online users.
   final int onlineUsers;
 
   /// Protocol version. (current version is 1)
   final int protocolVersion;
 
-  CosmicChatInfo({
+  UniverseChatInfo({
     required this.onlineUsers,
     required this.protocolVersion,
   });

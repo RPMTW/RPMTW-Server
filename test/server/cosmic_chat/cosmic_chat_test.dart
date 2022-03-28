@@ -6,7 +6,7 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/auth/user_role.dart";
-import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
+import "package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 import "package:socket_io_client/socket_io_client.dart" as io;
@@ -16,11 +16,11 @@ import "package:test/test.dart";
 import "../../test_utility.dart";
 
 void main() async {
-  final cosmicChatHost = "http://localhost:2087";
+  final universeChatHost = "http://localhost:2087";
   final host = TestUttily.host;
   final baseOption =
       OptionBuilder().setTransports(["websocket"]).disableAutoConnect();
-  io.Socket socket = io.io(cosmicChatHost, baseOption.build());
+  io.Socket socket = io.io(universeChatHost, baseOption.build());
   final String message = "Hello RPMTW World!";
 
   setUpAll(() {
@@ -71,14 +71,14 @@ void main() async {
 
     setUpAll(() {
       return Future.sync(() async {
-        CosmicChatMessage msg = CosmicChatMessage(
+        UniverseChatMessage msg = UniverseChatMessage(
             uuid: Uuid().v4(),
             username: "SiongSng",
             message: message,
             avatarUrl: "https://crafthead.net/avatar/$minecraftUUID.png",
             sentAt: Utility.getUTCTime(),
             ip: InternetAddress.loopbackIPv4,
-            userType: CosmicChatUserType.minecraft);
+            userType: UniverseChatUserType.minecraft);
 
         msg.insert();
         messageUUID = msg.uuid;
@@ -87,7 +87,8 @@ void main() async {
 
     tearDownAll(() {
       return Future.sync(() async {
-        CosmicChatMessage? msg = await CosmicChatMessage.getByUUID(messageUUID);
+        UniverseChatMessage? msg =
+            await UniverseChatMessage.getByUUID(messageUUID);
         await msg!.delete();
       });
     });
@@ -134,7 +135,7 @@ void main() async {
       /// 暫時手動新增一個測試用假資料
       BanInfo _info = BanInfo(
           ip: ip,
-          reason: "Sending fraudulent messages in cosmic chat",
+          reason: "Sending fraudulent messages in universe chat",
           userUUID: [],
           uuid: Uuid().v4());
       await _info.insert();
@@ -190,7 +191,7 @@ void main() async {
     });
     test("view message", () async {
       final response =
-          await get(Uri.parse(host + "/cosmic-chat/view/$messageUUID"));
+          await get(Uri.parse(host + "/universe-chat/view/$messageUUID"));
       Map data = json.decode(response.body)["data"];
       expect(response.statusCode, 200);
       expect(data["message"], message);
@@ -200,7 +201,7 @@ void main() async {
       expect(data["userType"], "minecraft");
     });
     test("view message (invalid uuid)", () async {
-      final response = await get(Uri.parse(host + "/cosmic-chat/view/test"));
+      final response = await get(Uri.parse(host + "/universe-chat/view/test"));
       expect(response.statusCode, 400);
     });
     test("reply message", () async {
@@ -266,7 +267,7 @@ void main() async {
       expect(response, null);
     });
     test("get info (socket not connect)", () async {
-      final response = await get(Uri.parse(host + "/cosmic-chat/info"));
+      final response = await get(Uri.parse(host + "/universe-chat/info"));
       Map data = json.decode(response.body)["data"];
       expect(response.statusCode, 200);
       expect(data["onlineUsers"], 0);
@@ -274,7 +275,7 @@ void main() async {
     });
     test("get info (socket connected)", () async {
       socket.onConnect((data) async {
-        final response = await get(Uri.parse(host + "/cosmic-chat/info"));
+        final response = await get(Uri.parse(host + "/universe-chat/info"));
         Map data = json.decode(response.body)["data"];
         expect(response.statusCode, 200);
         expect(data["onlineUsers"], 1);
