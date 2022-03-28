@@ -107,17 +107,21 @@ class TranslateRoute extends APIRoute {
               continue;
             }
 
-            String content = await sourceStorage.readAsString();
+            String sourceContent = await sourceStorage.readAsString();
+            String? translatedContent;
 
             for (SourceText text in texts) {
               Translation? translation =
                   await TranslateHandler.getBestTranslation(text, language);
               if (translation != null) {
-                content = content.replaceAll(text.source, translation.content);
+                translatedContent =
+                    sourceContent.replaceAll(text.source, translation.content);
               }
             }
 
-            output[file.path] = content;
+            if (translatedContent != null) {
+              output[file.path] = translatedContent;
+            }
           }
         }
       }
