@@ -12,26 +12,30 @@ class TranslationExportCache extends DBModel {
     IndexField("modSourceInfoUUID", unique: true),
     IndexField("language", unique: false),
     IndexField("format", unique: false),
-    IndexField("createdAt", unique: false),
+    IndexField("lastUpdated", unique: false),
   ];
 
   final String modSourceInfoUUID;
   final Locale language;
   final TranslationExportFormat format;
-  final DateTime createdAt;
+  final DateTime lastUpdated;
   final Map<String, String> data;
+
+  /// Check if the cache is older than 30 minutes
+  bool get isExpired =>
+      lastUpdated.add(Duration(minutes: 30)).isBefore(DateTime.now().toUtc());
 
   const TranslationExportCache({
     required String uuid,
     required this.modSourceInfoUUID,
     required this.language,
     required this.format,
-    required this.createdAt,
+    required this.lastUpdated,
     required this.data,
   }) : super(uuid: uuid);
 
   TranslationExportCache copyWith({
-    DateTime? createdAt,
+    DateTime? lastUpdated,
     Map<String, String>? data,
   }) {
     return TranslationExportCache(
@@ -39,7 +43,7 @@ class TranslationExportCache extends DBModel {
       modSourceInfoUUID: modSourceInfoUUID,
       language: language,
       format: format,
-      createdAt: createdAt ?? this.createdAt,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
       data: data ?? this.data,
     );
   }
@@ -51,7 +55,7 @@ class TranslationExportCache extends DBModel {
       "modSourceInfoUUID": modSourceInfoUUID,
       "language": language.toLanguageTag(),
       "format": format.name,
-      "createdAt": createdAt.millisecondsSinceEpoch,
+      "lastUpdated": lastUpdated.millisecondsSinceEpoch,
       "data": data,
     };
   }
@@ -62,8 +66,8 @@ class TranslationExportCache extends DBModel {
       modSourceInfoUUID: map["modSourceInfoUUID"],
       language: Locale.parse(map["language"]),
       format: TranslationExportFormat.values.byName(map["format"]),
-      createdAt:
-          DateTime.fromMillisecondsSinceEpoch(map["createdAt"], isUtc: true),
+      lastUpdated:
+          DateTime.fromMillisecondsSinceEpoch(map["lastUpdated"], isUtc: true),
       data: map["data"].cast<String, String>(),
     );
   }
@@ -72,25 +76,9 @@ class TranslationExportCache extends DBModel {
     String modSourceInfoUUID,
     Locale language,
     TranslationExportFormat format,
-  ) async {
-    TranslationExportCache? cache = await DataBase.instance
-        .getModelWithSelector(where.eq("modSourceInfoUUID", modSourceInfoUUID)
-          ..eq("language", language.toLanguageTag())
-          ..eq("format", format.name));
-
-    if (cache == null) {
-      return null;
-    }
-
-    /// Check if the cache is older than 30 minutes
-    /// If so, delete it
-    if (cache.createdAt
-        .add(Duration(minutes: 30))
-        .isBefore(DateTime.now().toUtc())) {
-      await cache.delete();
-      return null;
-    }
-
-    return cache;
-  }
+  ) =>
+      DataBase.instance
+          .getModelWithSelector(where.eq("modSourceInfoUUID", modSourceInfoUUID)
+            ..eq("language", language.toLanguageTag())
+            ..eq("format", format.name));
 }

@@ -2452,10 +2452,10 @@ void main() async {
           }),
           headers: {"Content-Type": "application/json"});
 
-      Map data = json.decode(response1.body)["data"];
+      Map data1 = json.decode(response1.body)["data"];
 
       expect(response1.statusCode, 200);
-      expect(data[path], contains("龍血也可以用來"));
+      expect(data1[path], contains("龍血也可以用來"));
 
       final response2 = await get(
           Uri.parse(host + "/translate/export").replace(queryParameters: {
@@ -2469,7 +2469,7 @@ void main() async {
       Map data2 = json.decode(response2.body)["data"];
 
       expect(response2.statusCode, 200);
-      expect(data[path], contains("龍血也可以用來"));
+      expect(data2[path], contains("龍血也可以用來"));
 
       /// Delete the test data.
       await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();

@@ -66,22 +66,30 @@ class TranslateRoute extends APIRoute {
       Map<String, String> output = {};
 
       for (ModSourceInfo info in infos) {
-        final TranslationExportCache? _cache =
+        TranslationExportCache? _cache =
             await TranslationExportCache.getByInfos(
                 info.uuid, language, format);
 
-        if (_cache != null) {
+        if (_cache != null && !_cache.isExpired) {
           output.addAll(_cache.data);
           continue;
         }
 
-        TranslationExportCache cache = TranslationExportCache(
-            uuid: Uuid().v4(),
-            modSourceInfoUUID: info.uuid,
-            language: language,
-            format: format,
-            data: {},
-            createdAt: DateTime.now().toUtc());
+        TranslationExportCache cache;
+        if (_cache != null && _cache.isExpired) {
+          cache =
+              _cache.copyWith(data: {}, lastUpdated: DateTime.now().toUtc());
+        } else {
+          TranslationExportCache _ = TranslationExportCache(
+              uuid: Uuid().v4(),
+              modSourceInfoUUID: info.uuid,
+              language: language,
+              format: format,
+              data: {},
+              lastUpdated: DateTime.now().toUtc());
+          await _.insert();
+          cache = _;
+        }
 
         Future<void> handleTexts(List<SourceText> texts) async {
           texts = texts.where((e) => e.gameVersions.contains(version)).toList();
@@ -149,7 +157,7 @@ class TranslateRoute extends APIRoute {
           }
         }
 
-        await cache.insert();
+        await cache.update();
       }
 
       return APIResponse.success(data: output);
