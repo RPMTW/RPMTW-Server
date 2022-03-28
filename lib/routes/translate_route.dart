@@ -14,6 +14,7 @@ import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
+import 'package:rpmtw_server/database/models/translate/translation_export_cache.dart';
 import "package:rpmtw_server/database/models/translate/translation_export_format.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/handler/minecraft_handler.dart";
@@ -52,6 +53,8 @@ class TranslateRoute extends APIRoute {
         return APIResponse.badRequest(message: "Invalid game version");
       }
 
+      Map<String, TranslationExportCache> caches = {};
+
       List<ModSourceInfo> infos = [];
       for (String namespace in namespaces) {
         ModSourceInfo? info = await ModSourceInfo.getByNamespace(namespace);
@@ -62,19 +65,38 @@ class TranslateRoute extends APIRoute {
 
       Map<String, String> output = {};
 
-      Future<void> handleTexts(List<SourceText> texts) async {
-        texts = texts.where((e) => e.gameVersions.contains(version)).toList();
+      for (ModSourceInfo info in infos) {
+        final TranslationExportCache? _cache =
+            await TranslationExportCache.getByInfos(
+                info.uuid, language, format);
 
-        for (SourceText text in texts) {
-          Translation? translation =
-              await TranslateHandler.getBestTranslation(text, language);
-          if (translation != null) {
-            output[text.key] = translation.content;
+        if (_cache != null) {
+          output.addAll(_cache.data);
+          continue;
+        }
+
+        TranslationExportCache cache = TranslationExportCache(
+            uuid: Uuid().v4(),
+            modSourceInfoUUID: info.uuid,
+            language: language,
+            format: format,
+            data: {},
+            createdAt: DateTime.now().toUtc());
+
+        Future<void> handleTexts(List<SourceText> texts) async {
+          texts = texts.where((e) => e.gameVersions.contains(version)).toList();
+
+          for (SourceText text in texts) {
+            Translation? translation =
+                await TranslateHandler.getBestTranslation(text, language);
+            if (translation != null) {
+              output[text.key] = translation.content;
+              cache = cache.copyWith(
+                  data: cache.data..[text.key] = translation.content);
+            }
           }
         }
-      }
 
-      for (ModSourceInfo info in infos) {
         final List<SourceFile> files = await info.files;
 
         if (format == TranslationExportFormat.minecraftJson) {
@@ -121,9 +143,13 @@ class TranslateRoute extends APIRoute {
 
             if (translatedContent != null) {
               output[file.path] = translatedContent;
+              cache = cache.copyWith(
+                  data: cache.data..[file.path] = translatedContent);
             }
           }
         }
+
+        await cache.insert();
       }
 
       return APIResponse.success(data: output);

@@ -100,8 +100,10 @@ class Comment extends DBModel {
       type: CommentType.values.byName(map["type"]),
       userUUID: map["userUUID"],
       parentUUID: map["parentUUID"],
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map["createdAt"]),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(map["updatedAt"]),
+      createdAt:
+          DateTime.fromMillisecondsSinceEpoch(map["createdAt"], isUtc: true),
+      updatedAt:
+          DateTime.fromMillisecondsSinceEpoch(map["updatedAt"], isUtc: true),
       isHidden: map["isHidden"],
       replyCommentUUID: map["replyCommentUUID"],
     );

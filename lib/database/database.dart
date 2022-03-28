@@ -3,25 +3,16 @@ import "dart:async";
 import "package:dotenv/dotenv.dart";
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/auth_code_.dart";
-import "package:rpmtw_server/database/models/auth/ban_info.dart";
 import "package:rpmtw_server/database/models/comment/comment.dart";
-import "package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart";
+import 'package:rpmtw_server/database/models/db_model_data.dart';
 import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
 import "package:rpmtw_server/database/models/model_field.dart";
-import "package:rpmtw_server/database/models/translate/glossary.dart";
-import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
-import "package:rpmtw_server/database/models/translate/source_file.dart";
-import "package:rpmtw_server/database/models/translate/source_text.dart";
-import "package:rpmtw_server/database/models/translate/translation.dart";
-import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/data/user_view_count_filter.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 
 import "../utilities/data.dart";
-import "models/auth/user.dart";
 import "models/base_models.dart";
 import "models/storage/storage.dart";
 
@@ -45,42 +36,6 @@ class DataBase {
   static Future<DataBase> _open() async {
     collectionList = [];
 
-    List<String> collectionNameList = [
-      User.collectionName,
-      Storage.collectionName,
-      AuthCode.collectionName,
-      MinecraftMod.collectionName,
-      BanInfo.collectionName,
-      MinecraftVersionManifest.collectionName,
-      WikiChangeLog.collectionName,
-      UniverseChatMessage.collectionName,
-      Translation.collectionName,
-      TranslationVote.collectionName,
-      SourceText.collectionName,
-      ModSourceInfo.collectionName,
-      SourceFile.collectionName,
-      Glossary.collectionName,
-      Comment.collectionName,
-    ];
-
-    List<List<IndexField>> indexFields = [
-      User.indexFields,
-      Storage.indexFields,
-      AuthCode.indexFields,
-      MinecraftMod.indexFields,
-      BanInfo.indexFields,
-      MinecraftVersionManifest.indexFields,
-      WikiChangeLog.indexFields,
-      UniverseChatMessage.indexFields,
-      Translation.indexFields,
-      TranslationVote.indexFields,
-      SourceText.indexFields,
-      ModSourceInfo.indexFields,
-      SourceFile.indexFields,
-      Glossary.indexFields,
-      Comment.indexFields,
-    ];
-
     List<String?> collections = await _mongoDB.getCollectionNames();
     Future<void> checkCollection(String name, List<IndexField> indexFields,
         {bool needCreateIndex = false}) async {
@@ -97,6 +52,9 @@ class DataBase {
         }
       }
     }
+
+    List<String> collectionNameList = DBModelData.collectionNameList;
+    List<List<IndexField>> indexFields = DBModelData.indexFields;
 
     for (String name in collectionNameList) {
       DbCollection collection = _mongoDB.collection(name);
@@ -135,47 +93,13 @@ class DataBase {
   }
 
   DbCollection getCollection<T extends DBModel>([String? runtimeType]) {
-    Map<String, DbCollection> modelTypeMap = {
-      "User": collectionList[0],
-      "Storage": collectionList[1],
-      "AuthCode": collectionList[2],
-      "MinecraftMod": collectionList[3],
-      "BanInfo": collectionList[4],
-      "MinecraftVersionManifest": collectionList[5],
-      "WikiChangeLog": collectionList[6],
-      "UniverseChatMessage": collectionList[7],
-      "Translation": collectionList[8],
-      "TranslationVote": collectionList[9],
-      "SourceText": collectionList[10],
-      "ModSourceInfo": collectionList[11],
-      "SourceFile": collectionList[12],
-      "Glossary": collectionList[13],
-      "Comment": collectionList[14],
-    };
-
-    return modelTypeMap[runtimeType ?? T.toString()]!;
+    return DBModelData.collectionMap(
+        collectionList)[runtimeType ?? T.toString()]!;
   }
 
   T getModelByMap<T extends DBModel>(Map<String, dynamic> map) {
-    Map<String, T Function(Map<String, dynamic>)> modelTypeMap = {
-      "User": User.fromMap,
-      "Storage": Storage.fromMap,
-      "AuthCode": AuthCode.fromMap,
-      "MinecraftMod": MinecraftMod.fromMap,
-      "BanInfo": BanInfo.fromMap,
-      "MinecraftVersionManifest": MinecraftVersionManifest.fromMap,
-      "WikiChangeLog": WikiChangeLog.fromMap,
-      "UniverseChatMessage": UniverseChatMessage.fromMap,
-      "Translation": Translation.fromMap,
-      "TranslationVote": TranslationVote.fromMap,
-      "SourceText": SourceText.fromMap,
-      "ModSourceInfo": ModSourceInfo.fromMap,
-      "SourceFile": SourceFile.fromMap,
-      "Glossary": Glossary.fromMap,
-      "Comment": Comment.fromMap,
-    }.cast<String, T Function(Map<String, dynamic>)>();
-
-    T Function(Map<String, dynamic>) factory = modelTypeMap[T.toString()]!;
+    T Function(Map<String, dynamic>) factory = DBModelData.fromMap
+        .cast<String, T Function(Map<String, dynamic>)>()[T.toString()]!;
     return factory(map);
   }
 

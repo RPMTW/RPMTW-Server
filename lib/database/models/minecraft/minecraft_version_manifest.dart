@@ -46,7 +46,8 @@ class MinecraftVersionManifest extends DBModel {
     return MinecraftVersionManifest(
       manifest: _Manifest.fromMap(map["manifest"]),
       uuid: map["uuid"],
-      lastUpdated: DateTime.fromMillisecondsSinceEpoch(map["lastUpdated"]),
+      lastUpdated:
+          DateTime.fromMillisecondsSinceEpoch(map["lastUpdated"], isUtc: true),
     );
   }
 

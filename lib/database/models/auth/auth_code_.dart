@@ -62,7 +62,8 @@ class AuthCode extends DBModel {
   factory AuthCode.fromMap(Map<String, dynamic> map) {
     return AuthCode(
       code: map["code"],
-      expiresAt: DateTime.fromMillisecondsSinceEpoch(map["expiresAt"]),
+      expiresAt:
+          DateTime.fromMillisecondsSinceEpoch(map["expiresAt"], isUtc: true),
       uuid: map["uuid"],
       email: map["email"],
     );

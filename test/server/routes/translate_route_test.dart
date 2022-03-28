@@ -1985,11 +1985,7 @@ void main() async {
 
         final response = await get(
             Uri.parse(host + "/translate/mod-source-info").replace(
-                queryParameters: {
-                  "limit": "10",
-                  "skip": "0",
-                  "name": "test"
-                }),
+                queryParameters: {"limit": "10", "skip": "0", "name": "test"}),
             headers: {"Content-Type": "application/json"});
 
         List<Map> data =
@@ -2397,6 +2393,82 @@ void main() async {
       Map data = json.decode(response.body)["data"];
 
       expect(response.statusCode, 200);
+      expect(data[path], contains("龍血也可以用來"));
+
+      /// Delete the test data.
+      await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
+      await info.delete();
+    });
+
+    test("export translation (use cache, with custom text format)", () async {
+      ModSourceInfo info =
+          ModSourceInfo(uuid: Uuid().v4(), namespace: "iceandfire");
+      await info.insert();
+
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.iceAndFireBestiaryAlchemy.getFileString(),
+          headers: {
+            "Content-Type": "application/json",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
+      String path = "assets/iceandfire/lang/bestiary/en_us_0/alchemy_0.txt";
+
+      final _response2 = await post(Uri.parse(host + "/translate/source-file"),
+          body: json.encode({
+            "modSourceInfoUUID": info.uuid,
+            "storageUUID": storageUUID,
+            "path": path,
+            "type": "plainText",
+            "gameVersions": ["1.16.5"]
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $translationManagerToken"
+          });
+      expect(_response2.statusCode, 200);
+      Map _data2 = json.decode(_response2.body)["data"];
+
+      SourceText _source =
+          (await SourceText.list(source: "Dragon blood can also be used"))
+              .first;
+
+      /// Add a test translation.
+      Translation translation = Translation(
+          sourceUUID: _source.uuid,
+          content: "龍血也可以用來",
+          translatorUUID: userUUID,
+          language: Locale.parse("zh-TW"),
+          uuid: Uuid().v4());
+
+      await translation.insert();
+
+      final response1 = await get(
+          Uri.parse(host + "/translate/export").replace(queryParameters: {
+            "format": "customText",
+            "language": "zh-TW",
+            "version": "1.16",
+            "namespaces": "iceandfire"
+          }),
+          headers: {"Content-Type": "application/json"});
+
+      Map data = json.decode(response1.body)["data"];
+
+      expect(response1.statusCode, 200);
+      expect(data[path], contains("龍血也可以用來"));
+
+      final response2 = await get(
+          Uri.parse(host + "/translate/export").replace(queryParameters: {
+            "format": "customText",
+            "language": "zh-TW",
+            "version": "1.16",
+            "namespaces": "iceandfire"
+          }),
+          headers: {"Content-Type": "application/json"});
+
+      Map data2 = json.decode(response2.body)["data"];
+
+      expect(response2.statusCode, 200);
       expect(data[path], contains("龍血也可以用來"));
 
       /// Delete the test data.

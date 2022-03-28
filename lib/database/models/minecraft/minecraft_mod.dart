@@ -145,8 +145,10 @@ class MinecraftMod extends DBModel {
           map["relationMods"]?.map((x) => RelationMod.fromMap(x))),
       integration: ModIntegrationPlatform.fromMap(map["integration"]),
       side: List<ModSide>.from(map["side"]?.map((x) => ModSide.fromMap(x))),
-      lastUpdate: DateTime.fromMillisecondsSinceEpoch(map["lastUpdate"]),
-      createTime: DateTime.fromMillisecondsSinceEpoch(map["createTime"]),
+      lastUpdate:
+          DateTime.fromMillisecondsSinceEpoch(map["lastUpdate"], isUtc: true),
+      createTime:
+          DateTime.fromMillisecondsSinceEpoch(map["createTime"], isUtc: true),
       loader: List<ModLoader>.from(
           map["loader"]?.map((x) => ModLoader.values.byName(x)) ?? []),
       translatedName: map["translatedName"],

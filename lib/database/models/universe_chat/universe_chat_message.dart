@@ -103,7 +103,7 @@ class UniverseChatMessage extends DBModel {
       message: map["message"],
       nickname: map["nickname"],
       avatarUrl: map["avatarUrl"],
-      sentAt: DateTime.fromMillisecondsSinceEpoch(map["sentAt"]),
+      sentAt: DateTime.fromMillisecondsSinceEpoch(map["sentAt"], isUtc: true),
       ip: InternetAddress(map["ip"]),
       userType: UniverseChatUserType.values.byName(map["userType"]),
       replyMessageUUID: map["replyMessageUUID"],

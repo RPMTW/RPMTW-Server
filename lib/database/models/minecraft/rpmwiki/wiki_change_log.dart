@@ -93,7 +93,7 @@ class WikiChangeLog extends DBModel {
       changedData:
           map["changedData"] != null ? json.decode(map["changedData"]) : {},
       userUUID: map["userUUID"],
-      time: DateTime.fromMillisecondsSinceEpoch(map["time"]),
+      time: DateTime.fromMillisecondsSinceEpoch(map["time"], isUtc: true),
       uuid: map["uuid"],
     );
   }
