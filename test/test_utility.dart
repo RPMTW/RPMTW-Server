@@ -3,7 +3,7 @@ import "dart:typed_data";
 
 import "package:dotenv/dotenv.dart";
 import "package:path/path.dart";
-import "package:rpmtw_server/handler/cosmic_chat_handler.dart";
+import "package:rpmtw_server/handler/universe_chat_handler.dart";
 import "package:rpmtw_server/utilities/data.dart";
 import "../bin/server.dart" as server;
 
@@ -78,7 +78,7 @@ class TestUttily {
   static Future<void> tearDownAll() {
     return Future.sync(() async {
       await server.server?.close(force: true); // 關閉伺服器
-      await CosmicChatHandler.io.close(); // 關閉宇宙通訊伺服器
+      await UniverseChatHandler.io.close(); // 關閉宇宙通訊伺服器
     });
   }
 }

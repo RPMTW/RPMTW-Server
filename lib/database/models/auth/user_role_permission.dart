@@ -9,8 +9,8 @@ class UserRolePermission {
   bool get translationManager =>
       _hasPermission(UserRoleType.translationManager, byID: false);
   bool get wikiManager => _hasPermission(UserRoleType.wikiManager, byID: false);
-  bool get cosmicChatManager =>
-      _hasPermission(UserRoleType.cosmicChatManager, byID: false);
+  bool get universeChatManager =>
+      _hasPermission(UserRoleType.universeChatManager, byID: false);
 
   const UserRolePermission(this._roles);
 
@@ -24,8 +24,8 @@ class UserRolePermission {
         return translationManager;
       case UserRoleType.wikiManager:
         return wikiManager;
-      case UserRoleType.cosmicChatManager:
-        return cosmicChatManager;
+      case UserRoleType.universeChatManager:
+        return universeChatManager;
       case UserRoleType.general:
         return general;
     }

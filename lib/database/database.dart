@@ -5,7 +5,7 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/auth_code_.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
 import "package:rpmtw_server/database/models/comment/comment.dart";
-import "package:rpmtw_server/database/models/cosmic_chat/cosmic_chat_message.dart";
+import "package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart";
 import "package:rpmtw_server/database/models/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
@@ -53,7 +53,7 @@ class DataBase {
       BanInfo.collectionName,
       MinecraftVersionManifest.collectionName,
       WikiChangeLog.collectionName,
-      CosmicChatMessage.collectionName,
+      UniverseChatMessage.collectionName,
       Translation.collectionName,
       TranslationVote.collectionName,
       SourceText.collectionName,
@@ -71,7 +71,7 @@ class DataBase {
       BanInfo.indexFields,
       MinecraftVersionManifest.indexFields,
       WikiChangeLog.indexFields,
-      CosmicChatMessage.indexFields,
+      UniverseChatMessage.indexFields,
       Translation.indexFields,
       TranslationVote.indexFields,
       SourceText.indexFields,
@@ -143,7 +143,7 @@ class DataBase {
       "BanInfo": collectionList[4],
       "MinecraftVersionManifest": collectionList[5],
       "WikiChangeLog": collectionList[6],
-      "CosmicChatMessage": collectionList[7],
+      "UniverseChatMessage": collectionList[7],
       "Translation": collectionList[8],
       "TranslationVote": collectionList[9],
       "SourceText": collectionList[10],
@@ -165,7 +165,7 @@ class DataBase {
       "BanInfo": BanInfo.fromMap,
       "MinecraftVersionManifest": MinecraftVersionManifest.fromMap,
       "WikiChangeLog": WikiChangeLog.fromMap,
-      "CosmicChatMessage": CosmicChatMessage.fromMap,
+      "UniverseChatMessage": UniverseChatMessage.fromMap,
       "Translation": Translation.fromMap,
       "TranslationVote": TranslationVote.fromMap,
       "SourceText": SourceText.fromMap,
