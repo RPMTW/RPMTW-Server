@@ -1,7 +1,7 @@
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart';
-import 'package:rpmtw_server/database/scripts/db_script.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
+import "package:rpmtw_server/database/scripts/db_script.dart";
 
 class MinecraftVersionManifestScript extends DBScript {
   @override

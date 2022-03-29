@@ -1,7 +1,7 @@
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/storage/storage.dart';
-import 'package:rpmtw_server/database/scripts/db_script.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/storage/storage.dart";
+import "package:rpmtw_server/database/scripts/db_script.dart";
 
 class StorageScript extends DBScript {
   @override

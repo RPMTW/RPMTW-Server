@@ -324,12 +324,12 @@ class TranslateHandler {
     return newStatus;
   }
 
-  static Future<void> deleteStatus(String infoUUID) async {
+  static Future<void> deleteStatus(String? infoUUID) async {
     final TranslateStatus? status =
         await TranslateStatus.getByModSourceInfoUUID(infoUUID);
 
     if (status != null) {
-      status.delete();
+      await status.delete();
     }
   }
 }

@@ -1,7 +1,7 @@
-import 'package:mongo_dart/mongo_dart.dart';
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
-import 'package:rpmtw_server/database/scripts/db_script.dart';
+import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/models/auth/auth_code_.dart";
+import "package:rpmtw_server/database/scripts/db_script.dart";
 
 class AuthCodeScript extends DBScript {
   @override
@@ -13,7 +13,8 @@ class AuthCodeScript extends DBScript {
       /// 驗證碼最多暫存 30 分鐘
       SelectorBuilder selector = where.lte("expiresAt",
           time.subtract(Duration(minutes: 30)).millisecondsSinceEpoch);
-      List<AuthCode> authCodeList = await db.getCollection<AuthCode>()
+      List<AuthCode> authCodeList = await db
+          .getCollection<AuthCode>()
           .find(selector)
           .map((map) => AuthCode.fromMap(map))
           .toList();

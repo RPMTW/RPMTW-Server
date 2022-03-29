@@ -14,6 +14,7 @@ import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
+import 'package:rpmtw_server/handler/translate_handler.dart';
 import "package:rpmtw_server/utilities/utility.dart";
 import "package:test/test.dart";
 
@@ -3127,6 +3128,20 @@ void main() async {
       /// Delete the test data.
       await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
       await info.delete();
+      await TranslateHandler.deleteStatus(null);
+    });
+
+    test("get translate global status (not translation)", () async {
+      final response = await get(
+        Uri.parse(host + "/translate/status"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      Map data = json.decode(response.body)["data"];
+
+      expect(response.statusCode, 200);
+      expect(data["totalWords"], 0);
+      expect(data["translatedWords"], {});
     });
 
     test("get translate a status", () async {

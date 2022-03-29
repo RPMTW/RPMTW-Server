@@ -1,16 +1,16 @@
 import "package:intl/locale.dart";
-import 'package:mongo_dart/mongo_dart.dart';
+import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/base_models.dart";
 import "package:rpmtw_server/database/index_fields.dart";
 import "package:rpmtw_server/database/model_field.dart";
-import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
-import 'package:rpmtw_server/database/models/translate/source_file.dart';
+import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
+import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
-import 'package:rpmtw_server/database/scripts/translate_status_script.dart';
+import "package:rpmtw_server/database/scripts/translate_status_script.dart";
 
 class Translation extends DBModel {
   static const String collectionName = "translations";
@@ -117,11 +117,11 @@ class Translation extends DBModel {
     return result;
   }
 
-   @override
+  @override
   Future<WriteResult> delete() async {
     WriteResult result = await super.delete();
     await _updateStatus();
-    
+
     return result;
   }
 

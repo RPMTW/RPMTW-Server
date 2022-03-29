@@ -151,7 +151,7 @@ void main() async {
     });
     test("view mod", () async {
       final response = await get(
-        Uri.parse(host + "/minecraft/mod/view/$modUUID?recordViewCount=false"),
+        Uri.parse(host + "/minecraft/mod/view/$modUUID?recordViewCount=true"),
       );
       Map data = json.decode(response.body)["data"];
 
