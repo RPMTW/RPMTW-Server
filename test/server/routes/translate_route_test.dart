@@ -3128,6 +3128,7 @@ void main() async {
       /// Delete the test data.
       await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
       await info.delete();
+      await TranslateHandler.deleteStatus(info.uuid);
       await TranslateHandler.deleteStatus(null);
     });
 
