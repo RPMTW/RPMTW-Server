@@ -6,7 +6,7 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/index_fields.dart";
 
 import "../../database.dart";
-import "../../base_models.dart";
+import '../../db_model.dart';
 
 class Storage extends DBModel {
   static const String collectionName = "storages";

@@ -16,7 +16,7 @@ import "package:rpmtw_server/database/scripts/wiki_changelog_script.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 
 import "../utilities/data.dart";
-import "base_models.dart";
+import 'db_model.dart';
 
 class DataBase {
   static late Db _mongoDB;

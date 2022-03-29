@@ -3,7 +3,7 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 
 import "package:rpmtw_server/database/models/auth/user.dart";
-import "package:rpmtw_server/database/base_models.dart";
+import 'package:rpmtw_server/database/db_model.dart';
 import "package:rpmtw_server/database/index_fields.dart";
 import "package:rpmtw_server/database/model_field.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";

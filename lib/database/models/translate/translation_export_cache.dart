@@ -1,6 +1,6 @@
 import "package:intl/locale.dart";
 
-import "package:rpmtw_server/database/base_models.dart";
+import 'package:rpmtw_server/database/db_model.dart';
 import "package:rpmtw_server/database/model_field.dart";
 import "package:rpmtw_server/database/models/translate/translation_export_format.dart";
 import "package:rpmtw_server/database/database.dart";

@@ -1,6 +1,6 @@
 import "package:intl/locale.dart";
 import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/base_models.dart";
+import 'package:rpmtw_server/database/db_model.dart';
 import "package:rpmtw_server/database/index_fields.dart";
 
 class TranslateStatus extends DBModel {

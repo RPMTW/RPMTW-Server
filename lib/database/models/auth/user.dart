@@ -5,7 +5,7 @@ import "package:rpmtw_server/database/index_fields.dart";
 import "package:rpmtw_server/database/models/storage/storage.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
 
-import "../../base_models.dart";
+import '../../db_model.dart';
 
 class User extends DBModel {
   static const String collectionName = "users";
