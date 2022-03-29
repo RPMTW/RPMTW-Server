@@ -4,8 +4,8 @@ import "package:http/http.dart";
 import "package:mongo_dart/mongo_dart.dart";
 
 import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/database/base_models.dart";
+import "package:rpmtw_server/database/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
 import "package:rpmtw_server/utilities/utility.dart";
 

@@ -2,19 +2,21 @@ import "dart:async";
 
 import "package:dotenv/dotenv.dart";
 import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/models/auth/auth_code_.dart";
-import "package:rpmtw_server/database/models/comment/comment.dart";
-import 'package:rpmtw_server/database/models/db_model_data.dart';
-import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
-import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
-import "package:rpmtw_server/database/models/model_field.dart";
-import "package:rpmtw_server/data/user_view_count_filter.dart";
+import "package:rpmtw_server/database/db_model_data.dart";
+import "package:rpmtw_server/database/index_fields.dart";
+import "package:rpmtw_server/database/model_field.dart";
+import 'package:rpmtw_server/database/scripts/auth_code_script.dart';
+import 'package:rpmtw_server/database/scripts/comment_script.dart';
+import 'package:rpmtw_server/database/scripts/db_script.dart';
+import 'package:rpmtw_server/database/scripts/minecraft_version_manifest_script.dart';
+import 'package:rpmtw_server/database/scripts/storage_script.dart';
+import 'package:rpmtw_server/database/scripts/translate_status_script.dart';
+import 'package:rpmtw_server/database/scripts/view_count_script.dart';
+import 'package:rpmtw_server/database/scripts/wiki_changelog_script.dart';
 import "package:rpmtw_server/utilities/utility.dart";
 
 import "../utilities/data.dart";
-import "models/base_models.dart";
-import "models/storage/storage.dart";
+import "base_models.dart";
 
 class DataBase {
   static late Db _mongoDB;
@@ -25,7 +27,7 @@ class DataBase {
 
   DataBase() {
     try {
-      startTimer();
+      startScripts();
     } catch (e, stack) {
       logger.e(e, null, stack);
     }
@@ -110,6 +112,18 @@ class DataBase {
       String fieldName, dynamic value) async {
     Map<String, dynamic>? map =
         await getCollection<T>().findOne(where.eq(fieldName, value));
+
+    return map != null ? getModelByMap<T>(map) : null;
+  }
+
+  Future<T?> getModelByFields<T extends DBModel>(List<ModelField> field) async {
+    SelectorBuilder selector = SelectorBuilder();
+
+    for (ModelField f in field) {
+      selector = selector.eq(f.name, f.value);
+    }
+
+    Map<String, dynamic>? map = await getCollection<T>().findOne(selector);
 
     return map != null ? getModelByMap<T>(map) : null;
   }
@@ -200,121 +214,31 @@ class DataBase {
     return result;
   }
 
-  Timer startTimer() {
-    _startAllTimer(Utility.getUTCTime());
-    Timer timer = Timer.periodic(Duration(hours: 1), (timer) async {
-      DateTime time = Utility.getUTCTime();
-      await _startAllTimer(time);
-    });
-    return timer;
-  }
+  void startScripts() async {
+    List<DBScript> scripts = [
+      StorageScript(),
+      AuthCodeScript(),
+      MinecraftVersionManifestScript(),
+      ViewCountScript(),
+      WikiChangelogScript(),
+      CommentScript(),
+      TranslateStatusScript()
+    ];
 
-  Future<void> _startAllTimer(DateTime time) async {
-    await _storageTimer(time);
-    await _authCodeTimer(time);
-    await _minecraftVersionManifest(time);
-    ViewCountHandler.deleteFilters(time);
-    await _wikiChangelogTimer(time);
-    await _commentTimer(time);
-  }
+    for (DBScript script in scripts) {
+      Future<void> _start() async {
+        DateTime time = Utility.getUTCTime();
+        try {
+          await script.start(this, time);
+        } catch (e) {
+          // ignore
+        }
+      }
 
-  Future<void> _storageTimer(DateTime time) async {
-    /// 暫存檔案超過指定時間後將刪除
-    /// 檔案最多暫存一天
-    SelectorBuilder timeSelector = where.lte(
-        "createAt", time.subtract(Duration(days: 1)).millisecondsSinceEpoch);
-
-    SelectorBuilder selector = where
-        // 檔案類型為暫存檔案
-        .eq("type", StorageType.temp.name)
-        .and(timeSelector)
-        .or(where.eq("usageCount", 0).and(timeSelector));
-    // 檔案建立時間為一天前
-
-    List<Storage> storageList = await getCollection<Storage>()
-        .find(selector)
-        .map((map) => Storage.fromMap(map))
-        .toList();
-
-    for (Storage storage in storageList) {
-      GridOut? gridOut = await gridFS.getFile(storage.uuid);
-
-      /// 刪除實際的二進位檔案
-      await gridOut?.fs.files.deleteOne(gridOut.data);
-      await gridOut?.fs.chunks
-          .deleteMany(where.eq("files_id", storage.uuid).sortBy("n"));
-
-      /// 刪除儲存數據 model
-      await storage.delete();
-    }
-  }
-
-  Future<void> _authCodeTimer(DateTime time) async {
-    /// 驗證碼最多暫存 30 分鐘
-    SelectorBuilder selector = where.lte("expiresAt",
-        time.subtract(Duration(minutes: 30)).millisecondsSinceEpoch);
-    List<AuthCode> authCodeList = await getCollection<AuthCode>()
-        .find(selector)
-        .map((map) => AuthCode.fromMap(map))
-        .toList();
-
-    for (AuthCode authCode in authCodeList) {
-      await authCode.delete();
-    }
-  }
-
-  Future<void> _minecraftVersionManifest(DateTime time) async {
-    /// 每天更新一次 Minecraft 版本資訊
-    int timeStamp = time.subtract(Duration(days: 1)).millisecondsSinceEpoch;
-    SelectorBuilder selector = where.gte("lastUpdated", timeStamp);
-    DbCollection collection = getCollection<MinecraftVersionManifest>();
-    List<Map<String, dynamic>> manifests =
-        await collection.find(selector).toList();
-    if (manifests.isEmpty) {
-      ///如果為空則代表最後一次更新為一天前
-
-      /// 刪除其他已經過期的資料
-      await collection.deleteMany(where.lte("lastUpdated", timeStamp));
-
-      ///從 Mojang API 取得 Minecraft 版本資訊
-      MinecraftVersionManifest manifest =
-          await MinecraftVersionManifest.getFromWeb();
-
-      await manifest.insert();
-    }
-  }
-
-  Future<void> _wikiChangelogTimer(DateTime time) async {
-    /// 變更日誌超過指定時間後將刪除
-    /// 變更日誌最多暫存 90 天 ( 約為三個月 )
-    SelectorBuilder selector = where.lte(
-        "time", time.subtract(Duration(days: 90)).millisecondsSinceEpoch);
-    // 變更日誌建立時間為 90 天前
-
-    List<WikiChangeLog> changelogs = await getCollection<WikiChangeLog>()
-        .find(selector)
-        .map((map) => WikiChangeLog.fromMap(map))
-        .toList();
-
-    for (WikiChangeLog log in changelogs) {
-      await log.delete();
-    }
-  }
-
-  /// When the comment is hidden and the time is over 7 days ( a week ), the comment will be deleted
-  Future<void> _commentTimer(DateTime time) async {
-    SelectorBuilder selector = where
-        .lte("updatedAt",
-            time.subtract(Duration(days: 7)).millisecondsSinceEpoch)
-        .eq("isHidden", true);
-
-    List<Comment> comments = await getCollection<Comment>()
-        .find(selector)
-        .map((map) => Comment.fromMap(map))
-        .toList();
-
-    for (Comment comment in comments) {
-      await comment.delete();
+      await _start();
+      Timer.periodic(script.duration, (timer) async {
+        await _start();
+      });
     }
   }
 }

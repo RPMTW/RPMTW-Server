@@ -1,6 +1,6 @@
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/data/user_view_count_filter.dart";
-import "package:rpmtw_server/database/models/auth_route.dart";
+import "package:rpmtw_server/database/auth_route.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";

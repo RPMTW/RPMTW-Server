@@ -1,8 +1,8 @@
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:rpmtw_server/database/models/model_field.dart";
+import "package:rpmtw_server/database/base_models.dart";
+import "package:rpmtw_server/database/index_fields.dart";
+import "package:rpmtw_server/database/model_field.dart";
 import "package:rpmtw_server/database/models/storage/storage.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";

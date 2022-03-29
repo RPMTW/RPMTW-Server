@@ -1,6 +1,6 @@
 import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
-import "package:rpmtw_server/database/models/auth_route.dart";
+import "package:rpmtw_server/database/auth_route.dart";
 import "package:rpmtw_server/database/models/comment/comment.dart";
 import "package:rpmtw_server/database/models/comment/comment_type.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";

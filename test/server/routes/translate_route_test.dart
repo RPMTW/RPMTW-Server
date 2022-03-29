@@ -3033,4 +3033,90 @@ void main() async {
       });
     });
   });
+
+  group("translate status", () {
+    test("get translate global status", () async {
+      final response = await get(
+        Uri.parse(host + "/translate/status"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      Map data = json.decode(response.body)["data"];
+
+      expect(response.statusCode, 200);
+      expect(data["totalWords"], 0);
+      expect(data["translatedWords"], {});
+    });
+
+    test("get translate a status", () async {
+      ModSourceInfo info =
+          ModSourceInfo(uuid: Uuid().v4(), namespace: "iceandfire");
+      await info.insert();
+
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.iceAndFireBestiaryAlchemy.getFileString(),
+          headers: {
+            "Content-Type": "application/json",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
+      String path = "assets/iceandfire/lang/bestiary/en_us_0/alchemy_0.txt";
+
+      final _response2 = await post(Uri.parse(host + "/translate/source-file"),
+          body: json.encode({
+            "modSourceInfoUUID": info.uuid,
+            "storageUUID": storageUUID,
+            "path": path,
+            "type": "plainText",
+            "gameVersions": ["1.16.5"]
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $translationManagerToken"
+          });
+      expect(_response2.statusCode, 200);
+      Map _data2 = json.decode(_response2.body)["data"];
+
+      SourceText _source =
+          (await SourceText.list(source: "Dragon blood can also be used"))
+              .first;
+
+      /// Add a test translation.
+      Translation translation = Translation(
+          sourceUUID: _source.uuid,
+          content: "龍血也可以用來",
+          translatorUUID: userUUID,
+          language: Locale.parse("zh-TW"),
+          uuid: Uuid().v4());
+
+      await translation.insert();
+
+      final response = await get(
+        Uri.parse(host + "/translate/status/${info.uuid}"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      Map data = json.decode(response.body)["data"];
+
+      expect(response.statusCode, 200);
+      expect(data["totalWords"], 21);
+      expect(data["translatedWords"], {"zh-TW": 1});
+
+      /// Delete the test data.
+      await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
+      await info.delete();
+    });
+
+    test("get translate a status (unknown uuid)", () async {
+      final response = await get(
+        Uri.parse(host + "/translate/status/test"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      Map responseJson = json.decode(response.body);
+
+      expect(response.statusCode, 404);
+      expect(responseJson["message"], contains("not found"));
+    });
+  });
 }

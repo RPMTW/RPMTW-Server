@@ -4,10 +4,13 @@ import "package:crypto/crypto.dart";
 import "package:intl/locale.dart";
 import "package:json5/json5.dart";
 import "package:mongo_dart/mongo_dart.dart";
+import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
+import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/patchouli_file_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
+import "package:rpmtw_server/database/models/translate/translate_status.dart";
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
 import "package:rpmtw_server/utilities/extension.dart";
@@ -245,4 +248,91 @@ class TranslateHandler {
     if (translations.isEmpty) return null;
     return translations.first;
   }
+
+  static Future<_StatusResult> getStatus(ModSourceInfo? info) async {
+    int totalWords = 0;
+    Map<Locale, int> translatedWords = {};
+
+    /// Check is global status
+    if (info == null) {
+      List<TranslateStatus> statuses =
+          await DataBase.instance.getModelsByField<TranslateStatus>([]);
+
+      for (TranslateStatus status in statuses) {
+        totalWords += status.totalWords;
+        status.translatedWords.forEach((language, count) {
+          translatedWords[language] = count;
+        });
+      }
+    } else {
+      Future<void> handleTexts(List<SourceText> texts) async {
+        for (SourceText text in texts) {
+          totalWords++;
+          for (Locale language in supportedLanguage) {
+            List<Translation> translations = await Translation.list(
+                sourceUUID: text.uuid, language: language, limit: 1);
+
+            if (translations.isNotEmpty) {
+              translatedWords[language] = (translatedWords[language] ?? 0) + 1;
+            }
+          }
+        }
+      }
+
+      for (SourceFile file in await info.files) {
+        List<SourceText> texts = await file.sourceTexts;
+        await handleTexts(texts);
+      }
+
+      List<SourceText>? patchouliAddonTexts = await info.patchouliAddonTexts;
+      if (patchouliAddonTexts != null) {
+        await handleTexts(patchouliAddonTexts);
+      }
+    }
+
+    return _StatusResult(totalWords, translatedWords);
+  }
+
+  static Future<TranslateStatus> updateOrCreateStatus(
+      ModSourceInfo? info) async {
+    final TranslateStatus? status =
+        await TranslateStatus.getByModSourceInfoUUID(info?.uuid);
+    var result = await getStatus(info);
+    TranslateStatus newStatus;
+
+    if (status == null) {
+      newStatus = TranslateStatus(
+          uuid: Uuid().v4(),
+          modSourceInfoUUID: info?.uuid,
+          translatedWords: result.translatedWords,
+          totalWords: result.totalWords,
+          lastUpdated: DateTime.now().toUtc());
+
+      await newStatus.insert();
+    } else {
+      newStatus = status.copyWith(
+          translatedWords: result.translatedWords,
+          totalWords: result.totalWords,
+          lastUpdated: DateTime.now().toUtc());
+      newStatus.update();
+    }
+
+    return newStatus;
+  }
+
+  static Future<void> deleteStatus(String infoUUID) async {
+    final TranslateStatus? status =
+        await TranslateStatus.getByModSourceInfoUUID(infoUUID);
+
+    if (status != null) {
+      status.delete();
+    }
+  }
+}
+
+class _StatusResult {
+  int totalWords;
+  Map<Locale, int> translatedWords;
+
+  _StatusResult(this.totalWords, this.translatedWords);
 }

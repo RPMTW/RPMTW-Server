@@ -4,19 +4,21 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/auth/user_role.dart";
-import "package:rpmtw_server/database/models/auth_route.dart";
+import 'package:rpmtw_server/database/auth_route.dart';
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
-import "package:rpmtw_server/database/models/model_field.dart";
+import 'package:rpmtw_server/database/model_field.dart';
 import "package:rpmtw_server/database/models/storage/storage.dart";
 import "package:rpmtw_server/database/models/translate/glossary.dart";
 import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";
+import 'package:rpmtw_server/database/models/translate/translate_status.dart';
 import "package:rpmtw_server/database/models/translate/translation.dart";
 import 'package:rpmtw_server/database/models/translate/translation_export_cache.dart';
 import "package:rpmtw_server/database/models/translate/translation_export_format.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import 'package:rpmtw_server/database/scripts/translate_status_script.dart';
 import "package:rpmtw_server/handler/minecraft_handler.dart";
 import "package:rpmtw_server/handler/translate_handler.dart";
 import "package:rpmtw_server/routes/api_route.dart";
@@ -37,131 +39,7 @@ class TranslateRoute extends APIRoute {
     sourceFile(router);
     modSourceInfo(router);
     glossary(router);
-
-    /// Export translation
-    router.getRoute("/export", (req, data) async {
-      final List<String> namespaces =
-          data.fields["namespaces"]!.toString().split(",");
-      final Locale language = Locale.parse(data.fields["language"]!);
-      final TranslationExportFormat format =
-          TranslationExportFormat.values.byName(data.fields["format"]!);
-      final MinecraftVersion? version =
-          await MinecraftVersion.getByID(data.fields["version"]!);
-
-      if (version == null ||
-          TranslateHandler.supportedVersion.contains(version.id) == false) {
-        return APIResponse.badRequest(message: "Invalid game version");
-      }
-
-      Map<String, TranslationExportCache> caches = {};
-
-      List<ModSourceInfo> infos = [];
-      for (String namespace in namespaces) {
-        ModSourceInfo? info = await ModSourceInfo.getByNamespace(namespace);
-        if (info != null) {
-          infos.add(info);
-        }
-      }
-
-      Map<String, String> output = {};
-
-      for (ModSourceInfo info in infos) {
-        TranslationExportCache? _cache =
-            await TranslationExportCache.getByInfos(
-                info.uuid, language, format);
-
-        if (_cache != null && !_cache.isExpired) {
-          output.addAll(_cache.data);
-          continue;
-        }
-
-        TranslationExportCache cache;
-        if (_cache != null && _cache.isExpired) {
-          cache =
-              _cache.copyWith(data: {}, lastUpdated: DateTime.now().toUtc());
-        } else {
-          TranslationExportCache _ = TranslationExportCache(
-              uuid: Uuid().v4(),
-              modSourceInfoUUID: info.uuid,
-              language: language,
-              format: format,
-              data: {},
-              lastUpdated: DateTime.now().toUtc());
-          await _.insert();
-          cache = _;
-        }
-
-        Future<void> handleTexts(List<SourceText> texts) async {
-          texts = texts.where((e) => e.gameVersions.contains(version)).toList();
-
-          for (SourceText text in texts) {
-            Translation? translation =
-                await TranslateHandler.getBestTranslation(text, language);
-            if (translation != null) {
-              output[text.key] = translation.content;
-              cache = cache.copyWith(
-                  data: cache.data..[text.key] = translation.content);
-            }
-          }
-        }
-
-        final List<SourceFile> files = await info.files;
-
-        if (format == TranslationExportFormat.minecraftJson) {
-          List<SourceText> texts = [];
-          for (SourceFile file in files) {
-            (await file.sourceTexts).forEach(texts.add);
-          }
-          await handleTexts(texts);
-        } else if (format == TranslationExportFormat.patchouli) {
-          final List<SourceText>? texts = await info.patchouliAddonTexts;
-          if (texts != null) {
-            await handleTexts(texts);
-          }
-        } else if (format == TranslationExportFormat.customText) {
-          List<SourceFile> customTextFiles = files
-              .where((e) =>
-                  e.type == SourceFileType.plainText ||
-                  e.type == SourceFileType.customJson)
-              .toList();
-
-          for (SourceFile file in customTextFiles) {
-            final List<SourceText> texts = (await file.sourceTexts)
-                .where((e) => e.gameVersions.contains(version))
-                .toList();
-
-            Storage? sourceStorage = await file.storage;
-            if (sourceStorage == null) {
-              logger.e(
-                  "[Export translation] Source file (${file.uuid}) storage not found.");
-              continue;
-            }
-
-            String sourceContent = await sourceStorage.readAsString();
-            String? translatedContent;
-
-            for (SourceText text in texts) {
-              Translation? translation =
-                  await TranslateHandler.getBestTranslation(text, language);
-              if (translation != null) {
-                translatedContent =
-                    sourceContent.replaceAll(text.source, translation.content);
-              }
-            }
-
-            if (translatedContent != null) {
-              output[file.path] = translatedContent;
-              cache = cache.copyWith(
-                  data: cache.data..[file.path] = translatedContent);
-            }
-          }
-        }
-
-        await cache.update();
-      }
-
-      return APIResponse.success(data: output);
-    }, requiredFields: ["namespaces", "format", "language", "version"]);
+    other(router);
   }
 
   void vote(Router router) {
@@ -356,6 +234,7 @@ class TranslateRoute extends APIRoute {
           translatorUUID: user.uuid);
 
       await translation.insert();
+
       return APIResponse.success(data: translation.outputMap());
     },
         requiredFields: ["sourceUUID", "language", "content"],
@@ -646,6 +525,7 @@ class TranslateRoute extends APIRoute {
           sources: sourceTexts.map((e) => e.uuid).toList());
 
       await file.insert();
+      TranslateStatusScript.addToQueue(modSourceInfo.uuid);
 
       return APIResponse.success(data: file.outputMap());
     }, requiredFields: [
@@ -683,15 +563,6 @@ class TranslateRoute extends APIRoute {
           fields["patchouliI18nKeys"] != null
               ? fields["patchouliI18nKeys"]!.cast<String>()
               : null;
-
-      if (modSourceInfoUUID != null) {
-        final ModSourceInfo? modSourceInfo =
-            await ModSourceInfo.getByUUID(modSourceInfoUUID);
-
-        if (modSourceInfo == null) {
-          return APIResponse.modelNotFound<ModSourceInfo>();
-        }
-      }
 
       if (path != null && path.isAllEmpty) {
         return APIResponse.fieldEmpty("path");
@@ -742,6 +613,17 @@ class TranslateRoute extends APIRoute {
         }
       }
 
+      if (modSourceInfoUUID != null) {
+        final ModSourceInfo? modSourceInfo =
+            await ModSourceInfo.getByUUID(modSourceInfoUUID);
+
+        if (modSourceInfo == null) {
+          return APIResponse.modelNotFound<ModSourceInfo>();
+        }
+
+        TranslateStatusScript.addToQueue(modSourceInfoUUID);
+      }
+
       sourceFile = sourceFile.copyWith(
           modSourceInfoUUID: modSourceInfoUUID,
           path: path,
@@ -774,6 +656,7 @@ class TranslateRoute extends APIRoute {
       }
 
       await sourceFile.delete();
+      TranslateStatusScript.addToQueue(sourceFile.modSourceInfoUUID);
 
       return APIResponse.success(data: null);
     },
@@ -898,6 +781,7 @@ class TranslateRoute extends APIRoute {
           patchouliAddons: patchouliAddons);
 
       await info.insert();
+      TranslateStatusScript.addToQueue(info.uuid);
 
       return APIResponse.success(data: info.outputMap());
     },
@@ -960,6 +844,7 @@ class TranslateRoute extends APIRoute {
           patchouliAddons: patchouliAddons);
 
       await modSourceInfo.update();
+      TranslateStatusScript.addToQueue(modSourceInfo.uuid);
 
       return APIResponse.success(data: modSourceInfo.outputMap());
     },
@@ -989,6 +874,7 @@ class TranslateRoute extends APIRoute {
       }
 
       await modSourceInfo.delete();
+      TranslateStatusScript.addToQueue(modSourceInfo.uuid);
 
       return APIResponse.success(data: null);
     },
@@ -1192,5 +1078,160 @@ class TranslateRoute extends APIRoute {
       return APIResponse.success(
           data: result.map((key, value) => MapEntry(key, value.toMap())));
     }, requiredFields: ["text", "language"]);
+  }
+
+  void other(Router router) {
+    /// Export translation
+    router.getRoute("/export", (req, data) async {
+      final List<String> namespaces =
+          data.fields["namespaces"]!.toString().split(",");
+      final Locale language = Locale.parse(data.fields["language"]!);
+      final TranslationExportFormat format =
+          TranslationExportFormat.values.byName(data.fields["format"]!);
+      final MinecraftVersion? version =
+          await MinecraftVersion.getByID(data.fields["version"]!);
+
+      if (version == null ||
+          TranslateHandler.supportedVersion.contains(version.id) == false) {
+        return APIResponse.badRequest(message: "Invalid game version");
+      }
+
+      List<ModSourceInfo> infos = [];
+      for (String namespace in namespaces) {
+        ModSourceInfo? info = await ModSourceInfo.getByNamespace(namespace);
+        if (info != null) {
+          infos.add(info);
+        }
+      }
+
+      Map<String, String> output = {};
+
+      for (ModSourceInfo info in infos) {
+        TranslationExportCache? _cache =
+            await TranslationExportCache.getByInfos(
+                info.uuid, language, format);
+
+        if (_cache != null && !_cache.isExpired) {
+          output.addAll(_cache.data);
+          continue;
+        }
+
+        TranslationExportCache cache;
+        if (_cache != null && _cache.isExpired) {
+          cache =
+              _cache.copyWith(data: {}, lastUpdated: DateTime.now().toUtc());
+        } else {
+          TranslationExportCache _ = TranslationExportCache(
+              uuid: Uuid().v4(),
+              modSourceInfoUUID: info.uuid,
+              language: language,
+              format: format,
+              data: {},
+              lastUpdated: DateTime.now().toUtc());
+          await _.insert();
+          cache = _;
+        }
+
+        Future<void> handleTexts(List<SourceText> texts) async {
+          texts = texts.where((e) => e.gameVersions.contains(version)).toList();
+
+          for (SourceText text in texts) {
+            Translation? translation =
+                await TranslateHandler.getBestTranslation(text, language);
+            if (translation != null) {
+              output[text.key] = translation.content;
+              cache = cache.copyWith(
+                  data: cache.data..[text.key] = translation.content);
+            }
+          }
+        }
+
+        final List<SourceFile> files = await info.files;
+
+        if (format == TranslationExportFormat.minecraftJson) {
+          List<SourceText> texts = [];
+          for (SourceFile file in files) {
+            (await file.sourceTexts).forEach(texts.add);
+          }
+          await handleTexts(texts);
+        } else if (format == TranslationExportFormat.patchouli) {
+          final List<SourceText>? texts = await info.patchouliAddonTexts;
+          if (texts != null) {
+            await handleTexts(texts);
+          }
+        } else if (format == TranslationExportFormat.customText) {
+          List<SourceFile> customTextFiles = files
+              .where((e) =>
+                  e.type == SourceFileType.plainText ||
+                  e.type == SourceFileType.customJson)
+              .toList();
+
+          for (SourceFile file in customTextFiles) {
+            final List<SourceText> texts = (await file.sourceTexts)
+                .where((e) => e.gameVersions.contains(version))
+                .toList();
+
+            Storage? sourceStorage = await file.storage;
+            if (sourceStorage == null) {
+              logger.e(
+                  "[Export translation] Source file (${file.uuid}) storage not found.");
+              continue;
+            }
+
+            String sourceContent = await sourceStorage.readAsString();
+            String? translatedContent;
+
+            for (SourceText text in texts) {
+              Translation? translation =
+                  await TranslateHandler.getBestTranslation(text, language);
+              if (translation != null) {
+                translatedContent =
+                    sourceContent.replaceAll(text.source, translation.content);
+              }
+            }
+
+            if (translatedContent != null) {
+              output[file.path] = translatedContent;
+              cache = cache.copyWith(
+                  data: cache.data..[file.path] = translatedContent);
+            }
+          }
+        }
+
+        await cache.update();
+      }
+
+      return APIResponse.success(data: output);
+    }, requiredFields: ["namespaces", "format", "language", "version"]);
+
+    /// Get translate status by mod source info
+    router.getRoute("/status/<uuid>", (req, data) async {
+      String infoUUID = data.fields["uuid"]!;
+
+      ModSourceInfo? info = await ModSourceInfo.getByUUID(infoUUID);
+      if (info == null) {
+        return APIResponse.modelNotFound<ModSourceInfo>();
+      }
+
+      TranslateStatus status =
+          await TranslateHandler.updateOrCreateStatus(info);
+
+      return APIResponse.success(data: status.outputMap());
+    }, requiredFields: ["uuid"]);
+
+    /// Get global translate status
+    router.getRoute("/status", (req, data) async {
+      TranslateStatus? status =
+          await TranslateStatus.getByModSourceInfoUUID(null);
+
+      status ??= TranslateStatus(
+          uuid: Uuid().v4(),
+          modSourceInfoUUID: null,
+          translatedWords: {},
+          totalWords: 0,
+          lastUpdated: DateTime.now().toUtc());
+
+      return APIResponse.success(data: status.outputMap());
+    });
   }
 }

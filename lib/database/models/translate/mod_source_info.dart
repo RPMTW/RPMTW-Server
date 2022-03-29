@@ -1,7 +1,7 @@
 import "package:rpmtw_server/database/database.dart";
 
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/database/base_models.dart";
+import "package:rpmtw_server/database/index_fields.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/translate/source_file.dart";
 import "package:rpmtw_server/database/models/translate/source_text.dart";

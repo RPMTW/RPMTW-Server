@@ -1,12 +1,16 @@
 import "package:intl/locale.dart";
+import 'package:mongo_dart/mongo_dart.dart';
 import "package:rpmtw_server/database/database.dart";
 
 import "package:rpmtw_server/database/models/auth/user.dart";
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:rpmtw_server/database/models/model_field.dart";
+import "package:rpmtw_server/database/base_models.dart";
+import "package:rpmtw_server/database/index_fields.dart";
+import "package:rpmtw_server/database/model_field.dart";
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/models/translate/source_file.dart';
 import "package:rpmtw_server/database/models/translate/source_text.dart";
 import "package:rpmtw_server/database/models/translate/translation_vote.dart";
+import 'package:rpmtw_server/database/scripts/translate_status_script.dart';
 
 class Translation extends DBModel {
   static const String collectionName = "translations";
@@ -38,7 +42,7 @@ class Translation extends DBModel {
     return TranslationVote.getAllByTranslationUUID(uuid);
   }
 
-  Future<SourceText?> get source {
+  Future<SourceText?> get sourceText {
     return SourceText.getByUUID(sourceUUID);
   }
 
@@ -83,6 +87,42 @@ class Translation extends DBModel {
       translatorUUID: map["translatorUUID"],
       language: Locale.parse(map["language"]),
     );
+  }
+
+  Future<void> _updateStatus() async {
+    SourceText? text = await sourceText;
+    if (text != null) {
+      ModSourceInfo? info;
+
+      SourceFile? file = await DataBase.instance
+          .getModelByField<SourceFile>("sources", text.uuid);
+      if (file != null) {
+        info = await file.sourceInfo;
+      } else {
+        info = await DataBase.instance
+            .getModelByField<ModSourceInfo>("patchouliAddons", file);
+      }
+
+      if (info != null) {
+        TranslateStatusScript.addToQueue(info.uuid);
+      }
+    }
+  }
+
+  @override
+  Future<WriteResult> insert() async {
+    WriteResult result = await super.insert();
+    await _updateStatus();
+
+    return result;
+  }
+
+   @override
+  Future<WriteResult> delete() async {
+    WriteResult result = await super.delete();
+    await _updateStatus();
+    
+    return result;
   }
 
   static Future<Translation?> getByUUID(String uuid) async =>

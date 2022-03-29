@@ -1,18 +1,17 @@
 import "package:intl/locale.dart";
-import 'package:mongo_dart/mongo_dart.dart';
 
-import "package:rpmtw_server/database/models/base_models.dart";
+import "package:rpmtw_server/database/base_models.dart";
+import "package:rpmtw_server/database/model_field.dart";
 import "package:rpmtw_server/database/models/translate/translation_export_format.dart";
-import 'package:rpmtw_server/database/database.dart';
-import 'package:rpmtw_server/database/models/index_fields.dart';
+import "package:rpmtw_server/database/database.dart";
+import "package:rpmtw_server/database/index_fields.dart";
 
 class TranslationExportCache extends DBModel {
   static const String collectionName = "translation_export_caches";
   static const List<IndexField> indexFields = [
     IndexField("modSourceInfoUUID", unique: true),
     IndexField("language", unique: false),
-    IndexField("format", unique: false),
-    IndexField("lastUpdated", unique: false),
+    IndexField("format", unique: false)
   ];
 
   final String modSourceInfoUUID;
@@ -23,7 +22,7 @@ class TranslationExportCache extends DBModel {
 
   /// Check if the cache is older than 30 minutes
   bool get isExpired =>
-      lastUpdated.add(Duration(minutes: 30)).isBefore(DateTime.now().toUtc());
+      DateTime.now().toUtc().difference(lastUpdated).inMinutes > 30;
 
   const TranslationExportCache({
     required String uuid,
@@ -77,8 +76,9 @@ class TranslationExportCache extends DBModel {
     Locale language,
     TranslationExportFormat format,
   ) =>
-      DataBase.instance
-          .getModelWithSelector(where.eq("modSourceInfoUUID", modSourceInfoUUID)
-            ..eq("language", language.toLanguageTag())
-            ..eq("format", format.name));
+      DataBase.instance.getModelByFields([
+        ModelField("modSourceInfoUUID", modSourceInfoUUID),
+        ModelField("language", language.toLanguageTag()),
+        ModelField("format", format.name)
+      ]);
 }

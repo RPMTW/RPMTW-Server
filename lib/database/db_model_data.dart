@@ -1,11 +1,12 @@
-import 'package:mongo_dart/mongo_dart.dart';
+import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/models/auth/auth_code_.dart";
 import "package:rpmtw_server/database/models/auth/ban_info.dart";
-import 'package:rpmtw_server/database/models/auth/user.dart';
+import "package:rpmtw_server/database/models/auth/user.dart";
 import "package:rpmtw_server/database/models/comment/comment.dart";
-import 'package:rpmtw_server/database/models/index_fields.dart';
-import 'package:rpmtw_server/database/models/storage/storage.dart';
-import 'package:rpmtw_server/database/models/translate/translation_export_cache.dart';
+import "package:rpmtw_server/database/index_fields.dart";
+import "package:rpmtw_server/database/models/storage/storage.dart";
+import "package:rpmtw_server/database/models/translate/translate_status.dart";
+import "package:rpmtw_server/database/models/translate/translation_export_cache.dart";
 import "package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
 import "package:rpmtw_server/database/models/minecraft/minecraft_version_manifest.dart";
@@ -35,6 +36,7 @@ class DBModelData {
     Glossary.collectionName,
     Comment.collectionName,
     TranslationExportCache.collectionName,
+    TranslateStatus.collectionName,
   ];
 
   static List<List<IndexField>> indexFields = [
@@ -54,6 +56,7 @@ class DBModelData {
     Glossary.indexFields,
     Comment.indexFields,
     TranslationExportCache.indexFields,
+    TranslateStatus.indexFields,
   ];
 
   static Map<String, DbCollection> collectionMap(
@@ -75,6 +78,7 @@ class DBModelData {
       "Glossary": collections[13],
       "Comment": collections[14],
       "TranslationExportCache": collections[15],
+      "TranslateStatus": collections[16],
     };
   }
 
@@ -95,5 +99,6 @@ class DBModelData {
     "Glossary": Glossary.fromMap,
     "Comment": Comment.fromMap,
     "TranslationExportCache": TranslationExportCache.fromMap,
+    "TranslateStatus": TranslateStatus.fromMap,
   }.cast<String, dynamic Function(Map<String, dynamic>)>();
 }

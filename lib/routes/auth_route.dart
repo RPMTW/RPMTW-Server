@@ -3,7 +3,7 @@ import "package:mongo_dart/mongo_dart.dart";
 import "package:rpmtw_server/database/database.dart";
 import "package:rpmtw_server/database/models/auth/auth_code_.dart";
 import "package:rpmtw_server/database/models/auth/user.dart";
-import "package:rpmtw_server/database/models/auth_route.dart";
+import "package:rpmtw_server/database/auth_route.dart";
 import "package:rpmtw_server/database/models/storage/storage.dart";
 import "package:rpmtw_server/handler/auth_handler.dart";
 import "package:rpmtw_server/utilities/api_response.dart";

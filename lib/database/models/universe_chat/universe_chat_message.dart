@@ -1,8 +1,8 @@
 import "dart:io";
 
 import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
+import "package:rpmtw_server/database/base_models.dart";
+import "package:rpmtw_server/database/index_fields.dart";
 
 class UniverseChatMessage extends DBModel {
   static const String collectionName = "universe_chat_message";
