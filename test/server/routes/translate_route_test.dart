@@ -2270,6 +2270,27 @@ void main() async {
       expect(_response2.statusCode, 200);
       Map _data2 = json.decode(_response2.body)["data"];
 
+      /// Add a test translation.
+      Translation translation = Translation(
+          sourceUUID: (await SourceText.list(key: "block.tconstruct.sky_slime"))
+              .first
+              .uuid,
+          content: "天空史莱姆方塊",
+          translatorUUID: userUUID,
+          language: Locale.parse("zh-TW"),
+          uuid: Uuid().v4());
+
+      await translation.insert();
+      Translation translation1 = Translation(
+          sourceUUID: (await SourceText.list(key: "material.tconstruct.tin"))
+              .first
+              .uuid,
+          content: "錫",
+          translatorUUID: userUUID,
+          language: Locale.parse("zh-TW"),
+          uuid: Uuid().v4());
+      await translation1.insert();
+
       final response = await get(
           Uri.parse(host + "/translate/export").replace(queryParameters: {
             "format": "minecraftJson",
@@ -2282,7 +2303,10 @@ void main() async {
       Map data = json.decode(response.body)["data"];
 
       expect(response.statusCode, 200);
-      expect(data, {});
+      expect(data, {
+        "block.tconstruct.sky_slime": "天空史莱姆方塊",
+        "material.tconstruct.tin": "錫"
+      });
 
       /// Delete the test data.
       await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
@@ -3036,6 +3060,59 @@ void main() async {
 
   group("translate status", () {
     test("get translate global status", () async {
+      ModSourceInfo info =
+          ModSourceInfo(uuid: Uuid().v4(), namespace: "tconstruct");
+      await info.insert();
+
+      late String storageUUID;
+      final _response1 = await post(Uri.parse(host + "/storage/create"),
+          body: TestData.tinkersConstructLang.getFileString(),
+          headers: {
+            "Content-Type": "application/json",
+          });
+      storageUUID = json.decode(_response1.body)["data"]["uuid"];
+
+      final _response2 = await post(Uri.parse(host + "/translate/source-file"),
+          body: json.encode({
+            "modSourceInfoUUID": info.uuid,
+            "storageUUID": storageUUID,
+            "path": "assets/tconstruct/lang/en_us.json",
+            "type": "gsonLang",
+            "gameVersions": ["1.16.5"]
+          }),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $translationManagerToken"
+          });
+      expect(_response2.statusCode, 200);
+      Map _data2 = json.decode(_response2.body)["data"];
+
+      /// Add a test translation.
+      Translation translation = Translation(
+          sourceUUID: (await SourceText.list(key: "block.tconstruct.sky_slime"))
+              .first
+              .uuid,
+          content: "天空史莱姆方塊",
+          translatorUUID: userUUID,
+          language: Locale.parse("zh-TW"),
+          uuid: Uuid().v4());
+
+      await translation.insert();
+      Translation translation1 = Translation(
+          sourceUUID: (await SourceText.list(key: "material.tconstruct.tin"))
+              .first
+              .uuid,
+          content: "錫",
+          translatorUUID: userUUID,
+          language: Locale.parse("zh-TW"),
+          uuid: Uuid().v4());
+      await translation1.insert();
+
+      await get(
+        Uri.parse(host + "/translate/status/${info.uuid}"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
       final response = await get(
         Uri.parse(host + "/translate/status"),
         headers: {"Authorization": "Bearer $token"},
@@ -3044,8 +3121,12 @@ void main() async {
       Map data = json.decode(response.body)["data"];
 
       expect(response.statusCode, 200);
-      expect(data["totalWords"], 0);
-      expect(data["translatedWords"], {});
+      expect(data["totalWords"], 2116);
+      expect(data["translatedWords"], {"zh-TW": 2});
+
+      /// Delete the test data.
+      await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();
+      await info.delete();
     });
 
     test("get translate a status", () async {
@@ -3101,6 +3182,18 @@ void main() async {
       expect(response.statusCode, 200);
       expect(data["totalWords"], 21);
       expect(data["translatedWords"], {"zh-TW": 1});
+
+      /// Test status cache
+      final response2 = await get(
+        Uri.parse(host + "/translate/status/${info.uuid}"),
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      Map data2 = json.decode(response.body)["data"];
+
+      expect(response2.statusCode, 200);
+      expect(data2["totalWords"], 21);
+      expect(data2["translatedWords"], {"zh-TW": 1});
 
       /// Delete the test data.
       await (await SourceFile.getByUUID(_data2["uuid"]))!.delete();

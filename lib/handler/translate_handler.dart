@@ -308,7 +308,11 @@ class TranslateHandler {
           totalWords: result.totalWords,
           lastUpdated: DateTime.now().toUtc());
 
-      await newStatus.insert();
+      if (!(result.totalWords == 0 &&
+          result.translatedWords.isEmpty &&
+          info == null)) {
+        await newStatus.insert();
+      }
     } else {
       newStatus = status.copyWith(
           translatedWords: result.translatedWords,

@@ -1224,12 +1224,7 @@ class TranslateRoute extends APIRoute {
       TranslateStatus? status =
           await TranslateStatus.getByModSourceInfoUUID(null);
 
-      status ??= TranslateStatus(
-          uuid: Uuid().v4(),
-          modSourceInfoUUID: null,
-          translatedWords: {},
-          totalWords: 0,
-          lastUpdated: DateTime.now().toUtc());
+      status ??= await TranslateHandler.updateOrCreateStatus(null);
 
       return APIResponse.success(data: status.outputMap());
     });
