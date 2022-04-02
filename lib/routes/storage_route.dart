@@ -1,24 +1,24 @@
-import "dart:typed_data";
+import 'dart:typed_data';
 
-import "package:byte_size/byte_size.dart";
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/utilities/api_response.dart";
-import "package:rpmtw_server/utilities/utility.dart";
-import "package:shelf/shelf.dart";
-import "../database/database.dart";
-import "../database/models/storage/storage.dart";
-import "../utilities/extension.dart";
-import "api_route.dart";
+import 'package:byte_size/byte_size.dart';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/utilities/api_response.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
+import 'package:shelf/shelf.dart';
+import '../database/database.dart';
+import '../database/models/storage/storage.dart';
+import '../utilities/extension.dart';
+import 'api_route.dart';
 
 class StorageRoute extends APIRoute {
   @override
-  String get routeName => "storage";
+  String get routeName => 'storage';
 
   @override
   void router(router) {
-    router.postRoute("/create", (req, data) async {
+    router.postRoute('/create', (req, data) async {
       String contentType =
-          req.headers["content-type"] ?? "application/octet-stream";
+          req.headers['content-type'] ?? 'application/octet-stream';
 
       Storage storage = Storage(
           type: StorageType.temp,
@@ -30,7 +30,7 @@ class StorageRoute extends APIRoute {
       ByteSize size = ByteSize.FromBytes(req.contentLength!);
       if (size.MegaBytes > 8) {
         // 限制最大檔案大小為 8 MB
-        return APIResponse.badRequest(message: "File size is too large");
+        return APIResponse.badRequest(message: 'File size is too large');
       }
       await gridIn.save();
       await storage.insert();
@@ -38,8 +38,8 @@ class StorageRoute extends APIRoute {
       return APIResponse.success(data: storage.outputMap());
     });
 
-    router.getRoute("/<uuid>", (req, data) async {
-      String uuid = data.fields["uuid"]!;
+    router.getRoute('/<uuid>', (req, data) async {
+      String uuid = data.fields['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
         return APIResponse.modelNotFound<Storage>();
@@ -47,8 +47,8 @@ class StorageRoute extends APIRoute {
       return APIResponse.success(data: storage.outputMap());
     });
 
-    router.getRoute("/<uuid>/download", (req, data) async {
-      String uuid = data.fields["uuid"]!;
+    router.getRoute('/<uuid>/download', (req, data) async {
+      String uuid = data.fields['uuid']!;
       Storage? storage = await Storage.getByUUID(uuid);
       if (storage == null) {
         return APIResponse.modelNotFound<Storage>();
@@ -57,7 +57,7 @@ class StorageRoute extends APIRoute {
       Uint8List bytes = await storage.readAsBytes();
 
       return Response.ok(bytes, headers: {
-        "Content-Type": storage.contentType,
+        'Content-Type': storage.contentType,
       });
     });
   }

@@ -1,12 +1,12 @@
-import "package:rpmtw_server/database/database.dart";
+import 'package:rpmtw_server/database/database.dart';
 
 import 'package:rpmtw_server/database/db_model.dart';
-import "package:rpmtw_server/database/index_fields.dart";
+import 'package:rpmtw_server/database/index_fields.dart';
 
 class BanInfo extends DBModel {
-  static const String collectionName = "ban_infos";
+  static const String collectionName = 'ban_infos';
   static const List<IndexField> indexFields = [
-    IndexField("ip", unique: true),
+    IndexField('ip', unique: true),
   ];
 
   /// 被封鎖的 IP
@@ -41,22 +41,22 @@ class BanInfo extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "ip": ip,
-      "reason": reason,
-      "userUUID": userUUID,
-      "uuid": uuid,
+      'ip': ip,
+      'reason': reason,
+      'userUUID': userUUID,
+      'uuid': uuid,
     };
   }
 
   factory BanInfo.fromMap(Map<String, dynamic> map) {
     return BanInfo(
-      ip: map["ip"],
-      reason: map["reason"],
-      userUUID: List<String>.from(map["userUUID"]),
-      uuid: map["uuid"]!,
+      ip: map['ip'],
+      reason: map['reason'],
+      userUUID: List<String>.from(map['userUUID']),
+      uuid: map['uuid']!,
     );
   }
 
   static Future<BanInfo?> getByIP(String ip) async =>
-      DataBase.instance.getModelByField<BanInfo>("ip", ip);
+      DataBase.instance.getModelByField<BanInfo>('ip', ip);
 }

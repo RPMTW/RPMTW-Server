@@ -1,12 +1,12 @@
-import "package:rpmtw_server/database/database.dart";
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
-import "package:rpmtw_server/database/index_fields.dart";
-import "package:rpmtw_server/database/model_field.dart";
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/model_field.dart';
 
 class TranslationVote extends DBModel {
-  static const String collectionName = "translation_votes";
+  static const String collectionName = 'translation_votes';
   static const List<IndexField> indexFields = [
-    IndexField("translationUUID", unique: false),
+    IndexField('translationUUID', unique: false),
   ];
 
   final TranslationVoteType type;
@@ -37,19 +37,19 @@ class TranslationVote extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "type": type.name,
-      "translationUUID": translationUUID,
-      "userUUID": userUUID,
+      'uuid': uuid,
+      'type': type.name,
+      'translationUUID': translationUUID,
+      'userUUID': userUUID,
     };
   }
 
   factory TranslationVote.fromMap(Map<String, dynamic> map) {
     return TranslationVote(
-      uuid: map["uuid"],
-      type: TranslationVoteType.values.byName(map["type"]),
-      translationUUID: map["translationUUID"],
-      userUUID: map["userUUID"],
+      uuid: map['uuid'],
+      type: TranslationVoteType.values.byName(map['type']),
+      translationUUID: map['translationUUID'],
+      userUUID: map['userUUID'],
     );
   }
 
@@ -59,7 +59,7 @@ class TranslationVote extends DBModel {
   static Future<List<TranslationVote>> getAllByTranslationUUID(String uuid,
           {int? limit, int? skip}) async =>
       DataBase.instance.getModelsByField<TranslationVote>(
-          [ModelField("translationUUID", uuid)],
+          [ModelField('translationUUID', uuid)],
           limit: limit, skip: skip);
 }
 

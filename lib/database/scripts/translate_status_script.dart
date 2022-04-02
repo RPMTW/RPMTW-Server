@@ -1,7 +1,7 @@
-import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
-import "package:rpmtw_server/database/scripts/db_script.dart";
-import "package:rpmtw_server/handler/translate_handler.dart";
+import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/scripts/db_script.dart';
+import 'package:rpmtw_server/handler/translate_handler.dart';
 
 class TranslateStatusScript extends DBScript {
   /// uuid of [ModSourceInfo]

@@ -1,51 +1,53 @@
-import "dart:convert";
+import 'dart:convert';
 
-import "package:crypto/crypto.dart";
-import "package:intl/locale.dart";
-import "package:json5/json5.dart";
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
-import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
-import "package:rpmtw_server/database/models/translate/patchouli_file_info.dart";
-import "package:rpmtw_server/database/models/translate/source_file.dart";
-import "package:rpmtw_server/database/models/translate/source_text.dart";
-import "package:rpmtw_server/database/models/translate/translate_status.dart";
-import "package:rpmtw_server/database/models/translate/translation.dart";
-import "package:rpmtw_server/database/models/translate/translation_vote.dart";
-import "package:rpmtw_server/utilities/extension.dart";
+import 'package:crypto/crypto.dart';
+import 'package:intl/locale.dart';
+import 'package:json5/json5.dart';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/models/translate/patchouli_file_info.dart';
+import 'package:rpmtw_server/database/models/translate/source_file.dart';
+import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import 'package:rpmtw_server/database/models/translate/translate_status.dart';
+import 'package:rpmtw_server/database/models/translate/translation.dart';
+import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
+import 'package:rpmtw_server/database/models/translate/translator_info.dart';
+import 'package:rpmtw_server/utilities/extension.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 
 class TranslateHandler {
   static final List<Locale> supportedLanguage = [
     // Traditional Chinese
-    Locale.fromSubtags(languageCode: "zh", countryCode: "TW"),
+    Locale.fromSubtags(languageCode: 'zh', countryCode: 'TW'),
     // Simplified Chinese
-    Locale.fromSubtags(languageCode: "zh", countryCode: "CN"),
+    Locale.fromSubtags(languageCode: 'zh', countryCode: 'CN'),
   ];
 
   static final List<String> supportedVersion = [
-    "1.12",
-    "1.16",
-    "1.17",
-    "1.18",
-    // "1.19"
+    '1.12',
+    '1.16',
+    '1.17',
+    '1.18',
+    // '1.19'
   ];
 
   /// https://github.com/VazkiiMods/Patchouli/blob/7d61bb287ea1e87a757bb14bff95e0de1c70688f/Common/src/main/java/vazkii/patchouli/client/book/BookEntry.java#L33
   /// https://github.com/VazkiiMods/Patchouli/blob/7d61bb287ea1e87a757bb14bff95e0de1c70688f/Common/src/main/java/vazkii/patchouli/client/book/BookCategory.java#L20
   static final List<String> _patchouliSkipFields = [
-    "category",
-    "flag",
-    "icon",
-    "read_by_default",
-    "priority",
-    "secret",
-    "advancement",
-    "turnin",
-    "sortnum",
-    "entry_color",
-    "extra_recipe_mappings",
-    "parent"
+    'category',
+    'flag',
+    'icon',
+    'read_by_default',
+    'priority',
+    'secret',
+    'advancement',
+    'turnin',
+    'sortnum',
+    'entry_color',
+    'extra_recipe_mappings',
+    'parent'
   ];
 
   /// Minecraft lang converted to json format, modified and ported by https://gist.github.com/ChAoSUnItY/31c147efd2391b653b8cc12da9699b43
@@ -56,26 +58,26 @@ class TranslateHandler {
     String? lastKey;
 
     for (String line in LineSplitter().convert(source)) {
-      if (line.startsWith("#") ||
-          line.startsWith("//") ||
-          line.startsWith("!")) {
+      if (line.startsWith('#') ||
+          line.startsWith('//') ||
+          line.startsWith('!')) {
         continue;
       }
-      if (line.contains("=")) {
-        if (line.split("=").length == 2) {
-          List<String> kv = line.split("=");
+      if (line.contains('=')) {
+        if (line.split('=').length == 2) {
+          List<String> kv = line.split('=');
           lastKey = kv[0];
 
           map[kv[0]] = kv[1].trimLeft();
         } else {
           if (lastKey == null) continue;
-          map[lastKey] = "${map[lastKey]}\n$line";
+          map[lastKey] = '${map[lastKey]}\n$line';
         }
-      } else if (!line.contains("=")) {
+      } else if (!line.contains('=')) {
         if (lastKey == null) continue;
-        if (line == "") continue;
+        if (line == '') continue;
 
-        map[lastKey] = "${map[lastKey]}\n$line";
+        map[lastKey] = '${map[lastKey]}\n$line';
       }
     }
     return map;
@@ -108,18 +110,18 @@ class TranslateHandler {
       });
     } else if (type == SourceFileType.patchouli) {
       assert(patchouliI18nKeys != null,
-          "patchouliI18nKeys must be provided for patchouli files");
+          'patchouliI18nKeys must be provided for patchouli files');
 
       Map<String, dynamic> json = JSON5.parse(string);
       PatchouliFileInfo info = PatchouliFileInfo.parse(filePath);
 
       json.forEach((key, value) {
-        if (key == "pages" && value is List) {
+        if (key == 'pages' && value is List) {
           for (var page in value) {
             if (page is Map) {
               /// https://github.com/VazkiiMods/Patchouli/blob/7d61bb287ea1e87a757bb14bff95e0de1c70688f/Common/src/main/java/vazkii/patchouli/client/book/ClientBookRegistry.java#L101
 
-              String? type = page["type"];
+              String? type = page['type'];
 
               void _addSource(dynamic source) {
                 if (source is String &&
@@ -131,15 +133,15 @@ class TranslateHandler {
                       uuid: Uuid().v4(),
                       source: source,
                       key:
-                          "patchouli.${info.namespace}.${info.bookName}.content.${info.fileFolder}.${info.fileName}.pages.$index.text",
+                          'patchouli.${info.namespace}.${info.bookName}.content.${info.fileFolder}.${info.fileName}.pages.$index.text',
                       type: SourceTextType.patchouli,
                       gameVersions: gameVersions));
                 }
               }
 
               if (type != null) {
-                _addSource(page["title"]);
-                _addSource(page["text"]);
+                _addSource(page['title']);
+                _addSource(page['text']);
               }
             }
           }
@@ -153,7 +155,7 @@ class TranslateHandler {
                 uuid: Uuid().v4(),
                 source: value,
                 key:
-                    "patchouli.${info.namespace}.${info.bookName}.content.${info.fileFolder}.${info.fileName}.$key",
+                    'patchouli.${info.namespace}.${info.bookName}.content.${info.fileFolder}.${info.fileName}.$key',
                 type: SourceTextType.patchouli,
                 gameVersions: gameVersions));
           }
@@ -178,17 +180,17 @@ class TranslateHandler {
       Map<String, dynamic> json = JSON5.parse(string);
 
       void _add(dynamic _json, {String? key}) {
-        assert(_json is Map || _json is List, "map must be a Map or List");
+        assert(_json is Map || _json is List, 'map must be a Map or List');
 
         if (_json is Map) {
           _json.forEach((_key, _value) {
             if (_value is Map || _value is List) {
-              _add(_value, key: key != null ? "$key.$_key" : _key);
+              _add(_value, key: key != null ? '$key.$_key' : _key);
             } else if (_value is String) {
               texts.add(SourceText(
                   uuid: Uuid().v4(),
                   source: _value,
-                  key: key != null ? "$key.$_key" : _key,
+                  key: key != null ? '$key.$_key' : _key,
                   type: SourceTextType.general,
                   gameVersions: gameVersions));
             }
@@ -198,12 +200,12 @@ class TranslateHandler {
             int index = _json.indexOf(value);
 
             if (value is Map || value is List) {
-              _add(value, key: key != null ? "$key.$index" : index.toString());
+              _add(value, key: key != null ? '$key.$index' : index.toString());
             } else if (value is String) {
               texts.add(SourceText(
                   uuid: Uuid().v4(),
                   source: value,
-                  key: key != null ? "$key.$index" : index.toString(),
+                  key: key != null ? '$key.$index' : index.toString(),
                   type: SourceTextType.general,
                   gameVersions: gameVersions));
             }
@@ -306,7 +308,7 @@ class TranslateHandler {
           modSourceInfoUUID: info?.uuid,
           translatedWords: result.translatedWords,
           totalWords: result.totalWords,
-          lastUpdated: DateTime.now().toUtc());
+          lastUpdated: Utility.getUTCTime());
 
       if (!(result.totalWords == 0 &&
           result.translatedWords.isEmpty &&
@@ -317,7 +319,7 @@ class TranslateHandler {
       newStatus = status.copyWith(
           translatedWords: result.translatedWords,
           totalWords: result.totalWords,
-          lastUpdated: DateTime.now().toUtc());
+          lastUpdated: Utility.getUTCTime());
       newStatus.update();
     }
 
@@ -330,6 +332,38 @@ class TranslateHandler {
 
     if (status != null) {
       await status.delete();
+    }
+  }
+
+  static Future<void> updateTranslatorInfo(String userUUID,
+      {bool translate = false, bool vote = false}) async {
+    assert(translate || vote, 'At least one of translate or vote must be true');
+
+    TranslatorInfo? info = await TranslatorInfo.getByUserUUID(userUUID);
+    TranslatorInfo newInfo;
+    DateTime now = Utility.getUTCTime();
+
+    final List<DateTime>? translatedCount =
+        translate ? (info?.translatedCount?..add(now)) : null;
+    final List<DateTime>? votedCount =
+        vote ? (info?.translatedCount?..add(now)) : null;
+
+    if (info != null) {
+      newInfo = info.copyWith(
+        translatedCount: translatedCount,
+        votedCount: votedCount,
+      );
+
+      await newInfo.update();
+    } else {
+      newInfo = TranslatorInfo(
+          uuid: Uuid().v4(),
+          userUUID: userUUID,
+          translatedCount: translatedCount ?? [],
+          votedCount: votedCount ?? [],
+          joinAt: Utility.getUTCTime());
+
+      await newInfo.insert();
     }
   }
 }

@@ -21,15 +21,15 @@ class ModSide {
 
   Map<String, dynamic> toMap() {
     return {
-      "environment": environment.name,
-      "requireType": requireType.name,
+      'environment': environment.name,
+      'requireType': requireType.name,
     };
   }
 
   factory ModSide.fromMap(Map<String, dynamic> map) {
     return ModSide(
-      environment: ModSideEnvironment.values.byName(map["environment"]),
-      requireType: ModRequireType.values.byName(map["requireType"]),
+      environment: ModSideEnvironment.values.byName(map['environment']),
+      requireType: ModRequireType.values.byName(map['requireType']),
     );
   }
 }

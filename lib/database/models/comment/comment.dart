@@ -1,19 +1,19 @@
-import "package:rpmtw_server/database/database.dart";
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
-import "package:rpmtw_server/database/models/comment/comment_type.dart";
-import "package:rpmtw_server/database/index_fields.dart";
-import "package:rpmtw_server/database/model_field.dart";
-import "package:rpmtw_server/database/models/translate/source_text.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
+import 'package:rpmtw_server/database/models/comment/comment_type.dart';
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/model_field.dart';
+import 'package:rpmtw_server/database/models/translate/source_text.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 
 class Comment extends DBModel {
-  static const String collectionName = "comments";
+  static const String collectionName = 'comments';
   static const List<IndexField> indexFields = [
-    IndexField("type", unique: false),
-    IndexField("parentUUID", unique: false),
-    IndexField("createdAt", unique: false),
-    IndexField("updatedAt", unique: false),
-    IndexField("replyCommentUUID", unique: false),
+    IndexField('type', unique: false),
+    IndexField('parentUUID', unique: false),
+    IndexField('createdAt', unique: false),
+    IndexField('updatedAt', unique: false),
+    IndexField('replyCommentUUID', unique: false),
   ];
 
   /// Comment content in Markdown format.
@@ -81,31 +81,31 @@ class Comment extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "content": content,
-      "type": type.name,
-      "userUUID": userUUID,
-      "parentUUID": parentUUID,
-      "createdAt": createdAt.millisecondsSinceEpoch,
-      "updatedAt": updatedAt.millisecondsSinceEpoch,
-      "isHidden": isHidden,
-      "replyCommentUUID": replyCommentUUID,
+      'uuid': uuid,
+      'content': content,
+      'type': type.name,
+      'userUUID': userUUID,
+      'parentUUID': parentUUID,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'updatedAt': updatedAt.millisecondsSinceEpoch,
+      'isHidden': isHidden,
+      'replyCommentUUID': replyCommentUUID,
     };
   }
 
   factory Comment.fromMap(Map<String, dynamic> map) {
     return Comment(
-      uuid: map["uuid"],
-      content: map["content"],
-      type: CommentType.values.byName(map["type"]),
-      userUUID: map["userUUID"],
-      parentUUID: map["parentUUID"],
+      uuid: map['uuid'],
+      content: map['content'],
+      type: CommentType.values.byName(map['type']),
+      userUUID: map['userUUID'],
+      parentUUID: map['parentUUID'],
       createdAt:
-          DateTime.fromMillisecondsSinceEpoch(map["createdAt"], isUtc: true),
+          DateTime.fromMillisecondsSinceEpoch(map['createdAt'], isUtc: true),
       updatedAt:
-          DateTime.fromMillisecondsSinceEpoch(map["updatedAt"], isUtc: true),
-      isHidden: map["isHidden"],
-      replyCommentUUID: map["replyCommentUUID"],
+          DateTime.fromMillisecondsSinceEpoch(map['updatedAt'], isUtc: true),
+      isHidden: map['isHidden'],
+      replyCommentUUID: map['replyCommentUUID'],
     );
   }
 
@@ -119,10 +119,10 @@ class Comment extends DBModel {
           int? limit,
           int? skip}) =>
       DataBase.instance.getModelsByField([
-        ModelField("type", type.name),
-        ModelField("isHidden", false),
-        if (parentUUID != null) ModelField("parentUUID", parentUUID),
+        ModelField('type', type.name),
+        ModelField('isHidden', false),
+        if (parentUUID != null) ModelField('parentUUID', parentUUID),
         if (replyCommentUUID != null)
-          ModelField("replyCommentUUID", replyCommentUUID),
+          ModelField('replyCommentUUID', replyCommentUUID),
       ], limit: limit, skip: skip);
 }

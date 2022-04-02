@@ -1,21 +1,21 @@
-import "dart:async";
+import 'dart:async';
 
-import "package:dotenv/dotenv.dart";
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/db_model_data.dart";
-import "package:rpmtw_server/database/index_fields.dart";
-import "package:rpmtw_server/database/model_field.dart";
-import "package:rpmtw_server/database/scripts/auth_code_script.dart";
-import "package:rpmtw_server/database/scripts/comment_script.dart";
-import "package:rpmtw_server/database/scripts/db_script.dart";
-import "package:rpmtw_server/database/scripts/minecraft_version_manifest_script.dart";
-import "package:rpmtw_server/database/scripts/storage_script.dart";
-import "package:rpmtw_server/database/scripts/translate_status_script.dart";
-import "package:rpmtw_server/database/scripts/view_count_script.dart";
-import "package:rpmtw_server/database/scripts/wiki_changelog_script.dart";
-import "package:rpmtw_server/utilities/utility.dart";
+import 'package:dotenv/dotenv.dart';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/db_model_data.dart';
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/model_field.dart';
+import 'package:rpmtw_server/database/scripts/auth_code_script.dart';
+import 'package:rpmtw_server/database/scripts/comment_script.dart';
+import 'package:rpmtw_server/database/scripts/db_script.dart';
+import 'package:rpmtw_server/database/scripts/minecraft_version_manifest_script.dart';
+import 'package:rpmtw_server/database/scripts/storage_script.dart';
+import 'package:rpmtw_server/database/scripts/translate_status_script.dart';
+import 'package:rpmtw_server/database/scripts/view_count_script.dart';
+import 'package:rpmtw_server/database/scripts/wiki_changelog_script.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 
-import "../utilities/data.dart";
+import '../utilities/data.dart';
 import 'db_model.dart';
 
 class DataBase {
@@ -44,7 +44,7 @@ class DataBase {
       if (!collections.contains(name)) {
         await _mongoDB.createCollection(name);
         await _mongoDB.createIndex(name,
-            key: "uuid", name: "uuid", unique: true);
+            key: 'uuid', name: 'uuid', unique: true);
       }
 
       if (needCreateIndex) {
@@ -63,7 +63,7 @@ class DataBase {
 
       List<Map<String, dynamic>> indexes = await collection.getIndexes();
       List<String> indexFieldsName =
-          indexes.map((index) => index["name"] as String).toList();
+          indexes.map((index) => index['name'] as String).toList();
       List<IndexField> _indexFields =
           indexFields[collectionNameList.indexOf(name)];
       await checkCollection(name, _indexFields,
@@ -80,9 +80,9 @@ class DataBase {
     String url;
 
     if (kTestMode) {
-      url = "mongodb://127.0.0.1:27017/test";
+      url = 'mongodb://127.0.0.1:27017/test';
     } else {
-      url = env["DATA_BASE_URL"] ?? "mongodb://127.0.0.1:27017/rpmtw_data";
+      url = env['DATA_BASE_URL'] ?? 'mongodb://127.0.0.1:27017/rpmtw_data';
     }
 
     _mongoDB = await Db.create(url);
@@ -91,7 +91,7 @@ class DataBase {
       await _mongoDB.drop(); // Drop test database
     }
     _instance = await DataBase._open();
-    loggerNoStack.i("Successfully connected to the database");
+    loggerNoStack.i('Successfully connected to the database');
   }
 
   DbCollection getCollection<T extends DBModel>([String? runtimeType]) {
@@ -106,7 +106,7 @@ class DataBase {
   }
 
   Future<T?> getModelByUUID<T extends DBModel>(String uuid) =>
-      getModelByField<T>("uuid", uuid);
+      getModelByField<T>('uuid', uuid);
 
   Future<T?> getModelByField<T extends DBModel>(
       String fieldName, dynamic value) async {
@@ -120,7 +120,7 @@ class DataBase {
     SelectorBuilder selector = SelectorBuilder();
 
     for (ModelField f in field) {
-      selector = selector.eq(f.name, f.value);
+      selector.eq(f.name, f.value);
     }
 
     Map<String, dynamic>? map = await getCollection<T>().findOne(selector);
@@ -148,14 +148,14 @@ class DataBase {
     SelectorBuilder selector = SelectorBuilder();
 
     for (ModelField f in field) {
-      selector = selector.eq(f.name, f.value);
+      selector.eq(f.name, f.value);
     }
 
     if (limit != null) {
-      selector = selector.limit(limit);
+      selector.limit(limit);
     }
     if (skip != null) {
-      selector = selector.skip(skip);
+      selector.skip(skip);
     }
 
     List<Map<String, dynamic>>? list =
@@ -182,7 +182,7 @@ class DataBase {
       Map<String, Object>? hintDocument}) async {
     WriteResult result =
         await getCollection<T>(model.runtimeType.toString()).replaceOne(
-      where.eq("uuid", model.uuid),
+      where.eq('uuid', model.uuid),
       model.toMap(),
       writeConcern: writeConcern,
       collation: collation,
@@ -202,7 +202,7 @@ class DataBase {
       Map<String, Object>? hintDocument}) async {
     WriteResult result =
         await getCollection<T>(model.runtimeType.toString()).deleteOne(
-      where.eq("uuid", model.uuid),
+      where.eq('uuid', model.uuid),
       writeConcern: writeConcern,
       collation: collation,
       hint: hint,
@@ -251,7 +251,7 @@ class InsertModelException implements Exception {
 
   @override
   String toString() {
-    return "InsertModelException: Failed to insert $modelName model.\n$errorMessage";
+    return 'InsertModelException: Failed to insert $modelName model.\n$errorMessage';
   }
 }
 

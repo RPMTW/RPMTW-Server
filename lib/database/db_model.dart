@@ -1,5 +1,5 @@
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/database.dart";
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
 
 /// Model of database abstract class.
 abstract class DBModel {

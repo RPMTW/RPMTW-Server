@@ -1,18 +1,18 @@
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/database.dart";
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
-import "package:rpmtw_server/database/index_fields.dart";
-import "package:rpmtw_server/database/model_field.dart";
-import "package:rpmtw_server/database/models/storage/storage.dart";
-import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
-import "package:rpmtw_server/database/models/translate/source_text.dart";
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/model_field.dart';
+import 'package:rpmtw_server/database/models/storage/storage.dart';
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/models/translate/source_text.dart';
 
 /// Represents the source language file in a text format.
 class SourceFile extends DBModel {
-  static const String collectionName = "source_files";
+  static const String collectionName = 'source_files';
   static const List<IndexField> indexFields = [
-    IndexField("modSourceInfoUUID", unique: false),
-    IndexField("sources", unique: false),
+    IndexField('modSourceInfoUUID', unique: false),
+    IndexField('sources', unique: false),
   ];
 
   final String modSourceInfoUUID;
@@ -33,7 +33,7 @@ class SourceFile extends DBModel {
     for (String source in sources) {
       SourceText? text = await SourceText.getByUUID(source);
       if (text == null) {
-        throw Exception("SourceText not found, uuid: $source");
+        throw Exception('SourceText not found, uuid: $source');
       }
       texts.add(text);
     }
@@ -69,12 +69,12 @@ class SourceFile extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "modSourceInfoUUID": modSourceInfoUUID,
-      "storageUUID": storageUUID,
-      "path": path,
-      "type": type.name,
-      "sources": sources,
+      'uuid': uuid,
+      'modSourceInfoUUID': modSourceInfoUUID,
+      'storageUUID': storageUUID,
+      'path': path,
+      'type': type.name,
+      'sources': sources,
     };
   }
 
@@ -101,12 +101,12 @@ class SourceFile extends DBModel {
 
   factory SourceFile.fromMap(Map<String, dynamic> map) {
     return SourceFile(
-      uuid: map["uuid"],
-      modSourceInfoUUID: map["modSourceInfoUUID"],
-      storageUUID: map["storageUUID"],
-      path: map["path"],
-      type: SourceFileType.values.byName(map["type"]),
-      sources: List<String>.from(map["sources"]),
+      uuid: map['uuid'],
+      modSourceInfoUUID: map['modSourceInfoUUID'],
+      storageUUID: map['storageUUID'],
+      path: map['path'],
+      type: SourceFileType.values.byName(map['type']),
+      sources: List<String>.from(map['sources']),
     );
   }
 
@@ -117,7 +117,7 @@ class SourceFile extends DBModel {
           {String? modSourceInfoUUID, int? limit, int? skip}) =>
       DataBase.instance.getModelsByField<SourceFile>([
         if (modSourceInfoUUID != null)
-          ModelField("modSourceInfoUUID", modSourceInfoUUID)
+          ModelField('modSourceInfoUUID', modSourceInfoUUID)
       ], limit: limit, skip: skip);
 }
 

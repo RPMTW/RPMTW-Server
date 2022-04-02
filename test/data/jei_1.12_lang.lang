@@ -19,7 +19,7 @@ jei.tooltip.ingredient.list.disabled=The JEI overlay is disabled.
 jei.tooltip.ingredient.list.disabled.how.to.fix=Press %s to enable it.
 jei.tooltip.bookmarks=JEI Bookmarks
 jei.tooltip.bookmarks.usage.nokey=Add a key binding for JEI bookmarks in your Controls settings.
-jei.tooltip.bookmarks.usage.key=Hover over an ingredient and press "%s" to bookmark it.
+jei.tooltip.bookmarks.usage.key=Hover over an ingredient and press '%s' to bookmark it.
 jei.tooltip.bookmarks.not.enough.space=There is not enough space to display bookmarks here.
 
 # Error Tooltips

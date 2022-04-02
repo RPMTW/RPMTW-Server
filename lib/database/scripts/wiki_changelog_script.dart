@@ -1,7 +1,7 @@
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
-import "package:rpmtw_server/database/scripts/db_script.dart";
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import 'package:rpmtw_server/database/scripts/db_script.dart';
 
 class WikiChangelogScript extends DBScript {
   @override
@@ -13,7 +13,7 @@ class WikiChangelogScript extends DBScript {
       /// 變更日誌超過指定時間後將刪除
       /// 變更日誌最多暫存 90 天 ( 約為三個月 )
       SelectorBuilder selector = where.lte(
-          "time", time.subtract(Duration(days: 90)).millisecondsSinceEpoch);
+          'time', time.subtract(Duration(days: 90)).millisecondsSinceEpoch);
       // 變更日誌建立時間為 90 天前
 
       List<WikiChangeLog> changelogs = await db

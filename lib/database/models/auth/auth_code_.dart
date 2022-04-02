@@ -1,16 +1,16 @@
-import "dart:math";
+import 'dart:math';
 
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/database.dart";
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
-import "package:rpmtw_server/database/index_fields.dart";
-import "package:rpmtw_server/utilities/utility.dart";
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 
 class AuthCode extends DBModel {
-  static const String collectionName = "auth_codes";
+  static const String collectionName = 'auth_codes';
   static const List<IndexField> indexFields = [
-    IndexField("code", unique: true),
-    IndexField("expiresAt", unique: false)
+    IndexField('code', unique: true),
+    IndexField('expiresAt', unique: false)
   ];
 
   final int code;
@@ -52,20 +52,20 @@ class AuthCode extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "code": code,
-      "expiresAt": expiresAt.millisecondsSinceEpoch,
-      "uuid": uuid,
-      "email": email,
+      'code': code,
+      'expiresAt': expiresAt.millisecondsSinceEpoch,
+      'uuid': uuid,
+      'email': email,
     };
   }
 
   factory AuthCode.fromMap(Map<String, dynamic> map) {
     return AuthCode(
-      code: map["code"],
+      code: map['code'],
       expiresAt:
-          DateTime.fromMillisecondsSinceEpoch(map["expiresAt"], isUtc: true),
-      uuid: map["uuid"],
-      email: map["email"],
+          DateTime.fromMillisecondsSinceEpoch(map['expiresAt'], isUtc: true),
+      uuid: map['uuid'],
+      email: map['email'],
     );
   }
 
@@ -73,5 +73,5 @@ class AuthCode extends DBModel {
       DataBase.instance.getModelByUUID<AuthCode>(uuid);
 
   static Future<AuthCode?> getByCode(int code) async =>
-      DataBase.instance.getModelByField<AuthCode>("code", code);
+      DataBase.instance.getModelByField<AuthCode>('code', code);
 }

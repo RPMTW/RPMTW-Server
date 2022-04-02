@@ -1,4 +1,4 @@
-import "package:rpmtw_server/database/database.dart";
+import 'package:rpmtw_server/database/database.dart';
 
 abstract class DBScript {
   Duration get duration;

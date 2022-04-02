@@ -1,5 +1,5 @@
-import "package:dotenv/dotenv.dart";
-import "package:logger/logger.dart";
+import 'package:dotenv/dotenv.dart';
+import 'package:logger/logger.dart';
 
 Logger logger =
     Logger(printer: PrettyPrinter(colors: false), filter: _LogFilter());
@@ -20,6 +20,6 @@ class _LogFilter extends LogFilter {
 
 class Data {
   static Future<void> init({Parser? envParser}) async {
-    load(".env", envParser ?? const Parser());
+    load('.env', envParser ?? const Parser());
   }
 }

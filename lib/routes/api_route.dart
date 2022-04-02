@@ -1,4 +1,4 @@
-import "package:shelf_router/shelf_router.dart";
+import 'package:shelf_router/shelf_router.dart';
 
 abstract class APIRoute {
   String get routeName;
@@ -7,6 +7,6 @@ abstract class APIRoute {
   void register(Router mainRouter) {
     final Router _router = Router();
     router(_router);
-    mainRouter.mount("/$routeName/", _router);
+    mainRouter.mount('/$routeName/', _router);
   }
 }

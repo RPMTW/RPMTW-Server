@@ -1,26 +1,26 @@
-import "dart:math";
+import 'dart:math';
 
-import "package:dart_jsonwebtoken/dart_jsonwebtoken.dart";
-import "package:dbcrypt/dbcrypt.dart";
-import "package:dotenv/dotenv.dart";
-import "package:mailer/mailer.dart";
-import "package:mailer/smtp_server.dart";
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/models/auth/auth_code_.dart";
-import "package:rpmtw_server/database/models/auth/ban_info.dart";
-import "package:rpmtw_server/utilities/api_response.dart";
-import "package:shelf/shelf.dart";
-import "../database/database.dart";
-import "../database/models/auth/user.dart";
-import "../utilities/data.dart";
-import "../utilities/extension.dart";
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
+import 'package:dbcrypt/dbcrypt.dart';
+import 'package:dotenv/dotenv.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
+import 'package:rpmtw_server/utilities/api_response.dart';
+import 'package:shelf/shelf.dart';
+import '../database/database.dart';
+import '../database/models/auth/user.dart';
+import '../utilities/data.dart';
+import '../utilities/extension.dart';
 
 class AuthHandler {
-  static SecretKey get secretKey => SecretKey(env["DATA_BASE_SecretKey"]!);
+  static SecretKey get secretKey => SecretKey(env['DATA_BASE_SecretKey']!);
   static final int saltRounds = 10;
 
   static String generateAuthToken(String userUUID) {
-    JWT jwt = JWT({"uuid": userUUID});
+    JWT jwt = JWT({'uuid': userUUID});
     return jwt.sign(AuthHandler.secretKey);
   }
 
@@ -53,47 +53,47 @@ class AuthHandler {
 
   static Future<_EmailValidatedResult> validateEmail(String email,
       {bool skipDuplicate = false}) async {
-    String splitter = "@";
+    String splitter = '@';
     List<String> topEmails = [
-      "gmail.com",
-      "yahoo.com",
-      "yahoo.com.tw",
-      "yahoo.com.hk",
-      "yahoo.co.uk",
-      "yahoo.co.jp",
-      "hotmail.com",
-      "hotmail.co.uk",
-      "hotmail.fr",
-      "aol.com",
-      "outlook.com",
-      "icloud.com",
-      "mail.com",
-      "me.com",
-      "msn.com",
-      "live.com",
-      "mac.com",
-      "qq.com",
-      "wanadoo.fr",
+      'gmail.com',
+      'yahoo.com',
+      'yahoo.com.tw',
+      'yahoo.com.hk',
+      'yahoo.co.uk',
+      'yahoo.co.jp',
+      'hotmail.com',
+      'hotmail.co.uk',
+      'hotmail.fr',
+      'aol.com',
+      'outlook.com',
+      'icloud.com',
+      'mail.com',
+      'me.com',
+      'msn.com',
+      'live.com',
+      'mac.com',
+      'qq.com',
+      'wanadoo.fr',
     ];
 
     _EmailValidatedResult successful =
-        _EmailValidatedResult(true, 0, "no issue");
+        _EmailValidatedResult(true, 0, 'no issue');
     _EmailValidatedResult unknownDomain =
-        _EmailValidatedResult(false, 1, "unknown email domain");
+        _EmailValidatedResult(false, 1, 'unknown email domain');
     _EmailValidatedResult invalid =
-        _EmailValidatedResult(false, 2, "invalid email");
+        _EmailValidatedResult(false, 2, 'invalid email');
     _EmailValidatedResult duplicate =
-        _EmailValidatedResult(false, 3, "the email has already been used");
+        _EmailValidatedResult(false, 3, 'the email has already been used');
 
     if (email.contains(splitter)) {
       String domain = email.split(splitter)[1];
       //驗證網域格式
-      if (domain.contains(".")) {
+      if (domain.contains('.')) {
         //驗證網域是否為已知 Email 網域
         if (topEmails.contains(domain)) {
           if (skipDuplicate) return successful;
           User? user = await DataBase.instance
-              .getModelWithSelector<User>(where.eq("email", email));
+              .getModelWithSelector<User>(where.eq('email', email));
           if (user == null) {
             // 如果為空代表尚未被使用過
             return successful;
@@ -116,21 +116,21 @@ class AuthHandler {
     if (password.length < 6) {
       //密碼至少需要6個字元
       return _PasswordValidatedResult(
-          false, 1, "Password must be at least 6 characters long");
+          false, 1, 'Password must be at least 6 characters long');
     } else if (password.length > 30) {
       // 密碼最多30個字元
       return _PasswordValidatedResult(
-          false, 2, "Password must be less than 30 characters long");
-    } else if (!password.contains(RegExp(r"[A-Za-z]"))) {
+          false, 2, 'Password must be less than 30 characters long');
+    } else if (!password.contains(RegExp(r'[A-Za-z]'))) {
       // 密碼必須至少包含一個英文字母
       return _PasswordValidatedResult(
-          false, 3, "Password must contain at least one letter of English");
-    } else if (!password.contains(RegExp(r"[0-9]"))) {
+          false, 3, 'Password must contain at least one letter of English');
+    } else if (!password.contains(RegExp(r'[0-9]'))) {
       // 密碼必須至少包含一個數字
       return _PasswordValidatedResult(
-          false, 4, "Password must contain at least one number");
+          false, 4, 'Password must contain at least one number');
     } else {
-      return _PasswordValidatedResult(true, 0, "no issue");
+      return _PasswordValidatedResult(true, 0, 'no issue');
     }
   }
 
@@ -143,30 +143,30 @@ class AuthHandler {
     /// 隨機選擇一種 smtp 服務使用
     if (randomInt % 2 == 0) {
       // 偶數
-      String _qqSmtpEmail = env["SMTP_QQ_User"]!;
-      SmtpServer _qqSmtp = qq(_qqSmtpEmail, env["SMTP_QQ_Password"]!);
+      String _qqSmtpEmail = env['SMTP_QQ_User']!;
+      SmtpServer _qqSmtp = qq(_qqSmtpEmail, env['SMTP_QQ_Password']!);
 
       smtpEmail = _qqSmtpEmail;
       smtpServer = _qqSmtp;
     } else {
       // 奇數
-      String _zohoSmtpEmail = env["SMTP_ZOHO_User"]!;
+      String _zohoSmtpEmail = env['SMTP_ZOHO_User']!;
       SmtpServer _zohoSmtp = SmtpServer(
-        "smtppro.zoho.com",
+        'smtppro.zoho.com',
         port: 587,
         username: _zohoSmtpEmail,
-        password: env["SMTP_ZOHO_Password"]!,
+        password: env['SMTP_ZOHO_Password']!,
       );
 
       smtpEmail = _zohoSmtpEmail;
       smtpServer = _zohoSmtp;
     }
 
-    String html = """
+    String html = '''
 Thank you for registering for an account on this site. Below is the verification code to complete registration for this account, which will expire in 30 minutes.<br>
 感謝您註冊本網站的帳號，下方是完成註冊此帳號的驗證碼，此驗證碼將於 30 分鐘後失效。
 
-<h1 style="color:orange">${authCode.toString()}<br></h1>
+<h1 style='color:orange'>${authCode.toString()}<br></h1>
 
 You are receiving this email to verify that the account is registered by you and that you can use the RPMTW account after verification.<br>
 If you have not requested an RPMTW account, please ignore this email.<br><br>
@@ -175,14 +175,14 @@ If you have not requested an RPMTW account, please ignore this email.<br><br>
 如果您並未提出註冊 RPMTW 帳號的請求，則請忽略此封電子郵件。<br><br>
 
 <strong>Copyright © RPMTW 2021-2022 Powered by The RPMTW Team.</strong>
-      """;
+      ''';
 
     final message = Message()
-      ..from = Address(smtpEmail, "RPMTW Team Support")
+      ..from = Address(smtpEmail, 'RPMTW Team Support')
       ..recipients.add(email)
       ..ccRecipients.add(email)
       ..bccRecipients.add(email)
-      ..subject = "驗證您的 RPMTW 帳號電子郵件地址"
+      ..subject = '驗證您的 RPMTW 帳號電子郵件地址'
       ..html = html;
     // TODO:製作更美觀的驗證信件
 
@@ -247,7 +247,7 @@ abstract class _BaseValidatedResult {
   _BaseValidatedResult(this.isValid, this.code, this.message);
 
   Map toMap() {
-    return {"isValid": isValid, "code": code, "message": message};
+    return {'isValid': isValid, 'code': code, 'message': message};
   }
 }
 

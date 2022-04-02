@@ -1,18 +1,18 @@
-import "dart:convert";
+import 'dart:convert';
 
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/database.dart";
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
-import "package:rpmtw_server/database/index_fields.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 
 class WikiChangeLog extends DBModel {
-  static const String collectionName = "rpmwiki_wiki_change_log";
+  static const String collectionName = 'rpmwiki_wiki_change_log';
   static const List<IndexField> indexFields = [
-    IndexField("userUUID", unique: false),
-    IndexField("dataUUID", unique: false),
-    IndexField("type", unique: false),
-    IndexField("time", unique: false),
+    IndexField('userUUID', unique: false),
+    IndexField('dataUUID', unique: false),
+    IndexField('type', unique: false),
+    IndexField('time', unique: false),
   ];
 
   /// 變更日誌
@@ -44,20 +44,20 @@ class WikiChangeLog extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "changelog": changelog,
-      "type": type.name,
-      "dataUUID": dataUUID,
-      "changedData": json.encode(changedData),
-      "userUUID": userUUID,
-      "time": time.millisecondsSinceEpoch,
-      "uuid": uuid,
+      'changelog': changelog,
+      'type': type.name,
+      'dataUUID': dataUUID,
+      'changedData': json.encode(changedData),
+      'userUUID': userUUID,
+      'time': time.millisecondsSinceEpoch,
+      'uuid': uuid,
     };
   }
 
   Future<Map<String, dynamic>> output() async {
     List<WikiChangeLog> changelogs = await DataBase.instance
         .getModelsWithSelector<WikiChangeLog>(
-            where.eq("dataUUID", dataUUID).sortBy("time"));
+            where.eq('dataUUID', dataUUID).sortBy('time'));
     Map<String, dynamic>? unchangedData;
 
     if (changelogs.isEmpty) {
@@ -74,27 +74,27 @@ class WikiChangeLog extends DBModel {
     }
 
     return {
-      "changelog": changelog,
-      "type": type.name,
-      "dataUUID": dataUUID,
-      "changedData": changedData,
-      "unchangedData": unchangedData,
-      "userUUID": userUUID,
-      "time": time.millisecondsSinceEpoch,
-      "uuid": uuid,
+      'changelog': changelog,
+      'type': type.name,
+      'dataUUID': dataUUID,
+      'changedData': changedData,
+      'unchangedData': unchangedData,
+      'userUUID': userUUID,
+      'time': time.millisecondsSinceEpoch,
+      'uuid': uuid,
     };
   }
 
   factory WikiChangeLog.fromMap(Map<String, dynamic> map) {
     return WikiChangeLog(
-      changelog: map["changelog"],
-      type: WikiChangeLogType.values.byName(map["type"]),
-      dataUUID: map["dataUUID"],
+      changelog: map['changelog'],
+      type: WikiChangeLogType.values.byName(map['type']),
+      dataUUID: map['dataUUID'],
       changedData:
-          map["changedData"] != null ? json.decode(map["changedData"]) : {},
-      userUUID: map["userUUID"],
-      time: DateTime.fromMillisecondsSinceEpoch(map["time"], isUtc: true),
-      uuid: map["uuid"],
+          map['changedData'] != null ? json.decode(map['changedData']) : {},
+      userUUID: map['userUUID'],
+      time: DateTime.fromMillisecondsSinceEpoch(map['time'], isUtc: true),
+      uuid: map['uuid'],
     );
   }
 }

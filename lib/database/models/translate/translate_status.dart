@@ -1,12 +1,13 @@
-import "package:intl/locale.dart";
-import "package:rpmtw_server/database/database.dart";
+import 'package:intl/locale.dart';
+import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
-import "package:rpmtw_server/database/index_fields.dart";
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 
 class TranslateStatus extends DBModel {
-  static const String collectionName = "translate_status";
+  static const String collectionName = 'translate_status';
   static const List<IndexField> indexFields = [
-    IndexField("modSourceInfoUUID", unique: true)
+    IndexField('modSourceInfoUUID', unique: true)
   ];
 
   /// If null, the status is global.
@@ -18,7 +19,7 @@ class TranslateStatus extends DBModel {
 
   /// Check if the status is older than an hour
   bool get isExpired =>
-      DateTime.now().toUtc().difference(lastUpdated).inHours > 1;
+      Utility.getUTCTime().difference(lastUpdated).inHours > 1;
 
   const TranslateStatus({
     required String uuid,
@@ -45,40 +46,40 @@ class TranslateStatus extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "modSourceInfoUUID": modSourceInfoUUID,
-      "totalWords": totalWords,
-      "translatedWords": translatedWords
+      'uuid': uuid,
+      'modSourceInfoUUID': modSourceInfoUUID,
+      'totalWords': totalWords,
+      'translatedWords': translatedWords
           .map((key, value) => MapEntry(key.toLanguageTag(), value)),
-      "lastUpdated": lastUpdated.millisecondsSinceEpoch,
+      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
     };
   }
 
   @override
   Map<String, dynamic> outputMap() {
     return {
-      "modSourceInfoUUID": modSourceInfoUUID,
-      "totalWords": totalWords,
-      "translatedWords": translatedWords
+      'modSourceInfoUUID': modSourceInfoUUID,
+      'totalWords': totalWords,
+      'translatedWords': translatedWords
           .map((key, value) => MapEntry(key.toLanguageTag(), value)),
-      "lastUpdated": lastUpdated.millisecondsSinceEpoch,
+      'lastUpdated': lastUpdated.millisecondsSinceEpoch,
     };
   }
 
   factory TranslateStatus.fromMap(Map<String, dynamic> map) {
     return TranslateStatus(
-      uuid: map["uuid"],
-      modSourceInfoUUID: map["modSourceInfoUUID"],
-      totalWords: map["totalWords"],
-      translatedWords: Map.from((map["translatedWords"] as Map)
+      uuid: map['uuid'],
+      modSourceInfoUUID: map['modSourceInfoUUID'],
+      totalWords: map['totalWords'],
+      translatedWords: Map.from((map['translatedWords'] as Map)
           .cast<String, int>()
           .map((key, value) => MapEntry(Locale.parse(key), value))
           .cast<Locale, int>()),
       lastUpdated:
-          DateTime.fromMillisecondsSinceEpoch(map["lastUpdated"], isUtc: true),
+          DateTime.fromMillisecondsSinceEpoch(map['lastUpdated'], isUtc: true),
     );
   }
 
   static Future<TranslateStatus?> getByModSourceInfoUUID(String? uuid) =>
-      DataBase.instance.getModelByField("modSourceInfoUUID", uuid);
+      DataBase.instance.getModelByField('modSourceInfoUUID', uuid);
 }

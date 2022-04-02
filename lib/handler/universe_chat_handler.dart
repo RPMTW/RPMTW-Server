@@ -1,19 +1,19 @@
-import "dart:convert";
-import "dart:io";
+import 'dart:convert';
+import 'dart:io';
 
-import "package:dotenv/dotenv.dart";
-import "package:http/http.dart" as http;
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/models/auth/user_role.dart";
-import "package:rpmtw_server/utilities/extension.dart";
-import "package:socket_io/socket_io.dart";
+import 'package:dotenv/dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/models/auth/user_role.dart';
+import 'package:rpmtw_server/utilities/extension.dart';
+import 'package:socket_io/socket_io.dart';
 
-import "package:rpmtw_server/database/models/auth/ban_info.dart";
-import "package:rpmtw_server/database/models/auth/user.dart";
-import "package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart";
-import "package:rpmtw_server/utilities/data.dart";
-import "package:rpmtw_server/utilities/scam_detection.dart";
-import "package:rpmtw_server/utilities/utility.dart";
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
+import 'package:rpmtw_server/database/models/auth/user.dart';
+import 'package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart';
+import 'package:rpmtw_server/utilities/data.dart';
+import 'package:rpmtw_server/utilities/scam_detection.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 
 class UniverseChatHandler {
   static late final Server _io;
@@ -27,7 +27,7 @@ class UniverseChatHandler {
 
   Future<void> init() async {
     /// 2087 is cloudflare supported proxy https port
-    int port = int.parse(env["universe_chat_PORT"] ?? "2087");
+    int port = int.parse(env['universe_chat_PORT'] ?? '2087');
     _io = Server();
     final InternetAddress ip = InternetAddress.anyIPv4;
 
@@ -35,22 +35,22 @@ class UniverseChatHandler {
       eventHandler(io);
       await io.listen(port);
       loggerNoStack
-          .i("Universe Chat Server listening on port http://${ip.host}:$port");
+          .i('Universe Chat Server listening on port http://${ip.host}:$port');
     } catch (e) {
       // coverage:ignore-line
-      loggerNoStack.e("Universe Chat Server error: $e");
+      loggerNoStack.e('Universe Chat Server error: $e');
     }
   }
 
   void eventHandler(Server io) {
-    io.on("connection", (client) async {
+    io.on('connection', (client) async {
       if (client is Socket) {
         late final User? user;
         Map<String, dynamic> headers = {};
         client.request.headers.forEach((name, values) {
           headers[name] = values;
         });
-        final String? token = headers["rpmtw_auth_token"]?[0];
+        final String? token = headers['rpmtw_auth_token']?[0];
         bool init = false;
 
         if (token != null) {
@@ -62,7 +62,7 @@ class UniverseChatHandler {
             } catch (e) {
               user = null;
               init = true;
-              client.error("Invalid rpmtw account token");
+              client.error('Invalid rpmtw account token');
             }
           }
 
@@ -90,8 +90,8 @@ class UniverseChatHandler {
     try {
       List<bool> initCheckList = List<bool>.generate(2, (index) => false);
 
-      final String? minecraftUUID = headers["minecraft_uuid"]?[0];
-      final InternetAddress ip = InternetAddress(headers["CF-Connecting-IP"] ??
+      final String? minecraftUUID = headers['minecraft_uuid']?[0];
+      final InternetAddress ip = InternetAddress(headers['CF-Connecting-IP'] ??
           client.request.connectionInfo!.remoteAddress.address);
 
       String? minecraftUsername;
@@ -109,14 +109,14 @@ class UniverseChatHandler {
         /// Verify that the minecraft account exists
         http
             .get(Uri.parse(
-                "https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID"))
+                'https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID'))
             .then((response) {
           if (response.statusCode == 200) {
             Map data = json.decode(response.body);
             minecraftUUIDValid = true;
-            minecraftUsername = data["name"];
+            minecraftUsername = data['name'];
             _cachedMinecraftInfos.add(
-                _CacheMinecraftInfo(uuid: minecraftUUID, name: data["name"]));
+                _CacheMinecraftInfo(uuid: minecraftUUID, name: data['name']));
           }
 
           initCheckList[0] = true;
@@ -138,7 +138,7 @@ class UniverseChatHandler {
           user != null || (minecraftUUIDValid && minecraftUsername != null);
       List<dynamic> queue = [];
 
-      client.on("clientMessage", (_data) async {
+      client.on('clientMessage', (_data) async {
         Future<void> handle(dynamic sourceData) async {
           final List dataList = sourceData as List;
           late final List bytes =
@@ -148,42 +148,42 @@ class UniverseChatHandler {
 
           if (banInfo != null) {
             return ack?.call(json.encode({
-              "status": "banned",
+              'status': 'banned',
             }));
           }
           if (!isAuthenticated()) {
             return ack?.call(json.encode({
-              "status": "unauthorized",
+              'status': 'unauthorized',
             }));
           }
 
           Map data = json.decode(utf8.decode((bytes).cast<int>()));
-          String? message = data["message"];
+          String? message = data['message'];
 
           if (message != null && message.isNotEmpty) {
             String username = user?.username ?? minecraftUsername!;
             String? userUUID = user?.uuid;
-            String? nickname = data["nickname"];
-            String? replyMessageUUID = data["replyMessageUUID"];
+            String? nickname = data['nickname'];
+            String? replyMessageUUID = data['replyMessageUUID'];
 
-            if (user?.uuid == "07dfced6-7d41-4660-b2b4-25ba1319b067") {
-              username = "RPMTW 維護者兼創辦人";
+            if (user?.uuid == '07dfced6-7d41-4660-b2b4-25ba1319b067') {
+              username = 'RPMTW 維護者兼創辦人';
             }
 
             late String avatar;
 
             if (userUUID != null) {
               avatar =
-                  "${kTestMode ? "http://localhost:8080" : "https://api.rpmtw.com:2096"}/storage/$userUUID/download";
+                  '${kTestMode ? 'http://localhost:8080' : 'https://api.rpmtw.com:2096'}/storage/$userUUID/download';
             } else if (minecraftUUID != null) {
-              avatar = "https://crafthead.net/avatar/$minecraftUUID.png";
+              avatar = 'https://crafthead.net/avatar/$minecraftUUID.png';
             }
 
             if (replyMessageUUID != null) {
               UniverseChatMessage? replyMessage =
                   await UniverseChatMessage.getByUUID(replyMessageUUID);
               if (replyMessage == null) {
-                return client.error("Invalid reply message UUID");
+                return client.error('Invalid reply message UUID');
               }
             }
 
@@ -223,7 +223,7 @@ class UniverseChatHandler {
     } catch (e, stackTrace) {
       // coverage:ignore-line
       logger.e(
-          "[Universe Chat] Throwing errors when handling client messages: $e",
+          '[Universe Chat] Throwing errors when handling client messages: $e',
           null,
           stackTrace);
     }
@@ -237,27 +237,27 @@ class UniverseChatHandler {
 
       /// Verify that the message is sent by the [RPMTW Discord Bot](https://github.com/RPMTW/RPMTW-Discord-Bot) and not a forged message from someone else.
       if (!isValid) return;
-      client.on("discordMessage", (_data) async {
+      client.on('discordMessage', (_data) async {
         Map data = json.decode(utf8.decode(List<int>.from(_data)));
 
-        String? message = data["message"];
-        String? username = data["username"];
-        String? avatarUrl = data["avatarUrl"];
-        String? nickname = data["nickname"];
-        String? replyMessageUUID = data["replyMessageUUID"];
+        String? message = data['message'];
+        String? username = data['username'];
+        String? avatarUrl = data['avatarUrl'];
+        String? nickname = data['nickname'];
+        String? replyMessageUUID = data['replyMessageUUID'];
 
         if (message == null ||
             message.isEmpty ||
             username == null ||
             username.isEmpty ||
             avatarUrl == null ||
-            avatarUrl.isEmpty) return client.error("Invalid discord message");
+            avatarUrl.isEmpty) return client.error('Invalid discord message');
 
         if (replyMessageUUID != null) {
           UniverseChatMessage? replyMessage =
               await UniverseChatMessage.getByUUID(replyMessageUUID);
           if (replyMessage == null) {
-            return client.error("Invalid reply message UUID");
+            return client.error('Invalid reply message UUID');
           }
         }
 
@@ -276,7 +276,7 @@ class UniverseChatHandler {
     } catch (e, stackTrace) {
       // coverage:ignore-line
       logger.e(
-          "[Universe Chat] Throwing errors when handling discord messages: $e",
+          '[Universe Chat] Throwing errors when handling discord messages: $e',
           null,
           stackTrace);
     }
@@ -288,14 +288,14 @@ class UniverseChatHandler {
     /// Detect phishing
     if (phishing) {
       return ack?.call(json.encode({
-        "status": "phishing",
+        'status': 'phishing',
       }));
     } else {
       await msg.insert();
 
       /// Use utf8 encoding to avoid some characters (e.g. Chinese, Japanese) cannot be parsed.
-      io.emit("sentMessage", utf8.encode(json.encode(msg.outputMap())));
-      ack?.call(json.encode({"status": "success"}));
+      io.emit('sentMessage', utf8.encode(json.encode(msg.outputMap())));
+      ack?.call(json.encode({'status': 'success'}));
     }
   }
 }
