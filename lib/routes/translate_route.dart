@@ -1134,7 +1134,7 @@ class TranslateRoute extends APIRoute {
         requiredFields: ['uuid'],
         authConfig: AuthConfig(path: '/translate/translator-info/user/me'));
 
-    /// Get translate report sort by start/end date.
+    /// Get translate report sort by start/end time.
     router.postRoute('/report', (req, data) async {
       Map<String, dynamic> fields = data.fields;
       final DateTime startTime = DateTime.fromMillisecondsSinceEpoch(
@@ -1167,6 +1167,7 @@ class TranslateRoute extends APIRoute {
       pipeline.addStage(Limit(limit));
       pipeline.addStage(Skip(skip));
 
+      /// match start/end time
       pipeline.addStage(Match(where
           .gte(fieldName, startTime.millisecondsSinceEpoch)
           .lte(fieldName, endTime.millisecondsSinceEpoch)

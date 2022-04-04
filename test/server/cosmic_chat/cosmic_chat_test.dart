@@ -189,6 +189,34 @@ void main() async {
       expect(messages.isEmpty, true);
       expect(response!['status'], 'phishing');
     });
+    test('send message (blacklisted phishing message )', () async {
+      List<String> errors = [];
+      List<Map> messages = [];
+      Map? response;
+      socket.opts!['extraHeaders'] = {'minecraft_uuid': minecraftUUID};
+
+      socket.onConnect((_) async {
+        socket.emitWithAck(
+            'clientMessage',
+            encodeMessage(
+                {'message': 'Free nitro\nhttps://discord-nitro-free.com'}),
+            ack: (_response) {
+          response = json.decode(_response.toString());
+        });
+      });
+
+      socket.onError((e) async => errors.add(e));
+
+      socket.on('sentMessage', (msg) => messages.add(decodeMessage(msg)));
+
+      socket = socket.connect();
+
+      await wait(scale: 3.5);
+
+      expect(errors.isEmpty, true);
+      expect(messages.isEmpty, true);
+      expect(response!['status'], 'phishing');
+    });
     test('view message', () async {
       final response =
           await get(Uri.parse(host + '/universe-chat/view/$messageUUID'));

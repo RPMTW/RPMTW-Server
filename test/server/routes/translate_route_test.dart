@@ -3374,11 +3374,11 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              "startTime": Utility.getUTCTime()
+              'startTime': Utility.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              "endTime": Utility.getUTCTime().millisecondsSinceEpoch,
-              "sortType": "translation"
+              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'sortType': 'translation'
             },
           ),
           headers: {'Content-Type': 'application/json'});
@@ -3430,11 +3430,11 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              "startTime": Utility.getUTCTime()
+              'startTime': Utility.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              "endTime": Utility.getUTCTime().millisecondsSinceEpoch,
-              "sortType": "vote"
+              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'sortType': 'vote'
             },
           ),
           headers: {'Content-Type': 'application/json'});
@@ -3476,13 +3476,13 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              "startTime": Utility.getUTCTime()
+              'startTime': Utility.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              "endTime": Utility.getUTCTime().millisecondsSinceEpoch,
-              "sortType": "translation",
-              "limit": 100,
-              "skip": 0
+              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'sortType': 'translation',
+              'limit': 100,
+              'skip': 0
             },
           ),
           headers: {'Content-Type': 'application/json'});
