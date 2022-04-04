@@ -13,6 +13,7 @@ import 'package:rpmtw_server/database/models/translate/source_file.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
 import 'package:rpmtw_server/database/models/translate/translation.dart';
 import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
+import 'package:rpmtw_server/database/models/translate/translator_info.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/handler/translate_handler.dart';
 import 'package:rpmtw_server/utilities/utility.dart';
@@ -232,7 +233,7 @@ void main() async {
           }),
           headers: {'Content-Type': 'application/json'});
 
-      List<Map> data = json.decode(response.body)['data'].cast<Map>();
+      List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
       expect(response.statusCode, 200);
       expect(data.length, 1);
@@ -503,7 +504,7 @@ void main() async {
           }),
           headers: {'Content-Type': 'application/json'});
 
-      List<Map> data = json.decode(response.body)['data'].cast<Map>();
+      List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
       expect(response.statusCode, 200);
       expect(data.length, 2);
@@ -524,7 +525,7 @@ void main() async {
           }),
           headers: {'Content-Type': 'application/json'});
 
-      List<Map> data = json.decode(response.body)['data'].cast<Map>();
+      List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
       expect(response.statusCode, 200);
       expect(data.length, 2);
@@ -724,8 +725,7 @@ void main() async {
               .replace(queryParameters: {'limit': '10', 'skip': '0'}),
           headers: {'Content-Type': 'application/json'});
 
-      List<Map> data =
-          json.decode(response.body)['data']['data'].cast<Map>();
+      List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
       expect(response.statusCode, 200);
       expect(data.length, 2);
@@ -745,8 +745,7 @@ void main() async {
           }),
           headers: {'Content-Type': 'application/json'});
 
-      List<Map> data =
-          json.decode(response.body)['data']['data'].cast<Map>();
+      List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
       expect(response.statusCode, 200);
       expect(data.length, 1);
@@ -1440,8 +1439,7 @@ void main() async {
                 .replace(queryParameters: {'limit': '10', 'skip': '0'}),
             headers: {'Content-Type': 'application/json'});
 
-        List<Map> data =
-            json.decode(response.body)['data']['data'].cast<Map>();
+        List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
         expect(response.statusCode, 200);
         expect(data.length, 1);
@@ -1463,8 +1461,7 @@ void main() async {
             }),
             headers: {'Content-Type': 'application/json'});
 
-        List<Map> data =
-            json.decode(response.body)['data']['data'].cast<Map>();
+        List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
         expect(response.statusCode, 200);
         expect(data.length, 1);
@@ -1945,8 +1942,7 @@ void main() async {
                 .replace(queryParameters: {'limit': '10', 'skip': '0'}),
             headers: {'Content-Type': 'application/json'});
 
-        List<Map> data =
-            json.decode(response.body)['data']['data'].cast<Map>();
+        List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
         expect(response.statusCode, 200);
         expect(data.length, 2);
@@ -1969,8 +1965,7 @@ void main() async {
                 }),
             headers: {'Content-Type': 'application/json'});
 
-        List<Map> data =
-            json.decode(response.body)['data']['data'].cast<Map>();
+        List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
         expect(response.statusCode, 200);
         expect(data.length, 2);
@@ -1989,8 +1984,7 @@ void main() async {
                 queryParameters: {'limit': '10', 'skip': '0', 'name': 'test'}),
             headers: {'Content-Type': 'application/json'});
 
-        List<Map> data =
-            json.decode(response.body)['data']['data'].cast<Map>();
+        List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
         expect(response.statusCode, 200);
         expect(data.length, 1);
@@ -2012,8 +2006,7 @@ void main() async {
                 }),
             headers: {'Content-Type': 'application/json'});
 
-        List<Map> data =
-            json.decode(response.body)['data']['data'].cast<Map>();
+        List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
         expect(response.statusCode, 200);
         expect(data.length, 1);
@@ -2035,8 +2028,7 @@ void main() async {
                 }),
             headers: {'Content-Type': 'application/json'});
 
-        List<Map> data =
-            json.decode(response.body)['data']['data'].cast<Map>();
+        List<Map> data = json.decode(response.body)['data']['data'].cast<Map>();
 
         expect(response.statusCode, 200);
         expect(data.length, 2);
@@ -3226,6 +3218,286 @@ void main() async {
 
       expect(response.statusCode, 404);
       expect(responseJson['message'], contains('not found'));
+    });
+  });
+
+  group('translator info', () {
+    test('get translator info', () async {
+      await post(Uri.parse(host + '/translate/translation'),
+          body: json.encode({
+            'sourceUUID': mockSourceTextUUID,
+            'language': 'zh-TW',
+            'content': '你好，世界！'
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+
+      final _response = await get(
+        Uri.parse(host + '/translate/translator-info/user/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      Map _data = json.decode(_response.body)['data'];
+
+      final response = await get(
+        Uri.parse(host + '/translate/translator-info/${_data['uuid']}'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      Map data = json.decode(response.body)['data'];
+
+      expect(response.statusCode, 200);
+      expect(data, _data);
+
+      /// Delete the test data.
+      (await TranslatorInfo.getByUUID(data['uuid']))!.delete();
+    });
+    test('get translator info (unknown uuid)', () async {
+      final response = await get(
+        Uri.parse(host + '/translate/translator-info/test'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      Map responseJson = json.decode(response.body);
+
+      expect(response.statusCode, 404);
+      expect(responseJson['message'], contains('not found'));
+    });
+
+    test('get translator info by user (with translation)', () async {
+      await post(Uri.parse(host + '/translate/translation'),
+          body: json.encode({
+            'sourceUUID': mockSourceTextUUID,
+            'language': 'zh-TW',
+            'content': '你好，世界！'
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+
+      final response = await get(
+        Uri.parse(host + '/translate/translator-info/user/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      Map data = json.decode(response.body)['data'];
+
+      expect(response.statusCode, 200);
+      expect(data['userUUID'], userUUID);
+      expect(data['translatedCount'], 1);
+      expect(data['votedCount'], 0);
+
+      /// Delete the test data.
+      await (await TranslatorInfo.getByUUID(data['uuid']))!.delete();
+    });
+    test('get translator info by user (with vote)', () async {
+      final _response = await post(Uri.parse(host + '/translate/vote'),
+          body: json
+              .encode({'type': 'down', 'translationUUID': mockTranslationUUID}),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+      Map _data = json.decode(_response.body)['data'];
+
+      final response = await get(
+        Uri.parse(host + '/translate/translator-info/user/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      Map data = json.decode(response.body)['data'];
+
+      expect(response.statusCode, 200);
+      expect(data['userUUID'], userUUID);
+      expect(data['translatedCount'], 0);
+      expect(data['votedCount'], 1);
+
+      /// Delete the test data.
+      await (await TranslatorInfo.getByUUID(data['uuid']))!.delete();
+      await (await TranslationVote.getByUUID(_data['uuid']))!.delete();
+    });
+    test('get translator info by user (unknown user)', () async {
+      final response = await get(
+        Uri.parse(host + '/translate/translator-info/user/test'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      Map responseJson = json.decode(response.body);
+
+      expect(response.statusCode, 404);
+      expect(responseJson['message'], contains('not found'));
+    });
+
+    test('get translate report (sort by translate)', () async {
+      await post(Uri.parse(host + '/translate/translation'),
+          body: json.encode({
+            'sourceUUID': mockSourceTextUUID,
+            'language': 'zh-TW',
+            'content': '你好，世界！'
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+      await post(Uri.parse(host + '/translate/translation'),
+          body: json.encode({
+            'sourceUUID': mockSourceTextUUID,
+            'language': 'zh-TW',
+            'content': '世界你好'
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+      await post(Uri.parse(host + '/translate/translation'),
+          body: json.encode({
+            'sourceUUID': mockSourceTextUUID,
+            'language': 'zh-TW',
+            'content': '你好世界！'
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $translationManagerToken'
+          });
+      final _response = await post(Uri.parse(host + '/translate/vote'),
+          body: json
+              .encode({'type': 'down', 'translationUUID': mockTranslationUUID}),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+      Map _data = json.decode(_response.body)['data'];
+
+      final response = await post(Uri.parse(host + '/translate/report'),
+          body: json.encode(
+            {
+              "startTime": Utility.getUTCTime()
+                  .subtract(Duration(days: 30))
+                  .millisecondsSinceEpoch,
+              "endTime": Utility.getUTCTime().millisecondsSinceEpoch,
+              "sortType": "translation"
+            },
+          ),
+          headers: {'Content-Type': 'application/json'});
+
+      Map data = json.decode(response.body)['data'];
+
+      expect(response.statusCode, 200);
+      expect(data['total'], 2);
+      expect(data['data'][0]['translatedCount'], 2);
+      expect(data['data'][0]['votedCount'], 1);
+      expect(data['data'][0]['userUUID'], userUUID);
+      expect(data['data'][1]['translatedCount'], 1);
+      expect(data['data'][1]['votedCount'], 0);
+
+      /// Delete the test data.
+      await (await TranslationVote.getByUUID(_data['uuid']))!.delete();
+      await (await TranslatorInfo.getByUserUUID(data['data'][0]['userUUID']))!
+          .delete();
+      await (await TranslatorInfo.getByUserUUID(data['data'][1]['userUUID']))!
+          .delete();
+    });
+    test('get translate report (sort by vote)', () async {
+      final _response1 = await post(Uri.parse(host + '/translate/vote'),
+          body: json
+              .encode({'type': 'down', 'translationUUID': mockTranslationUUID}),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+      Map _data1 = json.decode(_response1.body)['data'];
+      String _translationUUID = await addTestTranslation();
+      final _response2 = await post(Uri.parse(host + '/translate/vote'),
+          body: json
+              .encode({'type': 'down', 'translationUUID': _translationUUID}),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+      Map _data2 = json.decode(_response2.body)['data'];
+      final _response3 = await post(Uri.parse(host + '/translate/vote'),
+          body: json
+              .encode({'type': 'up', 'translationUUID': mockTranslationUUID}),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $translationManagerToken'
+          });
+      Map _data3 = json.decode(_response3.body)['data'];
+
+      final response = await post(Uri.parse(host + '/translate/report'),
+          body: json.encode(
+            {
+              "startTime": Utility.getUTCTime()
+                  .subtract(Duration(days: 30))
+                  .millisecondsSinceEpoch,
+              "endTime": Utility.getUTCTime().millisecondsSinceEpoch,
+              "sortType": "vote"
+            },
+          ),
+          headers: {'Content-Type': 'application/json'});
+
+      Map data = json.decode(response.body)['data'];
+      print(data);
+
+      expect(response.statusCode, 200);
+      expect(data['total'], 2);
+      expect(data['data'][0]['translatedCount'], 0);
+      expect(data['data'][0]['votedCount'], 2);
+      expect(data['data'][0]['userUUID'], userUUID);
+      expect(data['data'][1]['translatedCount'], 0);
+      expect(data['data'][1]['votedCount'], 1);
+
+      /// Delete the test data.
+      await (await TranslationVote.getByUUID(_data1['uuid']))!.delete();
+      await (await TranslationVote.getByUUID(_data2['uuid']))!.delete();
+      await (await TranslationVote.getByUUID(_data3['uuid']))!.delete();
+      await (await Translation.getByUUID(_translationUUID))!.delete();
+      await (await TranslatorInfo.getByUserUUID(data['data'][0]['userUUID']))!
+          .delete();
+      await (await TranslatorInfo.getByUserUUID(data['data'][1]['userUUID']))!
+          .delete();
+    });
+
+    test('get translate report (limit 100)', () async {
+      await post(Uri.parse(host + '/translate/translation'),
+          body: json.encode({
+            'sourceUUID': mockSourceTextUUID,
+            'language': 'zh-TW',
+            'content': '你好，世界！'
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token'
+          });
+
+      final response = await post(Uri.parse(host + '/translate/report'),
+          body: json.encode(
+            {
+              "startTime": Utility.getUTCTime()
+                  .subtract(Duration(days: 30))
+                  .millisecondsSinceEpoch,
+              "endTime": Utility.getUTCTime().millisecondsSinceEpoch,
+              "sortType": "translation",
+              "limit": 100,
+              "skip": 0
+            },
+          ),
+          headers: {'Content-Type': 'application/json'});
+
+      Map data = json.decode(response.body)['data'];
+
+      expect(response.statusCode, 200);
+      expect(data['total'], 1);
+      expect(data['data'][0]['translatedCount'], 1);
+      expect(data['data'][0]['votedCount'], 0);
+      expect(data['data'][0]['userUUID'], userUUID);
+
+      /// Delete the test data.
+      await (await TranslatorInfo.getByUserUUID(data['data'][0]['userUUID']))!
+          .delete();
     });
   });
 }

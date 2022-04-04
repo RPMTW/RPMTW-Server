@@ -343,10 +343,11 @@ class TranslateHandler {
     TranslatorInfo newInfo;
     DateTime now = Utility.getUTCTime();
 
-    final List<DateTime>? translatedCount =
-        translate ? (info?.translatedCount?..add(now)) : null;
-    final List<DateTime>? votedCount =
-        vote ? (info?.translatedCount?..add(now)) : null;
+    final List<DateTime>? translatedCount = [
+      ...?info?.translatedCount,
+      if (translate) now
+    ];
+    final List<DateTime>? votedCount = [...?info?.votedCount, if (vote) now];
 
     if (info != null) {
       newInfo = info.copyWith(
@@ -362,6 +363,7 @@ class TranslateHandler {
           translatedCount: translatedCount ?? [],
           votedCount: votedCount ?? [],
           joinAt: Utility.getUTCTime());
+      print(translatedCount);
 
       await newInfo.insert();
     }

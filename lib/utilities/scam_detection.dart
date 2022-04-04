@@ -1,12 +1,17 @@
 import 'package:rpmtw_server/data/phishing_link.dart';
 
-class ScamDetection {
-  static final RegExp _urlRegex = RegExp(
-      r'(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?');
+final String _pattern =
+    r'(http|https):\/\/[\w-]+(\.[\w-]+)+([\w.,@?^=%&amp;:/~+#-]*[\w@?^=%&amp;/~+#-])?';
 
-  static bool detection(String message) {
+final RegExp _urlRegex = RegExp(_pattern);
+
+class ScamDetection {
+  static Future<void> detection(String message,
+      {required Future<void> Function(String message, String url) inBlackList,
+      required Future<void> Function(String message, String url)
+          unknownSuspiciousDomain}) async {
     if (message.contains('https://') || message.contains('http://')) {
-      if (!_urlRegex.hasMatch(message)) return false;
+      if (!_urlRegex.hasMatch(message)) return;
 
       /// 訊息內容包含網址
 
@@ -25,10 +30,12 @@ class ScamDetection {
         /// 社群域名
         'discordresources.com',
         'discord.wiki',
+        'discordservers.tw',
 
         // Steam 官方域名
         'steampowered.com',
         'steamcommunity.com',
+        'steamdeck.com',
 
         // 在 Alexa 名列前茅的 .gift 和 .gifts 域名
         'crediter.gift',
@@ -55,17 +62,29 @@ class ScamDetection {
         bool isUnknownSuspiciousLink =
             keywords.any((e) => domain1.contains(e) || domain2.contains(e));
 
-        bool phishing =
-            !isWhitelisted && (isBlacklisted || isUnknownSuspiciousLink);
-
-        if (phishing) {
-          return true;
+        if (!isWhitelisted) {
+          if (isBlacklisted) {
+            await inBlackList(message, matchString);
+            break;
+          } else if (isUnknownSuspiciousLink) {
+            await unknownSuspiciousDomain(message, matchString);
+            break;
+          }
         }
       }
-
-      return false;
-    } else {
-      return false;
     }
+  }
+
+  static Future<bool> detectionWithBool(String message) async {
+    bool phishing = false;
+    void onPhishing() {
+      phishing = true;
+    }
+
+    await ScamDetection.detection(message,
+        inBlackList: (message, url) async => onPhishing(),
+        unknownSuspiciousDomain: (message, url) async => onPhishing());
+
+    return phishing;
   }
 }

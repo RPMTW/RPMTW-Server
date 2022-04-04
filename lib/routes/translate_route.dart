@@ -88,7 +88,7 @@ class TranslateRoute extends APIRoute {
               limit: limit, skip: skip);
 
       return APIResponse.success(
-          data: votes.map((e) => e.outputMap()).toList());
+          data: ListModelResponse.fromModel(votes, limit, skip));
     }, requiredFields: ['translationUUID']);
 
     /// Add translation vote
@@ -208,7 +208,7 @@ class TranslateRoute extends APIRoute {
           skip: skip);
 
       return APIResponse.success(
-          data: translations.map((e) => e.outputMap()).toList());
+          data: ListModelResponse.fromModel(translations, limit, skip));
     });
 
     /// Add translation
@@ -1117,13 +1117,22 @@ class TranslateRoute extends APIRoute {
     /// Get translator info by user uuid.
     router.getRoute('/translator-info/user/<uuid>', (req, data) async {
       final String uuid = data.fields['uuid']!;
-      TranslatorInfo? info = await TranslatorInfo.getByUserUUID(uuid);
+      String _uuid;
+      if (uuid == 'me') {
+        _uuid = req.user!.uuid;
+      } else {
+        _uuid = uuid;
+      }
+
+      TranslatorInfo? info = await TranslatorInfo.getByUserUUID(_uuid);
       if (info == null) {
         return APIResponse.modelNotFound<TranslatorInfo>();
       }
 
       return APIResponse.success(data: info.outputMap());
-    }, requiredFields: ['uuid']);
+    },
+        requiredFields: ['uuid'],
+        authConfig: AuthConfig(path: '/translate/translator-info/user/me'));
 
     /// Get translate report sort by start/end date.
     router.postRoute('/report', (req, data) async {
@@ -1146,24 +1155,36 @@ class TranslateRoute extends APIRoute {
 
       AggregationPipelineBuilder pipeline = AggregationPipelineBuilder();
       pipeline.addStage(Unwind(Field(fieldName)));
-      pipeline.addStage(Group(
-          id: Field('id'),
-          fields: {fieldName: Push(Field(fieldName)), 'count': Sum(1)}));
-      pipeline.addStage(Sort({'count': 1}));
+      pipeline.addStage(Group(id: Field('_id'), fields: {
+        'uuid': First(Field('uuid')),
+        'userUUID': First(Field('userUUID')),
+        'joinAt': First(Field('joinAt')),
+        'translatedCount': AddToSet(Sum(Field('translatedCount'))),
+        'votedCount': AddToSet(Sum(Field('votedCount'))),
+        'sort_count': Sum(1)
+      }));
+      pipeline.addStage(Sort({'sort_count': -1}));
+      pipeline.addStage(Limit(limit));
+      pipeline.addStage(Skip(skip));
 
-      pipeline.addStage(Match(Expr(And([
-        Limit(limit),
-        Skip(skip),
-        Gte(fieldName, startTime.millisecondsSinceEpoch),
-        Lte(fieldName, endTime.millisecondsSinceEpoch)
-      ]))));
+      pipeline.addStage(Match(where
+          .gte(fieldName, startTime.millisecondsSinceEpoch)
+          .lte(fieldName, endTime.millisecondsSinceEpoch)
+          .map['\$query']));
 
       List<TranslatorInfo> infos = (await DataBase.instance
               .getCollection<TranslatorInfo>()
               .modernAggregate(pipeline)
               .toList())
-          .map((e) => TranslatorInfo.fromMap(e))
-          .toList();
+          .map((e) {
+        Map<String, dynamic> _map = e;
+        // TODO: Improve handling the map, this is only a temporary solution
+        _map['translatedCount'] = (_map['translatedCount'] as List)..remove(0);
+        _map['votedCount'] = (_map['votedCount'] as List)..remove(0);
+
+        print(_map);
+        return TranslatorInfo.fromMap(_map);
+      }).toList();
 
       return APIResponse.success(
           data: ListModelResponse.fromModel(infos, limit, skip));

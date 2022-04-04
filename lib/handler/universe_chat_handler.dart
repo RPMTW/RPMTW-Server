@@ -283,7 +283,7 @@ class UniverseChatHandler {
   }
 
   Future<void> sendMessage(UniverseChatMessage msg, {Function? ack}) async {
-    bool phishing = ScamDetection.detection(msg.message);
+    bool phishing = await ScamDetection.detectionWithBool(msg.message);
 
     /// Detect phishing
     if (phishing) {
