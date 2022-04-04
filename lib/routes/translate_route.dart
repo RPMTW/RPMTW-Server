@@ -1183,7 +1183,6 @@ class TranslateRoute extends APIRoute {
         _map['translatedCount'] = (_map['translatedCount'] as List)..remove(0);
         _map['votedCount'] = (_map['votedCount'] as List)..remove(0);
 
-        print(_map);
         return TranslatorInfo.fromMap(_map);
       }).toList();
 

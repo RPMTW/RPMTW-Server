@@ -3440,8 +3440,7 @@ void main() async {
           headers: {'Content-Type': 'application/json'});
 
       Map data = json.decode(response.body)['data'];
-      print(data);
-
+      
       expect(response.statusCode, 200);
       expect(data['total'], 2);
       expect(data['data'][0]['translatedCount'], 0);
