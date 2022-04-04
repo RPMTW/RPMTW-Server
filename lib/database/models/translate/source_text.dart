@@ -1,25 +1,25 @@
-import "dart:collection";
+import 'dart:collection';
 
-import "package:intl/locale.dart";
-import "package:collection/collection.dart";
+import 'package:intl/locale.dart';
+import 'package:collection/collection.dart';
 
-import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
-import "package:rpmtw_server/database/models/model_field.dart";
-import "package:rpmtw_server/database/models/translate/translation.dart";
-import "package:rpmtw_server/database/models/translate/mod_source_info.dart";
-import "package:rpmtw_server/database/models/translate/source_file.dart";
+import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/db_model.dart';
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
+import 'package:rpmtw_server/database/model_field.dart';
+import 'package:rpmtw_server/database/models/translate/translation.dart';
+import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
+import 'package:rpmtw_server/database/models/translate/source_file.dart';
 
 /// Represents a source text entry in a text format.
 /// Can be referenced by `sources` of [SourceFile] or `patchouliAddons` of [ModSourceInfo].
 /// Cannot be repeatedly referenced.
 class SourceText extends DBModel {
-  static const String collectionName = "source_texts";
+  static const String collectionName = 'source_texts';
   static const List<IndexField> indexFields = [
-    IndexField("source", unique: false),
-    IndexField("key", unique: false),
+    IndexField('source', unique: false),
+    IndexField('key', unique: false),
   ];
 
   /// Text for translation.
@@ -59,22 +59,22 @@ class SourceText extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "source": source,
-      "gameVersions": gameVersions.map((x) => x.toMap()).toList(),
-      "key": key,
-      "type": type.name,
+      'uuid': uuid,
+      'source': source,
+      'gameVersions': gameVersions.map((x) => x.toMap()).toList(),
+      'key': key,
+      'type': type.name,
     };
   }
 
   factory SourceText.fromMap(Map<String, dynamic> map) {
     return SourceText(
-        uuid: map["uuid"],
-        source: map["source"],
+        uuid: map['uuid'],
+        source: map['source'],
         gameVersions: List<MinecraftVersion>.from(
-            map["gameVersions"]?.map((x) => MinecraftVersion.fromMap(x))),
-        key: map["key"],
-        type: SourceTextType.values.byName(map["type"]));
+            map['gameVersions']?.map((x) => MinecraftVersion.fromMap(x))),
+        key: map['key'],
+        type: SourceTextType.values.byName(map['type']));
   }
 
   static Future<SourceText?> getByUUID(String uuid) =>
@@ -83,8 +83,8 @@ class SourceText extends DBModel {
   static Future<List<SourceText>> list(
       {String? source, String? key, int? limit, int? skip}) {
     return DataBase.instance.getModelsByField([
-      if (source != null) ModelField("source", source),
-      if (key != null) ModelField("key", key),
+      if (source != null) ModelField('source', source),
+      if (key != null) ModelField('key', key),
     ], limit: limit, skip: skip);
   }
 

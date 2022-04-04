@@ -1,4 +1,4 @@
-import "package:rpmtw_server/database/models/auth/user_role_permission.dart";
+import 'package:rpmtw_server/database/models/auth/user_role_permission.dart';
 
 /// Role of the user.
 /// Used to determine which permissions a user has
@@ -15,17 +15,17 @@ class UserRole {
 
   Map<String, dynamic> toMap() {
     return {
-      "roles": roles.map((x) => x.name).toList(),
-      "botType": botType?.name,
+      'roles': roles.map((x) => x.name).toList(),
+      'botType': botType?.name,
     };
   }
 
   factory UserRole.fromMap(Map<String, dynamic> map) {
     return UserRole(
       roles: List<UserRoleType>.from(
-          map["roles"]?.map((x) => UserRoleType.values.byName(x))),
+          map['roles']?.map((x) => UserRoleType.values.byName(x))),
       botType:
-          map["botType"] != null ? BotType.values.byName(map["botType"]) : null,
+          map['botType'] != null ? BotType.values.byName(map['botType']) : null,
     );
   }
 

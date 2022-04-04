@@ -12,8 +12,8 @@ class UniverseChatInfo {
 
   Map<String, dynamic> toMap() {
     return {
-      "onlineUsers": onlineUsers,
-      "protocolVersion": protocolVersion,
+      'onlineUsers': onlineUsers,
+      'protocolVersion': protocolVersion,
     };
   }
 }

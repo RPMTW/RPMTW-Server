@@ -1,46 +1,46 @@
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/database.dart";
-import "package:rpmtw_server/database/models/minecraft/relation_mod.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
-import "package:rpmtw_server/database/models/minecraft/mod_integration.dart";
-import "package:rpmtw_server/database/models/minecraft/mod_side.dart";
-import "package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart";
-import "package:rpmtw_server/utilities/utility.dart";
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/database.dart';
+import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
+import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
+import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
+import 'package:rpmtw_server/database/models/minecraft/rpmwiki/wiki_change_log.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 
 class MinecraftHeader {
   static Future<ModRequestBodyParsedResult> parseModRequestBody(
       Map<String, dynamic> body) async {
-    String? name = body["name"];
+    String? name = body['name'];
 
     List<MinecraftVersion>? supportedVersions;
     try {
       supportedVersions = await MinecraftVersion.getByIDs(
-          body["supportVersions"]!.cast<String>());
+          body['supportVersions']!.cast<String>());
     } catch (e) {
       supportedVersions = null;
     }
 
-    String? id = body["id"];
-    String? description = body["description"];
-    List<RelationMod>? relationMods = body["relationMods"] != null
+    String? id = body['id'];
+    String? description = body['description'];
+    List<RelationMod>? relationMods = body['relationMods'] != null
         ? List<RelationMod>.from(
-            body["relationMods"]!.map((x) => RelationMod.fromMap(x)))
+            body['relationMods']!.map((x) => RelationMod.fromMap(x)))
         : null;
-    ModIntegrationPlatform? integration = body["integration"] != null
-        ? ModIntegrationPlatform.fromMap(body["integration"])
+    ModIntegrationPlatform? integration = body['integration'] != null
+        ? ModIntegrationPlatform.fromMap(body['integration'])
         : null;
-    List<ModSide>? side = body["side"] != null
+    List<ModSide>? side = body['side'] != null
         ? List<ModSide>.from(
-            body["side"]!.map((x) => ModSide.fromMap(x)).toList())
+            body['side']!.map((x) => ModSide.fromMap(x)).toList())
         : null;
-    List<ModLoader>? loader = body["loader"] != null
+    List<ModLoader>? loader = body['loader'] != null
         ? List<ModLoader>.from(
-            body["loader"]?.map((x) => ModLoader.values.byName(x)))
+            body['loader']?.map((x) => ModLoader.values.byName(x)))
         : null;
-    String? translatedName = body["translatedName"];
-    String? introduction = body["introduction"];
-    String? imageStorageUUID = body["imageStorageUUID"];
+    String? translatedName = body['translatedName'];
+    String? introduction = body['introduction'];
+    String? imageStorageUUID = body['imageStorageUUID'];
 
     return ModRequestBodyParsedResult(
         name: name,
@@ -99,20 +99,20 @@ class MinecraftHeader {
     if (filter != null) {
       /// search by name or id
       selector = selector
-          .match("id", filter)
-          .or(where.match("name", "(?i)$filter"))
-          .or(where.match("translatedName", "(?i)$filter"));
+          .match('id', filter)
+          .or(where.match('name', '(?i)$filter'))
+          .or(where.match('translatedName', '(?i)$filter'));
     }
-    selector = selector.limit(limit).skip(skip);
+    selector.limit(limit).skip(skip);
 
     if (sort == 0) {
-      selector = selector.sortBy("createTime", descending: true);
+      selector.sortBy('createTime', descending: true);
     } else if (sort == 1) {
-      selector = selector.sortBy("viewCount", descending: true);
+      selector.sortBy('viewCount', descending: true);
     } else if (sort == 2) {
-      selector = selector.sortBy("name", descending: true);
+      selector.sortBy('name', descending: true);
     } else if (sort == 3) {
-      selector = selector.sortBy("lastUpdate", descending: true);
+      selector.sortBy('lastUpdate', descending: true);
     }
 
     return DataBase.instance.getModelsWithSelector<MinecraftMod>(selector);
@@ -130,13 +130,13 @@ class MinecraftHeader {
     SelectorBuilder selector = SelectorBuilder();
 
     if (dataUUID != null && dataUUID.isNotEmpty) {
-      selector = selector.eq("dataUUID", dataUUID);
+      selector.eq('dataUUID', dataUUID);
     }
     if (userUUID != null && userUUID.isNotEmpty) {
-      selector = selector.eq("userUUID", userUUID);
+      selector.eq('userUUID', userUUID);
     }
 
-    selector = selector.limit(limit).skip(skip);
+    selector.limit(limit).skip(skip);
 
     return await DataBase.instance
         .getModelsWithSelector<WikiChangeLog>(selector);

@@ -1,16 +1,16 @@
-import "package:rpmtw_server/database/database.dart";
+import 'package:rpmtw_server/database/database.dart';
 
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
-import "package:rpmtw_server/database/models/translate/source_file.dart";
-import "package:rpmtw_server/database/models/translate/source_text.dart";
+import 'package:rpmtw_server/database/db_model.dart';
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import 'package:rpmtw_server/database/models/translate/source_file.dart';
+import 'package:rpmtw_server/database/models/translate/source_text.dart';
 
 class ModSourceInfo extends DBModel {
-  static const String collectionName = "mod_source_infos";
+  static const String collectionName = 'mod_source_infos';
   static const List<IndexField> indexFields = [
-    IndexField("namespace", unique: false),
-    IndexField("modUUID", unique: false),
+    IndexField('namespace', unique: false),
+    IndexField('modUUID', unique: false),
   ];
 
   /// Namespace of the mod
@@ -42,7 +42,7 @@ class ModSourceInfo extends DBModel {
     for (String source in patchouliAddons!) {
       SourceText? text = await SourceText.getByUUID(source);
       if (text == null) {
-        throw Exception("SourceText not found, uuid: $source");
+        throw Exception('SourceText not found, uuid: $source');
       }
       texts.add(text);
     }
@@ -72,20 +72,20 @@ class ModSourceInfo extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "namespace": namespace,
-      "modUUID": modUUID,
-      "patchouliAddons": patchouliAddons,
+      'uuid': uuid,
+      'namespace': namespace,
+      'modUUID': modUUID,
+      'patchouliAddons': patchouliAddons,
     };
   }
 
   factory ModSourceInfo.fromMap(Map<String, dynamic> map) {
     return ModSourceInfo(
-      uuid: map["uuid"],
-      namespace: map["namespace"],
-      modUUID: map["modUUID"],
-      patchouliAddons: map["patchouliAddons"] != null
-          ? List<String>.from(map["patchouliAddons"])
+      uuid: map['uuid'],
+      namespace: map['namespace'],
+      modUUID: map['modUUID'],
+      patchouliAddons: map['patchouliAddons'] != null
+          ? List<String>.from(map['patchouliAddons'])
           : null,
     );
   }
@@ -94,8 +94,8 @@ class ModSourceInfo extends DBModel {
       DataBase.instance.getModelByUUID<ModSourceInfo>(uuid);
 
   static Future<ModSourceInfo?> getByModUUID(String modUUID) =>
-      DataBase.instance.getModelByField<ModSourceInfo>("modUUID", modUUID);
+      DataBase.instance.getModelByField<ModSourceInfo>('modUUID', modUUID);
 
   static Future<ModSourceInfo?> getByNamespace(String namespace) =>
-      DataBase.instance.getModelByField<ModSourceInfo>("namespace", namespace);
+      DataBase.instance.getModelByField<ModSourceInfo>('namespace', namespace);
 }
