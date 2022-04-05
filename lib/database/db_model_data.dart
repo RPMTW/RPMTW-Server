@@ -20,7 +20,7 @@ import 'package:rpmtw_server/database/models/translate/translation.dart';
 import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 
 class DBModelData {
-  static List<String> collectionNameList = [
+  static final List<String> collectionNameList = [
     User.collectionName,
     Storage.collectionName,
     AuthCode.collectionName,
@@ -41,7 +41,7 @@ class DBModelData {
     TranslatorInfo.collectionName,
   ];
 
-  static List<List<IndexField>> indexFields = [
+  static final List<List<IndexField>> indexFields = [
     User.indexFields,
     Storage.indexFields,
     AuthCode.indexFields,
@@ -86,7 +86,7 @@ class DBModelData {
     };
   }
 
-  static Map<String, dynamic Function(Map<String, dynamic>)> fromMap = {
+  static final Map<String, dynamic Function(Map<String, dynamic>)> fromMap = {
     'User': User.fromMap,
     'Storage': Storage.fromMap,
     'AuthCode': AuthCode.fromMap,
