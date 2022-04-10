@@ -5,7 +5,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
-import 'package:rpmtw_server/utilities/extension.dart';
+import 'package:rpmtw_server/utilities/request_extension.dart';
 import 'package:socket_io/socket_io.dart';
 
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';

@@ -12,44 +12,6 @@ import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-extension StringCasingExtension on String {
-  /// 將字串第一個字轉為大寫
-  /// hello world -> Hello world
-  String toCapitalized() =>
-      isNotEmpty ? '${this[0].toUpperCase()}${substring(1)}' : '';
-
-  /// 將字串每個開頭字母轉成大寫
-  /// hello world -> Hello World
-  String toTitleCase() => replaceAll(RegExp(' +'), ' ')
-      .split(' ')
-      .map((str) => str.toCapitalized())
-      .join(' ');
-
-  String toTitleCaseWithSpace() {
-    RegExp regExp = RegExp('[A-Z]');
-    String string = toTitleCase();
-    List<int> matches = regExp.allMatches(string).map((e) => e.start).toList();
-
-    return string.splitMapJoin(regExp, onMatch: ((match) {
-      String str = match.input.substring(match.start, match.end);
-      if (matches.indexOf(match.start) == 0) {
-        return str;
-      } else {
-        return ' ${str.toLowerCase()}';
-      }
-    }));
-  }
-
-  bool get isEnglish {
-    RegExp regExp = RegExp(r'\w+\s*$');
-    return regExp.hasMatch(this);
-  }
-
-  bool toBool() => this == 'true';
-
-  bool get isAllEmpty => isEmpty || trim().isEmpty;
-}
-
 extension RequestExtension on Request {
   String get ip {
     String? xForwardedFor = headers['X-Forwarded-For'];

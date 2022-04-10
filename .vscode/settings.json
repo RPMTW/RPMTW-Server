@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
         "Curseforge"
-    ]
+    ],
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": "file:///run/media/siongsng/Data/coding/Dart/RPMTW-Server/.github/workflows/deploy.yml"
+    }
 }

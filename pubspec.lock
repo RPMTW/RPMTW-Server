@@ -351,6 +351,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "5.2.0+1"
+  rpmtw_dart_common_library:
+    dependency: "direct main"
+    description:
+      name: rpmtw_dart_common_library
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   sasl_scram:
     dependency: transitive
     description:

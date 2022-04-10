@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 import 'package:intl/locale.dart';
 import 'package:json5/json5.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
 import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
@@ -14,7 +15,6 @@ import 'package:rpmtw_server/database/models/translate/translate_status.dart';
 import 'package:rpmtw_server/database/models/translate/translation.dart';
 import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 import 'package:rpmtw_server/database/models/translate/translator_info.dart';
-import 'package:rpmtw_server/utilities/extension.dart';
 import 'package:rpmtw_server/utilities/utility.dart';
 
 class TranslateHandler {

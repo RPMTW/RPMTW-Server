@@ -7,7 +7,7 @@ import 'package:rpmtw_server/database/auth_route.dart';
 import 'package:rpmtw_server/database/models/storage/storage.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
-import 'package:rpmtw_server/utilities/extension.dart';
+import 'package:rpmtw_server/utilities/request_extension.dart';
 import 'api_route.dart';
 
 class AuthRoute extends APIRoute {

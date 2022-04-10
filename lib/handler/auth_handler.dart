@@ -13,7 +13,7 @@ import 'package:shelf/shelf.dart';
 import '../database/database.dart';
 import '../database/models/auth/user.dart';
 import '../utilities/data.dart';
-import '../utilities/extension.dart';
+import '../utilities/request_extension.dart';
 
 class AuthHandler {
   static SecretKey get secretKey => SecretKey(env['DATA_BASE_SecretKey']!);

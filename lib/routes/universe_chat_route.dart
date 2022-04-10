@@ -3,7 +3,7 @@ import 'package:rpmtw_server/database/models/universe_chat/universe_chat_message
 import 'package:rpmtw_server/handler/universe_chat_handler.dart';
 import 'package:rpmtw_server/routes/api_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
-import 'package:rpmtw_server/utilities/extension.dart';
+import 'package:rpmtw_server/utilities/request_extension.dart';
 
 class UniverseChatRoute extends APIRoute {
   @override

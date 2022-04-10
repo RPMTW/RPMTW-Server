@@ -7,7 +7,7 @@ import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import '../database/database.dart';
 import '../database/models/storage/storage.dart';
-import '../utilities/extension.dart';
+import '../utilities/request_extension.dart';
 import 'api_route.dart';
 
 class StorageRoute extends APIRoute {

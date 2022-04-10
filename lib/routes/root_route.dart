@@ -6,7 +6,7 @@ import 'package:rpmtw_server/routes/translate_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-import '../utilities/extension.dart';
+import '../utilities/request_extension.dart';
 import 'package:rpmtw_server/routes/auth_route.dart';
 import 'package:rpmtw_server/routes/storage_route.dart';
 
