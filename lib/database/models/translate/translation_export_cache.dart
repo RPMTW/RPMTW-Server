@@ -1,11 +1,11 @@
 import 'package:intl/locale.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 
 import 'package:rpmtw_server/database/db_model.dart';
 import 'package:rpmtw_server/database/model_field.dart';
 import 'package:rpmtw_server/database/models/translate/translation_export_format.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/index_fields.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class TranslationExportCache extends DBModel {
   static const String collectionName = 'translation_export_caches';
@@ -23,7 +23,7 @@ class TranslationExportCache extends DBModel {
 
   /// Check if the cache is older than 30 minutes
   bool get isExpired =>
-      Utility.getUTCTime().difference(lastUpdated).inMinutes > 30;
+      RPMTWUtil.getUTCTime().difference(lastUpdated).inMinutes > 30;
 
   const TranslationExportCache({
     required String uuid,

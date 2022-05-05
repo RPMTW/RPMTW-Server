@@ -29,7 +29,6 @@ import 'package:rpmtw_server/routes/api_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:rpmtw_server/utilities/request_extension.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 class TranslateRoute extends APIRoute {
@@ -514,19 +513,35 @@ class TranslateRoute extends APIRoute {
         return APIResponse.badRequest(message: 'Handle file failed');
       }
 
-      for (SourceText source in sourceTexts) {
-        await source.insert();
+      final List<String> uuids =
+          await TranslateHandler.addSourceTexts(sourceTexts);
+
+      final List<SourceFile> duplicateFiles =
+          await DataBase.instance.getModelsByField<SourceFile>([
+        ModelField('modSourceInfoUUID', modSourceInfoUUID),
+        ModelField('path', path),
+        ModelField('type', type)
+      ]);
+
+      SourceFile file;
+
+      if (duplicateFiles.isEmpty) {
+        file = SourceFile(
+            uuid: Uuid().v4(),
+            modSourceInfoUUID: modSourceInfoUUID,
+            storageUUID: storageUUID,
+            path: path,
+            type: type,
+            sources: uuids);
+
+        await file.insert();
+      } else {
+        file = duplicateFiles.first;
+        file = file.copyWith(
+            sources: List.from(file.sources)
+              ..addAll(sourceTexts.map((e) => e.uuid)));
+        await file.update();
       }
-
-      SourceFile file = SourceFile(
-          uuid: Uuid().v4(),
-          modSourceInfoUUID: modSourceInfoUUID,
-          storageUUID: storageUUID,
-          path: path,
-          type: type,
-          sources: sourceTexts.map((e) => e.uuid).toList());
-
-      await file.insert();
       TranslateStatusScript.addToQueue(modSourceInfo.uuid);
 
       return APIResponse.success(data: file.outputMap());
@@ -570,7 +585,7 @@ class TranslateRoute extends APIRoute {
         return APIResponse.fieldEmpty('path');
       }
 
-      List<SourceText>? sourceTexts;
+      List<String>? sourceTextUUIDs;
       if (storageUUID != null) {
         if (gameVersions == null || gameVersions.isEmpty) {
           return APIResponse.badRequest(
@@ -598,6 +613,7 @@ class TranslateRoute extends APIRoute {
         }
 
         final String fileString = await storage.readAsString();
+        late final List<SourceText> sourceTexts;
         try {
           sourceTexts = TranslateHandler.handleFile(fileString,
               type ?? sourceFile.type, gameVersions, path ?? sourceFile.path,
@@ -606,13 +622,7 @@ class TranslateRoute extends APIRoute {
           return APIResponse.badRequest(message: 'Handle file failed');
         }
 
-        for (SourceText source in sourceTexts) {
-          if (sourceFile.sources.contains(source.uuid)) {
-            continue;
-          } else {
-            await source.insert();
-          }
-        }
+        sourceTextUUIDs = await TranslateHandler.addSourceTexts(sourceTexts);
       }
 
       if (modSourceInfoUUID != null) {
@@ -631,9 +641,9 @@ class TranslateRoute extends APIRoute {
           path: path,
           type: type,
           storageUUID: storageUUID,
-          sources: sourceTexts != null
+          sources: sourceTextUUIDs != null
               ? (List.from(sourceFile.sources)
-                ..addAll(sourceTexts.map((e) => e.uuid).toList())
+                ..addAll(sourceTextUUIDs)
                 ..toSet()
                 ..toList())
               : null);
@@ -1230,7 +1240,8 @@ class TranslateRoute extends APIRoute {
 
         TranslationExportCache cache;
         if (_cache != null && _cache.isExpired) {
-          cache = _cache.copyWith(data: {}, lastUpdated: Utility.getUTCTime());
+          cache =
+              _cache.copyWith(data: {}, lastUpdated: RPMTWUtil.getUTCTime());
         } else {
           TranslationExportCache _ = TranslationExportCache(
               uuid: Uuid().v4(),
@@ -1238,7 +1249,7 @@ class TranslateRoute extends APIRoute {
               language: language,
               format: format,
               data: {},
-              lastUpdated: Utility.getUTCTime());
+              lastUpdated: RPMTWUtil.getUTCTime());
           await _.insert();
           cache = _;
         }

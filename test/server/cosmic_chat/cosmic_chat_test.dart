@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:http/http.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:socket_io_client/socket_io_client.dart';
 import 'package:test/test.dart';
@@ -76,7 +76,7 @@ void main() async {
             username: 'SiongSng',
             message: message,
             avatarUrl: 'https://crafthead.net/avatar/$minecraftUUID.png',
-            sentAt: Utility.getUTCTime(),
+            sentAt: RPMTWUtil.getUTCTime(),
             ip: InternetAddress.loopbackIPv4,
             userType: UniverseChatUserType.minecraft);
 

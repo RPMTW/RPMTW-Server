@@ -124,8 +124,4 @@ class Utility {
 
     return _comparableVersion;
   }
-
-  static DateTime getUTCTime() {
-    return DateTime.now().toUtc();
-  }
 }

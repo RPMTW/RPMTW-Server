@@ -12,7 +12,6 @@ import 'package:rpmtw_server/handler/minecraft_handler.dart';
 import 'package:rpmtw_server/routes/api_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/request_extension.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class MinecraftRoute extends APIRoute {
   @override
@@ -49,7 +48,7 @@ class MinecraftRoute extends APIRoute {
           type: WikiChangeLogType.addedMod,
           dataUUID: mod.uuid,
           changedData: mod.toMap(),
-          time: Utility.getUTCTime(),
+          time: RPMTWUtil.getUTCTime(),
           userUUID: req.user!.uuid);
 
       await changeLog.insert();
@@ -67,7 +66,7 @@ class MinecraftRoute extends APIRoute {
       ModRequestBodyParsedResult result =
           await MinecraftHeader.parseModRequestBody(data.fields);
 
-      DateTime time = Utility.getUTCTime();
+      DateTime time = RPMTWUtil.getUTCTime();
 
       if (result.imageStorageUUID != null) {
         Storage? storage = await Storage.getByUUID(result.imageStorageUUID!);
@@ -115,7 +114,7 @@ class MinecraftRoute extends APIRoute {
           type: WikiChangeLogType.editedMod,
           dataUUID: mod.uuid,
           changedData: mod.toMap(),
-          time: Utility.getUTCTime(),
+          time: RPMTWUtil.getUTCTime(),
           userUUID: req.user!.uuid);
 
       await mod.update();

@@ -15,7 +15,6 @@ import 'package:rpmtw_server/database/models/translate/translate_status.dart';
 import 'package:rpmtw_server/database/models/translate/translation.dart';
 import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 import 'package:rpmtw_server/database/models/translate/translator_info.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class TranslateHandler {
   static final List<Locale> supportedLanguage = [
@@ -308,7 +307,7 @@ class TranslateHandler {
           modSourceInfoUUID: info?.uuid,
           translatedWords: result.translatedWords,
           totalWords: result.totalWords,
-          lastUpdated: Utility.getUTCTime());
+          lastUpdated: RPMTWUtil.getUTCTime());
 
       if (!(result.totalWords == 0 &&
           result.translatedWords.isEmpty &&
@@ -319,7 +318,7 @@ class TranslateHandler {
       newStatus = status.copyWith(
           translatedWords: result.translatedWords,
           totalWords: result.totalWords,
-          lastUpdated: Utility.getUTCTime());
+          lastUpdated: RPMTWUtil.getUTCTime());
       newStatus.update();
     }
 
@@ -341,7 +340,7 @@ class TranslateHandler {
 
     TranslatorInfo? info = await TranslatorInfo.getByUserUUID(userUUID);
     TranslatorInfo newInfo;
-    DateTime now = Utility.getUTCTime();
+    DateTime now = RPMTWUtil.getUTCTime();
 
     final List<DateTime>? translatedCount = [
       ...?info?.translatedCount,
@@ -362,11 +361,36 @@ class TranslateHandler {
           userUUID: userUUID,
           translatedCount: translatedCount ?? [],
           votedCount: votedCount ?? [],
-          joinAt: Utility.getUTCTime());
+          joinAt: RPMTWUtil.getUTCTime());
       print(translatedCount);
 
       await newInfo.insert();
     }
+  }
+
+  static Future<List<String>> addSourceTexts(List<SourceText> texts) async {
+    final List<String> uuids = [];
+
+    for (SourceText source in texts) {
+      final List<SourceText> texts = await SourceText.list(key: source.key);
+
+      /// Handle duplicate key in source text
+      if (texts.isNotEmpty && texts.any((t) => t.type != source.type)) {
+        SourceText text = texts.first;
+        text = text.copyWith(
+            source: source.source,
+            gameVersions: (source.gameVersions..addAll(text.gameVersions))
+                .toSet()
+                .toList());
+        await text.update();
+        uuids.add(text.uuid);
+      } else {
+        await source.insert();
+        uuids.add(source.uuid);
+      }
+    }
+
+    return uuids;
   }
 }
 

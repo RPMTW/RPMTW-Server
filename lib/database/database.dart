@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dotenv/dotenv.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/db_model_data.dart';
 import 'package:rpmtw_server/database/index_fields.dart';
 import 'package:rpmtw_server/database/model_field.dart';
@@ -13,7 +14,6 @@ import 'package:rpmtw_server/database/scripts/storage_script.dart';
 import 'package:rpmtw_server/database/scripts/translate_status_script.dart';
 import 'package:rpmtw_server/database/scripts/view_count_script.dart';
 import 'package:rpmtw_server/database/scripts/wiki_changelog_script.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 import '../utilities/data.dart';
 import 'db_model.dart';
@@ -227,7 +227,7 @@ class DataBase {
 
     for (DBScript script in scripts) {
       Future<void> _start() async {
-        DateTime time = Utility.getUTCTime();
+        DateTime time = RPMTWUtil.getUTCTime();
         try {
           await script.start(this, time);
         } catch (e) {

@@ -1,10 +1,10 @@
 import 'dart:math';
 
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
 import 'package:rpmtw_server/database/index_fields.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class AuthCode extends DBModel {
   static const String collectionName = 'auth_codes';
@@ -30,11 +30,11 @@ class AuthCode extends DBModel {
         uuid: Uuid().v4(),
         code: code,
         expiresAt:
-            Utility.getUTCTime().add(Duration(minutes: 30)), // 驗證碼有效時間為 30 分鐘
+            RPMTWUtil.getUTCTime().add(Duration(minutes: 30)), // 驗證碼有效時間為 30 分鐘
         email: email);
   }
 
-  bool get isExpired => Utility.getUTCTime().isAfter(expiresAt);
+  bool get isExpired => RPMTWUtil.getUTCTime().isAfter(expiresAt);
 
   AuthCode copyWith({
     int? code,

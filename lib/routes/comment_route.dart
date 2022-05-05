@@ -9,7 +9,6 @@ import 'package:rpmtw_server/database/models/translate/source_text.dart';
 import 'package:rpmtw_server/routes/api_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:rpmtw_server/utilities/request_extension.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
@@ -72,8 +71,8 @@ class CommentRoute extends APIRoute {
           type: type,
           userUUID: req.user!.uuid,
           parentUUID: parentUUID,
-          createdAt: Utility.getUTCTime(),
-          updatedAt: Utility.getUTCTime(),
+          createdAt: RPMTWUtil.getUTCTime(),
+          updatedAt: RPMTWUtil.getUTCTime(),
           isHidden: false);
 
       await comment.insert();
@@ -105,7 +104,7 @@ class CommentRoute extends APIRoute {
       }
 
       final Comment newComment =
-          comment.copyWith(content: content, updatedAt: Utility.getUTCTime());
+          comment.copyWith(content: content, updatedAt: RPMTWUtil.getUTCTime());
       await newComment.update();
 
       return APIResponse.success(data: newComment.outputMap());
@@ -129,7 +128,7 @@ class CommentRoute extends APIRoute {
       /// Not really delete comments from the database, only hide.
       Future<void> hide(Comment comment) async {
         await comment
-            .copyWith(isHidden: true, updatedAt: Utility.getUTCTime())
+            .copyWith(isHidden: true, updatedAt: RPMTWUtil.getUTCTime())
             .update();
       }
 
@@ -164,8 +163,8 @@ class CommentRoute extends APIRoute {
           type: comment.type,
           userUUID: req.user!.uuid,
           parentUUID: comment.parentUUID,
-          createdAt: Utility.getUTCTime(),
-          updatedAt: Utility.getUTCTime(),
+          createdAt: RPMTWUtil.getUTCTime(),
+          updatedAt: RPMTWUtil.getUTCTime(),
           isHidden: comment.isHidden,
           replyCommentUUID: comment.uuid);
 

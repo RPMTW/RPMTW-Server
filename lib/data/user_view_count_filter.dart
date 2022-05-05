@@ -1,5 +1,5 @@
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class ViewCountHandler {
   static final List<_Filter> _filters = [];
@@ -18,7 +18,9 @@ class ViewCountHandler {
 
     if (filter == null) {
       _filters.add(_Filter(
-          userIP: ip, viewedMods: {modUUID}, createdAt: Utility.getUTCTime()));
+          userIP: ip,
+          viewedMods: {modUUID},
+          createdAt: RPMTWUtil.getUTCTime()));
       return true;
     } else {
       bool viewed = filter.isViewedMod(modUUID);

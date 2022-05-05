@@ -2,8 +2,8 @@ import 'dart:typed_data';
 
 import 'package:byte_size/byte_size.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:shelf/shelf.dart';
 import '../database/database.dart';
 import '../database/models/storage/storage.dart';
@@ -24,7 +24,7 @@ class StorageRoute extends APIRoute {
           type: StorageType.temp,
           contentType: contentType,
           uuid: Uuid().v4(),
-          createAt: Utility.getUTCTime());
+          createAt: RPMTWUtil.getUTCTime());
       GridIn gridIn =
           DataBase.instance.gridFS.createFile(data.byteStream, storage.uuid);
       ByteSize size = ByteSize.FromBytes(req.contentLength!);

@@ -28,8 +28,8 @@ class MinecraftVersion {
   String get mainVersion =>
       '${comparableVersion.major}.${comparableVersion.minor}';
 
-  MinecraftVersion(this.id, this.type, this.url, this.time, this.releaseTime,
-      this.sha1, this.complianceLevel);
+  const MinecraftVersion(this.id, this.type, this.url, this.time,
+      this.releaseTime, this.sha1, this.complianceLevel);
 
   factory MinecraftVersion.fromMap(Map map) {
     return MinecraftVersion(
@@ -52,6 +52,31 @@ class MinecraftVersion {
       'sha1': sha1,
       'complianceLevel': complianceLevel
     };
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is MinecraftVersion &&
+        other.id == id &&
+        other.type == type &&
+        other.url == url &&
+        other.time == time &&
+        other.releaseTime == releaseTime &&
+        other.sha1 == sha1 &&
+        other.complianceLevel == complianceLevel;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        type.hashCode ^
+        url.hashCode ^
+        time.hashCode ^
+        releaseTime.hashCode ^
+        sha1.hashCode ^
+        complianceLevel.hashCode;
   }
 
   static Future<MinecraftVersion?> getByID(String id) async {
@@ -83,31 +108,6 @@ class MinecraftVersion {
     } catch (e) {
       return [];
     }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is MinecraftVersion &&
-        other.id == id &&
-        other.type == type &&
-        other.url == url &&
-        other.time == time &&
-        other.releaseTime == releaseTime &&
-        other.sha1 == sha1 &&
-        other.complianceLevel == complianceLevel;
-  }
-
-  @override
-  int get hashCode {
-    return id.hashCode ^
-        type.hashCode ^
-        url.hashCode ^
-        time.hashCode ^
-        releaseTime.hashCode ^
-        sha1.hashCode ^
-        complianceLevel.hashCode;
   }
 }
 

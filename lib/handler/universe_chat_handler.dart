@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/utilities/request_extension.dart';
 import 'package:socket_io/socket_io.dart';
@@ -13,7 +14,6 @@ import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:rpmtw_server/utilities/scam_detection.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class UniverseChatHandler {
   static late final Server _io;
@@ -193,7 +193,7 @@ class UniverseChatHandler {
                 message: message,
                 nickname: nickname,
                 avatarUrl: avatar,
-                sentAt: Utility.getUTCTime(),
+                sentAt: RPMTWUtil.getUTCTime(),
                 ip: ip,
                 userType: user != null
                     ? UniverseChatUserType.rpmtw
@@ -267,7 +267,7 @@ class UniverseChatHandler {
             message: message,
             nickname: nickname,
             avatarUrl: avatarUrl,
-            sentAt: Utility.getUTCTime(),
+            sentAt: RPMTWUtil.getUTCTime(),
             ip: client.request.connectionInfo!.remoteAddress,
             userType: UniverseChatUserType.discord,
             replyMessageUUID: replyMessageUUID);

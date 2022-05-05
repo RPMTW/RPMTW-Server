@@ -93,7 +93,7 @@ packages:
     source: hosted
     version: "3.0.1"
   coverage:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: coverage
       url: "https://pub.dartlang.org"
@@ -357,7 +357,7 @@ packages:
       name: rpmtw_dart_common_library
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.2"
+    version: "0.0.4"
   sasl_scram:
     dependency: transitive
     description:

@@ -23,7 +23,7 @@ class APIResponse {
       badRequest(message: '${Messages.missingRequiredFields} ($fieldName)');
 
   static Response fieldEmpty(String fieldName) => badRequest(
-      message: '${fieldName.toTitleCaseWithSpace()} cannot be empty.');
+      message: '${fieldName.toCapitalizedWithSpace()} cannot be empty.');
 
   static Response success({required Object? data}) {
     Object? _data;
@@ -81,8 +81,8 @@ class APIResponse {
           }),
           headers: _baseHeaders);
 
-  static Response modelNotFound<T>({String? modelName}) =>
-      notFound('${modelName ?? T.toString().toTitleCaseWithSpace()} not found');
+  static Response modelNotFound<T>({String? modelName}) => notFound(
+      '${modelName ?? T.toString().toCapitalizedWithSpace()} not found');
 
   static Response banned({required String reason}) =>
       Response(HttpStatus.forbidden,
