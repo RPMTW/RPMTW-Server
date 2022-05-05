@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:intl/locale.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
@@ -16,7 +17,6 @@ import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 import 'package:rpmtw_server/database/models/translate/translator_info.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/handler/translate_handler.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:test/test.dart';
 
 import '../../test_utility.dart';
@@ -84,8 +84,8 @@ void main() async {
           relationMods: [],
           integration: ModIntegrationPlatform(),
           side: [],
-          createTime: Utility.getUTCTime(),
-          lastUpdate: Utility.getUTCTime());
+          createTime: RPMTWUtil.getUTCTime(),
+          lastUpdate: RPMTWUtil.getUTCTime());
       await mod.insert();
 
       ModSourceInfo info = ModSourceInfo(
@@ -1791,8 +1791,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
 
         final response =
@@ -1862,8 +1862,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
         ModSourceInfo info = ModSourceInfo(
             uuid: Uuid().v4(), namespace: 'test2', modUUID: mod.uuid);
@@ -2064,8 +2064,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
         String testTextUUID = await addTestSourceText();
 
@@ -2170,8 +2170,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
         ModSourceInfo info = ModSourceInfo(
             uuid: Uuid().v4(), namespace: 'test2', modUUID: mod.uuid);
@@ -2567,8 +2567,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
 
         final response = await post(Uri.parse(host + '/translate/glossary'),
@@ -2870,8 +2870,8 @@ void main() async {
               relationMods: [],
               integration: ModIntegrationPlatform(),
               side: [],
-              createTime: Utility.getUTCTime(),
-              lastUpdate: Utility.getUTCTime());
+              createTime: RPMTWUtil.getUTCTime(),
+              lastUpdate: RPMTWUtil.getUTCTime());
           await mod.insert();
 
           final response = await patch(
@@ -3374,10 +3374,10 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              'startTime': Utility.getUTCTime()
+              'startTime': RPMTWUtil.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'endTime': RPMTWUtil.getUTCTime().millisecondsSinceEpoch,
               'sortType': 'translation'
             },
           ),
@@ -3430,17 +3430,17 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              'startTime': Utility.getUTCTime()
+              'startTime': RPMTWUtil.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'endTime': RPMTWUtil.getUTCTime().millisecondsSinceEpoch,
               'sortType': 'vote'
             },
           ),
           headers: {'Content-Type': 'application/json'});
 
       Map data = json.decode(response.body)['data'];
-      
+
       expect(response.statusCode, 200);
       expect(data['total'], 2);
       expect(data['data'][0]['translatedCount'], 0);
@@ -3475,10 +3475,10 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              'startTime': Utility.getUTCTime()
+              'startTime': RPMTWUtil.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'endTime': RPMTWUtil.getUTCTime().millisecondsSinceEpoch,
               'sortType': 'translation',
               'limit': 100,
               'skip': 0

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/comment/comment.dart';
 import 'package:rpmtw_server/database/models/comment/comment_type.dart';
@@ -9,7 +10,6 @@ import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
 import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
 import 'package:rpmtw_server/database/models/translate/source_text.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:test/test.dart';
 
 import '../../test_utility.dart';
@@ -62,8 +62,8 @@ void main() async {
         type: CommentType.translate,
         userUUID: userUUID,
         parentUUID: mockSourceTextUUID,
-        createdAt: Utility.getUTCTime(),
-        updatedAt: Utility.getUTCTime(),
+        createdAt: RPMTWUtil.getUTCTime(),
+        updatedAt: RPMTWUtil.getUTCTime(),
         isHidden: false);
 
     await comment.insert();
@@ -122,8 +122,8 @@ void main() async {
           relationMods: [],
           integration: ModIntegrationPlatform(),
           side: [],
-          createTime: Utility.getUTCTime(),
-          lastUpdate: Utility.getUTCTime());
+          createTime: RPMTWUtil.getUTCTime(),
+          lastUpdate: RPMTWUtil.getUTCTime());
 
       await mod.insert();
 
