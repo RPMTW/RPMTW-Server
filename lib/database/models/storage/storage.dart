@@ -1,18 +1,18 @@
-import "dart:convert";
-import "dart:typed_data";
+import 'dart:convert';
+import 'dart:typed_data';
 
-import "package:http/http.dart" as http;
-import "package:mongo_dart/mongo_dart.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
+import 'package:http/http.dart' as http;
+import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_server/database/index_fields.dart';
 
-import "../../database.dart";
-import "../base_models.dart";
+import '../../database.dart';
+import '../../db_model.dart';
 
 class Storage extends DBModel {
-  static const String collectionName = "storages";
+  static const String collectionName = 'storages';
   static const List<IndexField> indexFields = [
-    IndexField("createAt", unique: false),
-    IndexField("type", unique: false)
+    IndexField('createAt', unique: false),
+    IndexField('type', unique: false)
   ];
 
   final String contentType;
@@ -22,7 +22,7 @@ class Storage extends DBModel {
 
   const Storage(
       {required String uuid,
-      this.contentType = "binary/octet-stream",
+      this.contentType = 'binary/octet-stream',
       required this.type,
       required this.createAt,
       this.usageCount = 0})
@@ -33,12 +33,12 @@ class Storage extends DBModel {
     GridOut gridOut = (await fs.getFile(uuid))!;
 
     List<Map<String, dynamic>> chunks = await (fs.chunks
-        .find(where.eq("files_id", gridOut.id).sortBy("n"))
+        .find(where.eq('files_id', gridOut.id).sortBy('n'))
         .toList());
 
     List<List<int>> _chunks = [];
     for (Map<String, dynamic> chunk in chunks) {
-      final data = chunk["data"] as BsonBinary;
+      final data = chunk['data'] as BsonBinary;
       _chunks.add(data.byteList.toList());
     }
 
@@ -67,22 +67,22 @@ class Storage extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "contentType": contentType,
-      "type": type.name,
-      "createAt": createAt.millisecondsSinceEpoch,
-      "usageCount": usageCount,
+      'uuid': uuid,
+      'contentType': contentType,
+      'type': type.name,
+      'createAt': createAt.millisecondsSinceEpoch,
+      'usageCount': usageCount,
     };
   }
 
   factory Storage.fromMap(Map<String, dynamic> map) {
     return Storage(
-        uuid: map["uuid"],
-        contentType: map["contentType"],
-        type: StorageType.values.byName(map["type"] ?? "temp"),
+        uuid: map['uuid'],
+        contentType: map['contentType'],
+        type: StorageType.values.byName(map['type'] ?? 'temp'),
         createAt:
-            DateTime.fromMillisecondsSinceEpoch(map["createAt"], isUtc: true),
-        usageCount: map["usageCount"] ?? 0);
+            DateTime.fromMillisecondsSinceEpoch(map['createAt'], isUtc: true),
+        usageCount: map['usageCount'] ?? 0);
   }
 
   static Future<Storage?> getByUUID(String uuid) async =>

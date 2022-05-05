@@ -1,20 +1,20 @@
-import "package:rpmtw_server/database/database.dart";
+import 'package:rpmtw_server/database/database.dart';
 
-import "package:rpmtw_server/database/models/base_models.dart";
-import "package:rpmtw_server/database/models/index_fields.dart";
-import "package:rpmtw_server/database/models/minecraft/relation_mod.dart";
-import "package:rpmtw_server/database/models/minecraft/minecraft_version.dart";
-import "package:rpmtw_server/database/models/minecraft/mod_integration.dart";
-import "package:rpmtw_server/database/models/minecraft/mod_side.dart";
+import 'package:rpmtw_server/database/db_model.dart';
+import 'package:rpmtw_server/database/index_fields.dart';
+import 'package:rpmtw_server/database/models/minecraft/relation_mod.dart';
+import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
+import 'package:rpmtw_server/database/models/minecraft/mod_integration.dart';
+import 'package:rpmtw_server/database/models/minecraft/mod_side.dart';
 
 class MinecraftMod extends DBModel {
-  static const String collectionName = "minecraft_mods";
+  static const String collectionName = 'minecraft_mods';
   static const List<IndexField> indexFields = [
-    IndexField("name", unique: false),
-    IndexField("id", unique: false),
-    IndexField("integration", unique: false),
-    IndexField("translatedName", unique: false),
-    IndexField("viewCount", unique: false),
+    IndexField('name', unique: false),
+    IndexField('id', unique: false),
+    IndexField('integration', unique: false),
+    IndexField('translatedName', unique: false),
+    IndexField('viewCount', unique: false),
   ];
 
   /// 模組的名稱 (尚未翻譯的原始名稱)
@@ -115,44 +115,46 @@ class MinecraftMod extends DBModel {
   @override
   Map<String, dynamic> toMap() {
     return {
-      "uuid": uuid,
-      "name": name,
-      "description": description,
-      "id": id,
-      "supportVersions": supportVersions.map((x) => x.toMap()).toList(),
-      "relationMods": relationMods.map((x) => x.toMap()).toList(),
-      "integration": integration.toMap(),
-      "side": side.map((x) => x.toMap()).toList(),
-      "lastUpdate": lastUpdate.millisecondsSinceEpoch,
-      "createTime": createTime.millisecondsSinceEpoch,
-      "loader": loader?.map((x) => x.name).toList(),
-      "translatedName": translatedName,
-      "introduction": introduction,
-      "imageStorageUUID": imageStorageUUID,
-      "viewCount": viewCount,
+      'uuid': uuid,
+      'name': name,
+      'description': description,
+      'id': id,
+      'supportVersions': supportVersions.map((x) => x.toMap()).toList(),
+      'relationMods': relationMods.map((x) => x.toMap()).toList(),
+      'integration': integration.toMap(),
+      'side': side.map((x) => x.toMap()).toList(),
+      'lastUpdate': lastUpdate.millisecondsSinceEpoch,
+      'createTime': createTime.millisecondsSinceEpoch,
+      'loader': loader?.map((x) => x.name).toList(),
+      'translatedName': translatedName,
+      'introduction': introduction,
+      'imageStorageUUID': imageStorageUUID,
+      'viewCount': viewCount,
     };
   }
 
   factory MinecraftMod.fromMap(Map<String, dynamic> map) {
     return MinecraftMod(
-      uuid: map["uuid"] as String,
-      name: map["name"],
-      description: map["description"],
-      id: map["id"],
+      uuid: map['uuid'] as String,
+      name: map['name'],
+      description: map['description'],
+      id: map['id'],
       supportVersions: List<MinecraftVersion>.from(
-          map["supportVersions"]?.map((x) => MinecraftVersion.fromMap(x))),
+          map['supportVersions']?.map((x) => MinecraftVersion.fromMap(x))),
       relationMods: List<RelationMod>.from(
-          map["relationMods"]?.map((x) => RelationMod.fromMap(x))),
-      integration: ModIntegrationPlatform.fromMap(map["integration"]),
-      side: List<ModSide>.from(map["side"]?.map((x) => ModSide.fromMap(x))),
-      lastUpdate: DateTime.fromMillisecondsSinceEpoch(map["lastUpdate"]),
-      createTime: DateTime.fromMillisecondsSinceEpoch(map["createTime"]),
+          map['relationMods']?.map((x) => RelationMod.fromMap(x))),
+      integration: ModIntegrationPlatform.fromMap(map['integration']),
+      side: List<ModSide>.from(map['side']?.map((x) => ModSide.fromMap(x))),
+      lastUpdate:
+          DateTime.fromMillisecondsSinceEpoch(map['lastUpdate'], isUtc: true),
+      createTime:
+          DateTime.fromMillisecondsSinceEpoch(map['createTime'], isUtc: true),
       loader: List<ModLoader>.from(
-          map["loader"]?.map((x) => ModLoader.values.byName(x)) ?? []),
-      translatedName: map["translatedName"],
-      introduction: map["introduction"],
-      imageStorageUUID: map["imageStorageUUID"],
-      viewCount: map["viewCount"] ?? 0,
+          map['loader']?.map((x) => ModLoader.values.byName(x)) ?? []),
+      translatedName: map['translatedName'],
+      introduction: map['introduction'],
+      imageStorageUUID: map['imageStorageUUID'],
+      viewCount: map['viewCount'] ?? 0,
     );
   }
 
@@ -160,12 +162,12 @@ class MinecraftMod extends DBModel {
       DataBase.instance.getModelByUUID<MinecraftMod>(uuid);
 
   static Future<MinecraftMod?> getByModID(String id) async =>
-      DataBase.instance.getModelByField<MinecraftMod>("id", id);
+      DataBase.instance.getModelByField<MinecraftMod>('id', id);
 
   static Future<MinecraftMod?> getByTranslatedName(
           String translatedName) async =>
       DataBase.instance
-          .getModelByField<MinecraftMod>("translatedName", translatedName);
+          .getModelByField<MinecraftMod>('translatedName', translatedName);
 }
 
 enum ModLoader { fabric, forge, other }

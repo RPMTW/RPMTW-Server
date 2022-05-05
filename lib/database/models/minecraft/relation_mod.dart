@@ -27,17 +27,17 @@ class RelationMod {
 
   Map<String, dynamic> toMap() {
     return {
-      "modUUID": modUUID,
-      "condition": condition,
-      "type": type.name,
+      'modUUID': modUUID,
+      'condition': condition,
+      'type': type.name,
     };
   }
 
   factory RelationMod.fromMap(Map<String, dynamic> map) {
     return RelationMod(
-      modUUID: map["modUUID"],
-      condition: map["condition"],
-      type: RelationType.values.byName(map["type"]),
+      modUUID: map['modUUID'],
+      condition: map['condition'],
+      type: RelationType.values.byName(map['type']),
     );
   }
 }

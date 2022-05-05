@@ -1,28 +1,24 @@
-# Use latest stable channel SDK.
+# Use latest dart image
 FROM dart:stable AS build
 ARG EXEC_DOWNLOAD_URL
 
-# Resolve app dependencies.
 WORKDIR /app
-COPY pubspec.* ./
-COPY .env ./
+# Install dependencies.
 RUN apt-get update
-RUN apt-get install -y wget gzip
+RUN apt-get install -y wget gzip tar
 
-# Copy app source code (except anything in .dockerignore) and AOT compile app.
+# Extract the executable archive.
 COPY . .
-RUN wget -O server.tar.gz $EXEC_DOWNLOAD_URL
-RUN tar zxvf server.tar.gz
-RUN chmod +x bin/server
+RUN wget -O main.tar.gz $EXEC_DOWNLOAD_URL
+RUN tar zxvf main.tar.gz
 
-# Build minimal serving image from AOT-compiled `/server`
-# and the pre-built AOT-runtime in the `/runtime/` directory of the base image.
+# Give execute permission to the executable.
+RUN chmod +x bin/main
+
+# Copy the executable.
 FROM scratch
 COPY --from=build /runtime/ /
-COPY --from=build /app/bin/server /app/bin/
+COPY --from=build /app/bin/main /app/bin/
 
-# Start server.
-EXPOSE 2096
-# For universe chat server
-EXPOSE 2087
-CMD ["/app/bin/server"]
+# Start the program.
+CMD ["/app/bin/main"]

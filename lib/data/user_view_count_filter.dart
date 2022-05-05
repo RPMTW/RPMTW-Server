@@ -1,5 +1,5 @@
-import "package:rpmtw_server/database/models/minecraft/minecraft_mod.dart";
-import "package:rpmtw_server/utilities/utility.dart";
+import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 
 class ViewCountHandler {
   static final List<_Filter> _filters = [];
