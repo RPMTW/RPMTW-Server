@@ -44,8 +44,8 @@ jobs:
       - name: Generate Coverage
         run: |
           dart test --coverage="coverage" --concurrency 1
-          format_coverage --lcov --in=coverage --out=coverage.lcov --report-on=lib
-      - name: Update to Codecov
+          format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v2
         with:
           file: coverage/lcov.info
