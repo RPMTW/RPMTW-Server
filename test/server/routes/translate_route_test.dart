@@ -94,9 +94,7 @@ void main() async {
     });
   });
 
-  tearDownAll(() {
-    return TestUttily.tearDownAll();
-  });
+  tearDownAll(() => TestUttily.tearDownAll());
 
   Future<String> addTestVote() async {
     final TranslationVote vote = TranslationVote(

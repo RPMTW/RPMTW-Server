@@ -11,13 +11,8 @@ import '../../test_utility.dart';
 void main() async {
   final host = TestUttily.host;
 
-  setUpAll(() {
-    return TestUttily.setUpAll();
-  });
-
-  tearDownAll(() {
-    return TestUttily.tearDownAll();
-  });
+  setUpAll(() => TestUttily.setUpAll());
+  tearDownAll(() => TestUttily.tearDownAll());
 
   test('valid password', () async {
     String password = 'passWord123';

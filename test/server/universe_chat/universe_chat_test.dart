@@ -23,13 +23,8 @@ void main() async {
   io.Socket socket = io.io(universeChatHost, baseOption.build());
   final String message = 'Hello RPMTW World!';
 
-  setUpAll(() {
-    return TestUttily.setUpAll();
-  });
-
-  tearDownAll(() {
-    return TestUttily.tearDownAll();
-  });
+  setUpAll(() async => TestUttily.setUpAll());
+  tearDownAll(() async => TestUttily.tearDownAll());
 
   tearDown(() {
     socket = socket.disconnect();
