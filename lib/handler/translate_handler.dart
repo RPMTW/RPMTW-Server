@@ -82,10 +82,10 @@ class TranslateHandler {
     return map;
   }
 
-  static List<SourceText> handleFile(String string, SourceFileType type,
+  static Future<List<SourceText>> parseFile(String string, SourceFileType type,
       List<MinecraftVersion> gameVersions, String filePath,
-      {List<String>? patchouliI18nKeys}) {
-    List<SourceText> texts = [];
+      {List<String>? patchouliI18nKeys}) async {
+    final List<SourceText> texts = [];
 
     if (type == SourceFileType.gsonLang ||
         type == SourceFileType.minecraftLang) {
@@ -215,7 +215,7 @@ class TranslateHandler {
       _add(json);
     }
 
-    return texts.toSet().toList();
+    return await _insertSourceTexts(texts.toSet().toList());
   }
 
   static Future<int> getVoteResult(Translation translation) async {
@@ -362,35 +362,43 @@ class TranslateHandler {
           translatedCount: translatedCount ?? [],
           votedCount: votedCount ?? [],
           joinAt: RPMTWUtil.getUTCTime());
-      print(translatedCount);
 
       await newInfo.insert();
     }
   }
 
-  static Future<List<String>> addSourceTexts(List<SourceText> texts) async {
-    final List<String> uuids = [];
+  static Future<List<SourceText>> _insertSourceTexts(
+      List<SourceText> sourceTexts) async {
+    final List<SourceText> result = [];
 
-    for (SourceText source in texts) {
-      final List<SourceText> texts = await SourceText.list(key: source.key);
+    for (SourceText text in sourceTexts) {
+      final List<SourceText> duplicateTexts =
+          await SourceText.list(key: text.key);
 
-      /// Handle duplicate key in source text
-      if (texts.isNotEmpty && texts.any((t) => t.type != source.type)) {
-        SourceText text = texts.first;
-        text = text.copyWith(
-            source: source.source,
-            gameVersions: (source.gameVersions..addAll(text.gameVersions))
-                .toSet()
-                .toList());
-        await text.update();
-        uuids.add(text.uuid);
+      /// Handle duplicate key in the source text
+      if (duplicateTexts.isNotEmpty) {
+        for (SourceText duplicateText in duplicateTexts) {
+          if (text.type == duplicateText.type) {
+            duplicateText = duplicateText.copyWith(
+                source: text.source,
+                gameVersions: (text.gameVersions
+                      ..addAll(duplicateText.gameVersions))
+                    .toSet()
+                    .toList());
+            await duplicateText.update();
+            result.add(duplicateText);
+          } else {
+            await text.insert();
+            result.add(text);
+          }
+        }
       } else {
-        await source.insert();
-        uuids.add(source.uuid);
+        await text.insert();
+        result.add(text);
       }
     }
 
-    return uuids;
+    return result;
   }
 }
 

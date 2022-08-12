@@ -1400,7 +1400,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson['message'], contains('Handle file failed'));
+        expect(responseJson['message'], contains('Failed to parse file'));
         await info.delete();
       });
     });
@@ -1734,7 +1734,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson['message'], contains('Handle file failed'));
+        expect(responseJson['message'], contains('Failed to parse file'));
 
         /// Delete the test source file.
         await (await SourceFile.getByUUID(sourceFileUUID))!.delete();

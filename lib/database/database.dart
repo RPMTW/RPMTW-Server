@@ -88,7 +88,8 @@ class DataBase {
     _mongoDB = await Db.create(url);
     await _mongoDB.open();
     if (kTestMode) {
-      await _mongoDB.drop(); // Drop test database
+      // Drop test database
+      await _mongoDB.drop();
     }
     _instance = await DataBase._open();
     loggerNoStack.i('Successfully connected to the database');
@@ -110,34 +111,36 @@ class DataBase {
 
   Future<T?> getModelByField<T extends DBModel>(
       String fieldName, dynamic value) async {
-    Map<String, dynamic>? map =
+    final Map<String, dynamic>? map =
         await getCollection<T>().findOne(where.eq(fieldName, value));
 
     return map != null ? getModelByMap<T>(map) : null;
   }
 
   Future<T?> getModelByFields<T extends DBModel>(List<ModelField> field) async {
-    SelectorBuilder selector = SelectorBuilder();
+    final SelectorBuilder selector = SelectorBuilder();
 
     for (ModelField f in field) {
       selector.eq(f.name, f.value);
     }
 
-    Map<String, dynamic>? map = await getCollection<T>().findOne(selector);
+    final Map<String, dynamic>? map =
+        await getCollection<T>().findOne(selector);
 
     return map != null ? getModelByMap<T>(map) : null;
   }
 
   Future<T?> getModelWithSelector<T extends DBModel>(
       SelectorBuilder selector) async {
-    Map<String, dynamic>? map = await getCollection<T>().findOne(selector);
+    final Map<String, dynamic>? map =
+        await getCollection<T>().findOne(selector);
 
     return map != null ? getModelByMap<T>(map) : null;
   }
 
   Future<List<T>> getModelsWithSelector<T extends DBModel>(
       SelectorBuilder selector) async {
-    List<Map<String, dynamic>> maps =
+    final List<Map<String, dynamic>> maps =
         await getCollection<T>().find(selector).toList();
 
     return maps.map((map) => getModelByMap<T>(map)).toList();
@@ -145,7 +148,7 @@ class DataBase {
 
   Future<List<T>> getModelsByField<T extends DBModel>(List<ModelField> field,
       {int? limit, int? skip}) async {
-    SelectorBuilder selector = SelectorBuilder();
+    final SelectorBuilder selector = SelectorBuilder();
 
     for (ModelField f in field) {
       selector.eq(f.name, f.value);
@@ -158,10 +161,10 @@ class DataBase {
       selector.skip(skip);
     }
 
-    List<Map<String, dynamic>>? list =
+    final List<Map<String, dynamic>>? list =
         await getCollection<T>().find(selector).toList();
 
-    return list.map((m) => getModelByMap<T>(m)).toList();
+    return list?.map((m) => getModelByMap<T>(m)).toList() ?? List.empty();
   }
 
   Future<WriteResult> insertOneModel<T extends DBModel>(T model,
@@ -191,7 +194,6 @@ class DataBase {
     );
 
     result.exceptionHandler(model);
-
     return result;
   }
 
@@ -210,7 +212,6 @@ class DataBase {
     );
 
     result.exceptionHandler(model);
-
     return result;
   }
 

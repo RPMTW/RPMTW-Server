@@ -81,9 +81,9 @@ class SourceFile extends DBModel {
   @override
   Future<WriteResult> delete({bool deleteDependencies = true}) async {
     if (deleteDependencies) {
-      List<SourceText> texts = await sourceTexts;
+      final List<SourceText> texts = await sourceTexts;
 
-      for (SourceText text in texts) {
+      for (final text in texts) {
         await text.delete();
       }
 

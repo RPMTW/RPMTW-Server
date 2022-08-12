@@ -503,28 +503,24 @@ class TranslateRoute extends APIRoute {
         return APIResponse.fieldEmpty('path');
       }
 
-      String fileString = await storage.readAsString();
-      List<SourceText> sourceTexts;
+      final List<SourceText> sourceTexts;
       try {
-        sourceTexts = TranslateHandler.handleFile(
-            fileString, type, gameVersions, path,
+        sourceTexts = await TranslateHandler.parseFile(
+            await storage.readAsString(), type, gameVersions, path,
             patchouliI18nKeys: patchouliI18nKeys ?? []);
       } catch (e) {
-        return APIResponse.badRequest(message: 'Handle file failed');
+        print(e);
+        return APIResponse.badRequest(message: 'Failed to parse file');
       }
-
-      final List<String> uuids =
-          await TranslateHandler.addSourceTexts(sourceTexts);
 
       final List<SourceFile> duplicateFiles =
           await DataBase.instance.getModelsByField<SourceFile>([
         ModelField('modSourceInfoUUID', modSourceInfoUUID),
         ModelField('path', path),
-        ModelField('type', type)
+        ModelField('type', type.name)
       ]);
 
-      SourceFile file;
-
+      final SourceFile file;
       if (duplicateFiles.isEmpty) {
         file = SourceFile(
             uuid: Uuid().v4(),
@@ -532,16 +528,19 @@ class TranslateRoute extends APIRoute {
             storageUUID: storageUUID,
             path: path,
             type: type,
-            sources: uuids);
+            sources: sourceTexts.map((e) => e.uuid).toList());
 
         await file.insert();
       } else {
-        file = duplicateFiles.first;
-        file = file.copyWith(
-            sources: List.from(file.sources)
-              ..addAll(sourceTexts.map((e) => e.uuid)));
+        final duplicateFile = duplicateFiles.first;
+        file = duplicateFile.copyWith(
+            sources: List.from(duplicateFile.sources)
+              ..addAll(sourceTexts.map((e) => e.uuid))
+              ..toSet()
+              ..toList());
         await file.update();
       }
+
       TranslateStatusScript.addToQueue(modSourceInfo.uuid);
 
       return APIResponse.success(data: file.outputMap());
@@ -585,7 +584,7 @@ class TranslateRoute extends APIRoute {
         return APIResponse.fieldEmpty('path');
       }
 
-      List<String>? sourceTextUUIDs;
+      List<SourceText>? sourceTexts;
       if (storageUUID != null) {
         if (gameVersions == null || gameVersions.isEmpty) {
           return APIResponse.badRequest(
@@ -612,17 +611,16 @@ class TranslateRoute extends APIRoute {
           await oldStorage.update();
         }
 
-        final String fileString = await storage.readAsString();
-        late final List<SourceText> sourceTexts;
         try {
-          sourceTexts = TranslateHandler.handleFile(fileString,
-              type ?? sourceFile.type, gameVersions, path ?? sourceFile.path,
+          sourceTexts = await TranslateHandler.parseFile(
+              await storage.readAsString(),
+              type ?? sourceFile.type,
+              gameVersions,
+              path ?? sourceFile.path,
               patchouliI18nKeys: patchouliI18nKeys ?? []);
         } catch (e) {
-          return APIResponse.badRequest(message: 'Handle file failed');
+          return APIResponse.badRequest(message: 'Failed to parse file');
         }
-
-        sourceTextUUIDs = await TranslateHandler.addSourceTexts(sourceTexts);
       }
 
       if (modSourceInfoUUID != null) {
@@ -641,9 +639,9 @@ class TranslateRoute extends APIRoute {
           path: path,
           type: type,
           storageUUID: storageUUID,
-          sources: sourceTextUUIDs != null
+          sources: sourceTexts != null
               ? (List.from(sourceFile.sources)
-                ..addAll(sourceTextUUIDs)
+                ..addAll(sourceTexts.map((e) => e.uuid))
                 ..toSet()
                 ..toList())
               : null);

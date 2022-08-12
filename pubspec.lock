@@ -280,7 +280,7 @@ packages:
       name: mongo_dart
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.4"
+    version: "0.7.4+1"
   mongo_dart_query:
     dependency: transitive
     description:

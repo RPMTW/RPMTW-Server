@@ -188,7 +188,6 @@ If you have not requested an RPMTW account, please ignore this email.<br><br>
 
     try {
       if (kTestMode) return true; //在測試模式下不發送訊息
-      print(email);
       await send(message, smtpServer);
       return true;
     } catch (e, stack) {
