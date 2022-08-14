@@ -233,7 +233,8 @@ class UniverseChatHandler {
     try {
       if (user == null) return;
       final bool isValid =
-          user.role.permission.bot && user.role.botType == BotType.discord;
+          user.role.permission.hasPermission(UserRoleType.bot) &&
+              user.role.botType == BotType.discord;
 
       /// Verify that the message is sent by the [RPMTW Discord Bot](https://github.com/RPMTW/RPMTW-Discord-Bot) and not a forged message from someone else.
       if (!isValid) return;

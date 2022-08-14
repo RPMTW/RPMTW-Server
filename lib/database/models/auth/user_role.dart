@@ -50,26 +50,7 @@ enum UserRoleType {
   // can delete universe chat messages, ban universe chat users
   universeChatManager,
   // general user
-  general,
-}
-
-extension UserRoleTypeExtension on UserRoleType {
-  int get id {
-    switch (this) {
-      case UserRoleType.admin:
-        return 6;
-      case UserRoleType.bot:
-        return 5;
-      case UserRoleType.translationManager:
-        return 4;
-      case UserRoleType.wikiManager:
-        return 3;
-      case UserRoleType.universeChatManager:
-        return 2;
-      case UserRoleType.general:
-        return 1;
-    }
-  }
+  general
 }
 
 enum BotType { discord, githubAction }
