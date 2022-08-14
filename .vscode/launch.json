@@ -8,7 +8,7 @@
             "name": "Start Server",
             "request": "launch",
             "type": "dart",
-            "program": "bin/server.dart",
+            "program": "bin/main.dart",
         }
     ]
 }

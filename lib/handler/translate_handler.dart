@@ -15,7 +15,6 @@ import 'package:rpmtw_server/database/models/translate/translate_status.dart';
 import 'package:rpmtw_server/database/models/translate/translation.dart';
 import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 import 'package:rpmtw_server/database/models/translate/translator_info.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class TranslateHandler {
   static final List<Locale> supportedLanguage = [
@@ -83,10 +82,10 @@ class TranslateHandler {
     return map;
   }
 
-  static List<SourceText> handleFile(String string, SourceFileType type,
+  static Future<List<SourceText>> parseFile(String string, SourceFileType type,
       List<MinecraftVersion> gameVersions, String filePath,
-      {List<String>? patchouliI18nKeys}) {
-    List<SourceText> texts = [];
+      {List<String>? patchouliI18nKeys}) async {
+    final List<SourceText> texts = [];
 
     if (type == SourceFileType.gsonLang ||
         type == SourceFileType.minecraftLang) {
@@ -216,7 +215,7 @@ class TranslateHandler {
       _add(json);
     }
 
-    return texts.toSet().toList();
+    return await _insertSourceTexts(texts.toSet().toList());
   }
 
   static Future<int> getVoteResult(Translation translation) async {
@@ -308,7 +307,7 @@ class TranslateHandler {
           modSourceInfoUUID: info?.uuid,
           translatedWords: result.translatedWords,
           totalWords: result.totalWords,
-          lastUpdated: Utility.getUTCTime());
+          lastUpdated: RPMTWUtil.getUTCTime());
 
       if (!(result.totalWords == 0 &&
           result.translatedWords.isEmpty &&
@@ -319,7 +318,7 @@ class TranslateHandler {
       newStatus = status.copyWith(
           translatedWords: result.translatedWords,
           totalWords: result.totalWords,
-          lastUpdated: Utility.getUTCTime());
+          lastUpdated: RPMTWUtil.getUTCTime());
       newStatus.update();
     }
 
@@ -341,7 +340,7 @@ class TranslateHandler {
 
     TranslatorInfo? info = await TranslatorInfo.getByUserUUID(userUUID);
     TranslatorInfo newInfo;
-    DateTime now = Utility.getUTCTime();
+    DateTime now = RPMTWUtil.getUTCTime();
 
     final List<DateTime>? translatedCount = [
       ...?info?.translatedCount,
@@ -362,11 +361,44 @@ class TranslateHandler {
           userUUID: userUUID,
           translatedCount: translatedCount ?? [],
           votedCount: votedCount ?? [],
-          joinAt: Utility.getUTCTime());
-      print(translatedCount);
+          joinAt: RPMTWUtil.getUTCTime());
 
       await newInfo.insert();
     }
+  }
+
+  static Future<List<SourceText>> _insertSourceTexts(
+      List<SourceText> sourceTexts) async {
+    final List<SourceText> result = [];
+
+    for (SourceText text in sourceTexts) {
+      final List<SourceText> duplicateTexts =
+          await SourceText.list(key: text.key);
+
+      /// Handle duplicate key in the source text
+      if (duplicateTexts.isNotEmpty) {
+        for (SourceText duplicateText in duplicateTexts) {
+          if (text.type == duplicateText.type) {
+            duplicateText = duplicateText.copyWith(
+                source: text.source,
+                gameVersions: (text.gameVersions
+                      ..addAll(duplicateText.gameVersions))
+                    .toSet()
+                    .toList());
+            await duplicateText.update();
+            result.add(duplicateText);
+          } else {
+            await text.insert();
+            result.add(text);
+          }
+        }
+      } else {
+        await text.insert();
+        result.add(text);
+      }
+    }
+
+    return result;
   }
 }
 

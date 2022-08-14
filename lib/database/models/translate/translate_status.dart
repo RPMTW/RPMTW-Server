@@ -1,8 +1,8 @@
 import 'package:intl/locale.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
 import 'package:rpmtw_server/database/index_fields.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class TranslateStatus extends DBModel {
   static const String collectionName = 'translate_status';
@@ -19,7 +19,7 @@ class TranslateStatus extends DBModel {
 
   /// Check if the status is older than an hour
   bool get isExpired =>
-      Utility.getUTCTime().difference(lastUpdated).inHours > 1;
+      RPMTWUtil.getUTCTime().difference(lastUpdated).inHours > 1;
 
   const TranslateStatus({
     required String uuid,

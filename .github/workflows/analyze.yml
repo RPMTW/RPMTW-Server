@@ -19,11 +19,11 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/dart-sdk
-          key: ${{ runner.os }}-dart-2.16.1
+          key: ${{ runner.os }}-dart-2.17.6
       # https://dart.dev/get-dart/archive
       - uses: dart-lang/setup-dart@v1.3
         with:
-          sdk: 2.16.1
+          sdk: 2.17.6
       - name: Install dependencies
         run: |
           dart pub get
@@ -43,11 +43,9 @@ jobs:
           annotate-only: false
       - name: Generate Coverage
         run: |
-          dart test --coverage="coverage"
-          format_coverage --lcov --in=coverage --out=coverage.lcov --packages=.packages --report-on=lib
-        # shell: bash
-        # continue-on-error: true
-      - name: Update to Codecov
+          dart test --coverage="coverage" --concurrency 1
+          format_coverage --lcov --in=coverage --out=coverage/lcov.info --report-on=lib
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v2
         with:
-          file: ./coverage.lcov
+          file: coverage/lcov.info
