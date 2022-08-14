@@ -1029,8 +1029,8 @@ void main() async {
       return file.uuid;
     }
 
-    group('add', () {
-      test('add source file (gson lang)', () async {
+    group('upload', () {
+      test('upload source file (gson lang)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1070,7 +1070,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (minecraft lang)', () async {
+      test('upload source file (minecraft lang)', () async {
         ModSourceInfo info = ModSourceInfo(uuid: Uuid().v4(), namespace: 'jei');
         await info.insert();
 
@@ -1109,7 +1109,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (patchouli book)', () async {
+      test('upload source file (patchouli book)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'twilightforest');
         await info.insert();
@@ -1152,7 +1152,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (plain text)', () async {
+      test('upload source file (plain text)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'iceandfire');
         await info.insert();
@@ -1193,7 +1193,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (custom json)', () async {
+      test('upload source file (custom json)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1236,7 +1236,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (not permission)', () async {
+      test('upload source file (not permission)', () async {
         final response = await post(Uri.parse(host + '/translate/source-file'),
             body: json.encode({
               'modSourceInfoUUID': 'test',
@@ -1255,7 +1255,7 @@ void main() async {
         expect(responseJson['message'], 'Forbidden');
       });
 
-      test('add source file (unknown mod source info)', () async {
+      test('upload source file (unknown mod source info)', () async {
         late String storageUUID;
         final _response = await post(Uri.parse(host + '/storage/create'),
             body: TestData.tinkersConstructLang.getFileString(),
@@ -1282,7 +1282,7 @@ void main() async {
         expect(responseJson['message'], contains('not found'));
       });
 
-      test('add source file (unknown storage)', () async {
+      test('upload source file (unknown storage)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1306,7 +1306,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (empty path)', () async {
+      test('upload source file (empty path)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1338,7 +1338,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (empty game versions)', () async {
+      test('upload source file (empty game versions)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1370,7 +1370,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (invalid file content)', () async {
+      test('upload source file (invalid file content)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1399,6 +1399,71 @@ void main() async {
 
         expect(response.statusCode, 400);
         expect(responseJson['message'], contains('Failed to parse file'));
+        await info.delete();
+      });
+
+      test('upload duplicate source file', () async {
+        final ModSourceInfo info =
+            ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
+        await info.insert();
+
+        final String storageUUID = json.decode((await post(
+                Uri.parse(host + '/storage/create'),
+                body: TestData.tinkersConstructLang.getFileString(),
+                headers: {
+              'Content-Type': 'application/json',
+            }))
+            .body)['data']['uuid'];
+
+        final response1 = await post(Uri.parse(host + '/translate/source-file'),
+            body: json.encode({
+              'modSourceInfoUUID': info.uuid,
+              'storageUUID': storageUUID,
+              'path': 'assets/tconstruct/lang/en_us.json',
+              'type': 'gsonLang',
+              'gameVersions': ['1.16.5']
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $translationManagerToken'
+            });
+
+        final Map data1 = json.decode(response1.body)['data'];
+
+        expect(response1.statusCode, 200);
+        expect(data1['uuid'], isNotNull);
+        expect(data1['modSourceInfoUUID'], info.uuid);
+        expect(data1['storageUUID'], storageUUID);
+        expect(data1['path'], 'assets/tconstruct/lang/en_us.json');
+        expect(data1['type'], 'gsonLang');
+
+        final response2 = await post(Uri.parse(host + '/translate/source-file'),
+            body: json.encode({
+              'modSourceInfoUUID': info.uuid,
+              'storageUUID': storageUUID,
+              'path': 'assets/tconstruct/lang/en_us.json',
+              'type': 'gsonLang',
+              'gameVersions': ['1.16.5']
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $translationManagerToken'
+            });
+
+        final Map data2 = json.decode(response2.body)['data'];
+
+        expect(response2.statusCode, 200);
+        expect(data2['uuid'], isNotNull);
+        expect(data2['modSourceInfoUUID'], info.uuid);
+        expect(data2['storageUUID'], storageUUID);
+        expect(data2['path'], 'assets/tconstruct/lang/en_us.json');
+        expect(data2['type'], 'gsonLang');
+
+        // verify the duplicate file uuid is same
+        expect(data1['uuid'], data2['uuid']);
+
+        /// Delete the test source file.
+        await (await SourceFile.getByUUID(data1['uuid']))!.delete();
         await info.delete();
       });
     });
