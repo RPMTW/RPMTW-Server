@@ -12,7 +12,7 @@ class SourceFile extends DBModel {
   static const String collectionName = 'source_files';
   static const List<IndexField> indexFields = [
     IndexField('modSourceInfoUUID', unique: false),
-    IndexField('sources', unique: false),
+    IndexField('textUUIDs', unique: false),
   ];
 
   final String modSourceInfoUUID;
@@ -21,7 +21,7 @@ class SourceFile extends DBModel {
   final SourceFileType type;
 
   /// [SourceText] included in the file.
-  final List<String> sources;
+  final List<String> textUUIDs;
 
   Future<ModSourceInfo?> get sourceInfo =>
       ModSourceInfo.getByUUID(modSourceInfoUUID);
@@ -29,15 +29,15 @@ class SourceFile extends DBModel {
   Future<Storage?> get storage => Storage.getByUUID(storageUUID);
 
   Future<List<SourceText>> get sourceTexts async {
-    List<SourceText> texts = [];
-    for (String source in sources) {
-      SourceText? text = await SourceText.getByUUID(source);
+    List<SourceText> result = [];
+    for (String uuid in textUUIDs) {
+      SourceText? text = await SourceText.getByUUID(uuid);
       if (text == null) {
-        throw Exception('SourceText not found, uuid: $source');
+        throw Exception('SourceText not found, uuid: $uuid');
       }
-      texts.add(text);
+      result.add(text);
     }
-    return texts;
+    return result;
   }
 
   const SourceFile(
@@ -46,7 +46,7 @@ class SourceFile extends DBModel {
       required this.storageUUID,
       required this.path,
       required this.type,
-      required this.sources})
+      required this.textUUIDs})
       : super(uuid: uuid);
 
   SourceFile copyWith({
@@ -54,7 +54,7 @@ class SourceFile extends DBModel {
     String? storageUUID,
     String? path,
     SourceFileType? type,
-    List<String>? sources,
+    List<String>? textUUIDs,
   }) {
     return SourceFile(
       uuid: uuid,
@@ -62,7 +62,7 @@ class SourceFile extends DBModel {
       storageUUID: storageUUID ?? this.storageUUID,
       path: path ?? this.path,
       type: type ?? this.type,
-      sources: sources ?? this.sources,
+      textUUIDs: textUUIDs ?? this.textUUIDs,
     );
   }
 
@@ -74,7 +74,7 @@ class SourceFile extends DBModel {
       'storageUUID': storageUUID,
       'path': path,
       'type': type.name,
-      'sources': sources,
+      'textUUIDs': textUUIDs,
     };
   }
 
@@ -106,7 +106,7 @@ class SourceFile extends DBModel {
       storageUUID: map['storageUUID'],
       path: map['path'],
       type: SourceFileType.values.byName(map['type']),
-      sources: List<String>.from(map['sources']),
+      textUUIDs: List<String>.from(map['textUUIDs']),
     );
   }
 

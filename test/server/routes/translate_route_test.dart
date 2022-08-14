@@ -931,7 +931,7 @@ void main() async {
           storageUUID: Uuid().v4(), // TODO: change to real storage uuid
           path: 'assets/test/lang/en_us.json',
           type: SourceFileType.gsonLang,
-          sources: [sourceTextUUID]);
+          textUUIDs: [sourceTextUUID]);
       await file.insert();
 
       final response = await delete(
@@ -1022,7 +1022,7 @@ void main() async {
           type: SourceFileType.gsonLang,
           modSourceInfoUUID: mockModSourceInfoUUID,
           path: 'assets/test/lang/en_us.json',
-          sources: [testTextUUID],
+          textUUIDs: [testTextUUID],
           storageUUID: storageUUID);
       await file.insert();
 

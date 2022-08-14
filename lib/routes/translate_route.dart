@@ -412,11 +412,11 @@ class TranslateRoute extends APIRoute {
       }
       List<SourceFile> files = await DataBase.instance
           .getModelsByField<SourceFile>(
-              [ModelField('sources', sourceText.uuid)]);
+              [ModelField('textUUIDs', sourceText.uuid)]);
 
       for (SourceFile file in files) {
         file = file.copyWith(
-            sources: List.from(file.sources)..remove(sourceText.uuid));
+            textUUIDs: List.from(file.textUUIDs)..remove(sourceText.uuid));
         await file.update();
       }
 
@@ -528,13 +528,13 @@ class TranslateRoute extends APIRoute {
             storageUUID: storageUUID,
             path: path,
             type: type,
-            sources: sourceTexts.map((e) => e.uuid).toList());
+            textUUIDs: sourceTexts.map((e) => e.uuid).toList());
 
         await file.insert();
       } else {
         final duplicateFile = duplicateFiles.first;
         file = duplicateFile.copyWith(
-            sources: List.from(duplicateFile.sources)
+            textUUIDs: List.from(duplicateFile.textUUIDs)
               ..addAll(sourceTexts.map((e) => e.uuid))
               ..toSet()
               ..toList());
@@ -639,8 +639,8 @@ class TranslateRoute extends APIRoute {
           path: path,
           type: type,
           storageUUID: storageUUID,
-          sources: sourceTexts != null
-              ? (List.from(sourceFile.sources)
+          textUUIDs: sourceTexts != null
+              ? (List.from(sourceFile.textUUIDs)
                 ..addAll(sourceTexts.map((e) => e.uuid))
                 ..toSet()
                 ..toList())

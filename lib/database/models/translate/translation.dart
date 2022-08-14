@@ -95,7 +95,7 @@ class Translation extends DBModel {
       ModSourceInfo? info;
 
       SourceFile? file = await DataBase.instance
-          .getModelByField<SourceFile>('sources', text.uuid);
+          .getModelByField<SourceFile>('textUUIDs', text.uuid);
       if (file != null) {
         info = await file.sourceInfo;
       } else {
