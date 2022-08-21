@@ -1,0 +1,1 @@
+enum BanCategory { universeChat, permanent }

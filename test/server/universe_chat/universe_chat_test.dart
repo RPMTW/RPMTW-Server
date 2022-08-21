@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
@@ -131,6 +132,7 @@ void main() async {
       BanInfo _info = BanInfo(
           ip: ip,
           reason: 'Sending fraudulent messages in universe chat',
+          category: BanCategory.universeChat,
           userUUID: [],
           uuid: Uuid().v4());
       await _info.insert();

@@ -29,17 +29,13 @@ class AuthRoute extends APIRoute {
       if (!emailValidatedResult.isValid) {
         return APIResponse.badRequest(message: emailValidatedResult.message);
       }
-      DBCrypt dbCrypt = DBCrypt();
-      String salt =
-          dbCrypt.gensaltWithRounds(AuthHandler.saltRounds); // 生成鹽，加密次數為10次
-      String hash = dbCrypt.hashpw(password, salt); //使用加鹽算法將明文密碼生成為雜湊值
 
       User user = User(
           username: data.fields['username'],
           email: email,
           avatarStorageUUID: data.fields['avatarStorageUUID'],
           emailVerified: false,
-          passwordHash: hash,
+          passwordHash: AuthHandler.generatePasswordHash(password),
           uuid: Uuid().v4(),
           loginIPs: [req.ip]);
 
@@ -179,7 +175,7 @@ class AuthRoute extends APIRoute {
     {
       'uuid': 'e5634ad4-529d-42d4-9a56-045c5f5888cd',
       'password': 'test'
-    } 
+    }
     */
     router.postRoute('/get-token', (req, data) async {
       String uuid = data.fields['uuid'];

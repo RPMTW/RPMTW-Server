@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/list_model_response.dart';
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
 import 'package:rpmtw_server/utilities/messages.dart';
 import 'package:shelf/shelf.dart';
 import 'dart:io';
@@ -84,12 +85,13 @@ class APIResponse {
   static Response modelNotFound<T>({String? modelName}) => notFound(
       '${modelName ?? T.toString().toCapitalizedWithSpace()} not found');
 
-  static Response banned({required String reason}) =>
+  static Response banned(
+          {required String reason, required BanCategory category}) =>
       Response(HttpStatus.forbidden,
           body: json.encode({
             'status': HttpStatus.forbidden,
             'message': 'Banned',
-            'data': {'reason': reason}
+            'data': {'reason': reason, 'category': category.name}
           }),
           headers: _baseHeaders);
 }

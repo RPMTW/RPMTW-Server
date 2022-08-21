@@ -7,6 +7,7 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
 import 'package:shelf/shelf.dart';
@@ -24,6 +25,13 @@ class AuthHandler {
     return jwt.sign(AuthHandler.secretKey);
   }
 
+  static String generatePasswordHash(String password) {
+    final dbCrypt = DBCrypt();
+    // Generate salt, 10 rounds by default
+    final String salt = dbCrypt.gensaltWithRounds(AuthHandler.saltRounds);
+    return dbCrypt.hashpw(password, salt); // Hash the password with the salt
+  }
+
   static Future<AuthCode> generateAuthCode(
       String email, String userUUID) async {
     AuthCode authCode = AuthCode.create(email);
@@ -35,10 +43,13 @@ class AuthHandler {
         return (request) {
           return Future.sync(() async {
             try {
-              BanInfo? banInfo = await BanInfo.getByIP(request.ip);
-              if (banInfo != null) {
-                // 檢查是否被封鎖
-                return APIResponse.banned(reason: banInfo.reason);
+              List<BanInfo> banInfos = await BanInfo.getByIP(request.ip);
+              // Check the user is banned or not
+              for (final info in banInfos) {
+                if (info.category == BanCategory.permanent) {
+                  return APIResponse.banned(
+                      reason: info.reason, category: info.category);
+                }
               }
             } catch (e) {
               return APIResponse.internalServerError();
@@ -243,6 +254,7 @@ abstract class _BaseValidatedResult {
 
   /// 驗證結果訊息
   String message;
+
   _BaseValidatedResult(this.isValid, this.code, this.message);
 
   Map toMap() {

@@ -14,15 +14,10 @@ import 'package:shelf_router/shelf_router.dart';
 
 extension RequestExtension on Request {
   String get ip {
-    String? xForwardedFor = headers['X-Forwarded-For'];
-    if (xForwardedFor != null && kTestMode) {
-      return xForwardedFor;
+    String? cfIP = headers['CF-Connecting-IP'];
+    if (cfIP != null) {
+      return cfIP;
     } else {
-      String? cfIP = headers['CF-Connecting-IP'];
-      if (cfIP != null) {
-        return cfIP;
-      }
-
       HttpConnectionInfo connectionInfo =
           context['shelf.io.connection_info'] as HttpConnectionInfo;
       InternetAddress internetAddress = connectionInfo.remoteAddress;
@@ -184,6 +179,7 @@ class RouteData {
   final Uint8List bytes;
 
   Stream<List<int>> get byteStream => http.ByteStream.fromBytes(bytes);
+
   String get body => utf8.decode(bytes);
 
   RouteData(this.fields, this.bytes);
