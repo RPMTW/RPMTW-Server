@@ -321,7 +321,6 @@ void main() async {
         headers: {'Content-Type': 'application/json'});
     Map _body = json.decode(_response.body)['data'];
     String userToken = _body['token'];
-    String userUUID = _body['uuid'];
 
     List<String> errors = [];
     List<Map> messages = [];
@@ -349,7 +348,7 @@ void main() async {
     expect(messages.first['message'], message);
     expect(messages.first['username'], contains('test'));
     expect(messages.first['nickname'], null);
-    expect(messages.first['avatarUrl'], '$host/storage/$userUUID/download');
+    expect(messages.first['avatarUrl'], null);
     expect(messages.first['userType'], 'rpmtw');
     expect(messages.length, 1);
     expect(response!['status'], 'success');
