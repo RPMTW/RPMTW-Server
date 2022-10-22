@@ -19,7 +19,7 @@ class UniverseChatMessage extends DBModel {
 
   final String? nickname;
 
-  final String avatarUrl;
+  final String? avatarUrl;
 
   /// message sent time (UTC+0)
   final DateTime sentAt;
@@ -37,7 +37,7 @@ class UniverseChatMessage extends DBModel {
     required this.username,
     required this.message,
     this.nickname,
-    required this.avatarUrl,
+    this.avatarUrl,
     required this.sentAt,
     required this.ip,
     required this.userType,

@@ -13,7 +13,7 @@ import 'package:rpmtw_server/database/models/translate/mod_source_info.dart';
 import 'package:rpmtw_server/database/models/translate/source_file.dart';
 
 /// Represents a source text entry in a text format.
-/// Can be referenced by `sources` of [SourceFile] or `patchouliAddons` of [ModSourceInfo].
+/// Can be referenced by `textUUIDs` of [SourceFile] or `patchouliAddons` of [ModSourceInfo].
 /// Cannot be repeatedly referenced.
 class SourceText extends DBModel {
   static const String collectionName = 'source_texts';

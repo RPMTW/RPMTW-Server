@@ -2,12 +2,12 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/db_model.dart';
 import 'package:rpmtw_server/database/index_fields.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_version.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 
 class MinecraftVersionManifest extends DBModel {
   static const String collectionName = 'minecraft_version_manifest';
@@ -61,7 +61,7 @@ class MinecraftVersionManifest extends DBModel {
     return MinecraftVersionManifest(
         manifest: manifest,
         uuid: Uuid().v4(),
-        lastUpdated: Utility.getUTCTime());
+        lastUpdated: RPMTWUtil.getUTCTime());
   }
 
   static Future<MinecraftVersionManifest> getFromCache() async {

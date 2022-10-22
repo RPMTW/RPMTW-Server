@@ -63,16 +63,14 @@ class TestUttily {
   static final String host = 'http://localhost:8080';
   static String get secretKey => 'testSecretKey';
 
-  static Future<void> setUpAll({bool isServer = true}) {
-    return Future.sync(() async {
-      kTestMode = true;
-      Parser parser = const TestEnvParser();
-      if (isServer) {
-        await server.main(['RPMTW_SERVER_TEST_MODE=TRUE']);
-      } else {
-        await Data.init(envParser: parser);
-      }
-    });
+  static Future<void> setUpAll({bool isServer = true}) async {
+    kTestMode = true;
+    Parser parser = const TestEnvParser();
+    if (isServer) {
+      await server.main(['RPMTW_SERVER_TEST_MODE=TRUE']);
+    } else {
+      await Data.init(envParser: parser);
+    }
   }
 
   static Future<void> tearDownAll() {

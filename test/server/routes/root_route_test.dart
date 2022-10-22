@@ -7,13 +7,8 @@ import '../../test_utility.dart';
 void main() async {
   final host = TestUttily.host;
 
-  setUpAll(() {
-    return TestUttily.setUpAll();
-  });
-
-  tearDownAll(() {
-    return TestUttily.tearDownAll();
-  });
+  setUpAll(() => TestUttily.setUpAll());
+  tearDownAll(() => TestUttily.tearDownAll());
 
   test('Root', () async {
     final response = await get(Uri.parse(host + '/'));

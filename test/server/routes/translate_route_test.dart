@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:intl/locale.dart';
 import 'package:mongo_dart/mongo_dart.dart';
+import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/database/models/minecraft/minecraft_mod.dart';
@@ -16,7 +17,6 @@ import 'package:rpmtw_server/database/models/translate/translation_vote.dart';
 import 'package:rpmtw_server/database/models/translate/translator_info.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/handler/translate_handler.dart';
-import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:test/test.dart';
 
 import '../../test_utility.dart';
@@ -84,8 +84,8 @@ void main() async {
           relationMods: [],
           integration: ModIntegrationPlatform(),
           side: [],
-          createTime: Utility.getUTCTime(),
-          lastUpdate: Utility.getUTCTime());
+          createTime: RPMTWUtil.getUTCTime(),
+          lastUpdate: RPMTWUtil.getUTCTime());
       await mod.insert();
 
       ModSourceInfo info = ModSourceInfo(
@@ -94,9 +94,7 @@ void main() async {
     });
   });
 
-  tearDownAll(() {
-    return TestUttily.tearDownAll();
-  });
+  tearDownAll(() => TestUttily.tearDownAll());
 
   Future<String> addTestVote() async {
     final TranslationVote vote = TranslationVote(
@@ -933,7 +931,7 @@ void main() async {
           storageUUID: Uuid().v4(), // TODO: change to real storage uuid
           path: 'assets/test/lang/en_us.json',
           type: SourceFileType.gsonLang,
-          sources: [sourceTextUUID]);
+          textUUIDs: [sourceTextUUID]);
       await file.insert();
 
       final response = await delete(
@@ -1024,15 +1022,15 @@ void main() async {
           type: SourceFileType.gsonLang,
           modSourceInfoUUID: mockModSourceInfoUUID,
           path: 'assets/test/lang/en_us.json',
-          sources: [testTextUUID],
+          textUUIDs: [testTextUUID],
           storageUUID: storageUUID);
       await file.insert();
 
       return file.uuid;
     }
 
-    group('add', () {
-      test('add source file (gson lang)', () async {
+    group('upload', () {
+      test('upload source file (gson lang)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1072,7 +1070,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (minecraft lang)', () async {
+      test('upload source file (minecraft lang)', () async {
         ModSourceInfo info = ModSourceInfo(uuid: Uuid().v4(), namespace: 'jei');
         await info.insert();
 
@@ -1111,7 +1109,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (patchouli book)', () async {
+      test('upload source file (patchouli book)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'twilightforest');
         await info.insert();
@@ -1154,7 +1152,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (plain text)', () async {
+      test('upload source file (plain text)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'iceandfire');
         await info.insert();
@@ -1195,7 +1193,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (custom json)', () async {
+      test('upload source file (custom json)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1238,7 +1236,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (not permission)', () async {
+      test('upload source file (not permission)', () async {
         final response = await post(Uri.parse(host + '/translate/source-file'),
             body: json.encode({
               'modSourceInfoUUID': 'test',
@@ -1257,7 +1255,7 @@ void main() async {
         expect(responseJson['message'], 'Forbidden');
       });
 
-      test('add source file (unknown mod source info)', () async {
+      test('upload source file (unknown mod source info)', () async {
         late String storageUUID;
         final _response = await post(Uri.parse(host + '/storage/create'),
             body: TestData.tinkersConstructLang.getFileString(),
@@ -1284,7 +1282,7 @@ void main() async {
         expect(responseJson['message'], contains('not found'));
       });
 
-      test('add source file (unknown storage)', () async {
+      test('upload source file (unknown storage)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1308,7 +1306,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (empty path)', () async {
+      test('upload source file (empty path)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1340,7 +1338,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (empty game versions)', () async {
+      test('upload source file (empty game versions)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1372,7 +1370,7 @@ void main() async {
         await info.delete();
       });
 
-      test('add source file (invalid file content)', () async {
+      test('upload source file (invalid file content)', () async {
         ModSourceInfo info =
             ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
         await info.insert();
@@ -1400,7 +1398,72 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson['message'], contains('Handle file failed'));
+        expect(responseJson['message'], contains('Failed to parse file'));
+        await info.delete();
+      });
+
+      test('upload duplicate source file', () async {
+        final ModSourceInfo info =
+            ModSourceInfo(uuid: Uuid().v4(), namespace: 'tconstruct');
+        await info.insert();
+
+        final String storageUUID = json.decode((await post(
+                Uri.parse(host + '/storage/create'),
+                body: TestData.tinkersConstructLang.getFileString(),
+                headers: {
+              'Content-Type': 'application/json',
+            }))
+            .body)['data']['uuid'];
+
+        final response1 = await post(Uri.parse(host + '/translate/source-file'),
+            body: json.encode({
+              'modSourceInfoUUID': info.uuid,
+              'storageUUID': storageUUID,
+              'path': 'assets/tconstruct/lang/en_us.json',
+              'type': 'gsonLang',
+              'gameVersions': ['1.16.5']
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $translationManagerToken'
+            });
+
+        final Map data1 = json.decode(response1.body)['data'];
+
+        expect(response1.statusCode, 200);
+        expect(data1['uuid'], isNotNull);
+        expect(data1['modSourceInfoUUID'], info.uuid);
+        expect(data1['storageUUID'], storageUUID);
+        expect(data1['path'], 'assets/tconstruct/lang/en_us.json');
+        expect(data1['type'], 'gsonLang');
+
+        final response2 = await post(Uri.parse(host + '/translate/source-file'),
+            body: json.encode({
+              'modSourceInfoUUID': info.uuid,
+              'storageUUID': storageUUID,
+              'path': 'assets/tconstruct/lang/en_us.json',
+              'type': 'gsonLang',
+              'gameVersions': ['1.16.5']
+            }),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $translationManagerToken'
+            });
+
+        final Map data2 = json.decode(response2.body)['data'];
+
+        expect(response2.statusCode, 200);
+        expect(data2['uuid'], isNotNull);
+        expect(data2['modSourceInfoUUID'], info.uuid);
+        expect(data2['storageUUID'], storageUUID);
+        expect(data2['path'], 'assets/tconstruct/lang/en_us.json');
+        expect(data2['type'], 'gsonLang');
+
+        // verify the duplicate file uuid is same
+        expect(data1['uuid'], data2['uuid']);
+
+        /// Delete the test source file.
+        await (await SourceFile.getByUUID(data1['uuid']))!.delete();
         await info.delete();
       });
     });
@@ -1734,7 +1797,7 @@ void main() async {
         Map responseJson = json.decode(response.body);
 
         expect(response.statusCode, 400);
-        expect(responseJson['message'], contains('Handle file failed'));
+        expect(responseJson['message'], contains('Failed to parse file'));
 
         /// Delete the test source file.
         await (await SourceFile.getByUUID(sourceFileUUID))!.delete();
@@ -1791,8 +1854,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
 
         final response =
@@ -1862,8 +1925,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
         ModSourceInfo info = ModSourceInfo(
             uuid: Uuid().v4(), namespace: 'test2', modUUID: mod.uuid);
@@ -2064,8 +2127,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
         String testTextUUID = await addTestSourceText();
 
@@ -2170,8 +2233,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
         ModSourceInfo info = ModSourceInfo(
             uuid: Uuid().v4(), namespace: 'test2', modUUID: mod.uuid);
@@ -2567,8 +2630,8 @@ void main() async {
             relationMods: [],
             integration: ModIntegrationPlatform(),
             side: [],
-            createTime: Utility.getUTCTime(),
-            lastUpdate: Utility.getUTCTime());
+            createTime: RPMTWUtil.getUTCTime(),
+            lastUpdate: RPMTWUtil.getUTCTime());
         await mod.insert();
 
         final response = await post(Uri.parse(host + '/translate/glossary'),
@@ -2870,8 +2933,8 @@ void main() async {
               relationMods: [],
               integration: ModIntegrationPlatform(),
               side: [],
-              createTime: Utility.getUTCTime(),
-              lastUpdate: Utility.getUTCTime());
+              createTime: RPMTWUtil.getUTCTime(),
+              lastUpdate: RPMTWUtil.getUTCTime());
           await mod.insert();
 
           final response = await patch(
@@ -3374,10 +3437,10 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              'startTime': Utility.getUTCTime()
+              'startTime': RPMTWUtil.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'endTime': RPMTWUtil.getUTCTime().millisecondsSinceEpoch,
               'sortType': 'translation'
             },
           ),
@@ -3430,17 +3493,17 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              'startTime': Utility.getUTCTime()
+              'startTime': RPMTWUtil.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'endTime': RPMTWUtil.getUTCTime().millisecondsSinceEpoch,
               'sortType': 'vote'
             },
           ),
           headers: {'Content-Type': 'application/json'});
 
       Map data = json.decode(response.body)['data'];
-      
+
       expect(response.statusCode, 200);
       expect(data['total'], 2);
       expect(data['data'][0]['translatedCount'], 0);
@@ -3475,10 +3538,10 @@ void main() async {
       final response = await post(Uri.parse(host + '/translate/report'),
           body: json.encode(
             {
-              'startTime': Utility.getUTCTime()
+              'startTime': RPMTWUtil.getUTCTime()
                   .subtract(Duration(days: 30))
                   .millisecondsSinceEpoch,
-              'endTime': Utility.getUTCTime().millisecondsSinceEpoch,
+              'endTime': RPMTWUtil.getUTCTime().millisecondsSinceEpoch,
               'sortType': 'translation',
               'limit': 100,
               'skip': 0
