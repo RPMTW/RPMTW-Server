@@ -85,16 +85,103 @@ class UniverseChatHandler {
     });
   }
 
-  void clientMessageHandler(
-      Socket client, Map<String, dynamic> headers, User? user) {
+  Future<void> clientMessageHandler(
+      Socket client, Map<String, dynamic> headers, User? user) async {
+    bool isInit = false;
+    final String? minecraftUUID = headers['minecraft_uuid']?[0];
+    final ip = InternetAddress(headers['CF-Connecting-IP'] ??
+        client.request.connectionInfo!.remoteAddress.address);
+
+    late String? minecraftUsername;
+    late bool isAuthenticated;
+    late BanInfo? banInfo;
+
+    /// Listen to the client's message.
+    client.on('clientMessage', (_data) async {
+      Future<void> handleMessage(dynamic sourceData) async {
+        final dataList = sourceData as List;
+        late final List bytes =
+            dataList.first is List ? dataList.first : dataList;
+        late final Function? ack =
+            dataList.last is Function ? dataList.last : null;
+
+        if (banInfo != null) {
+          return ack?.call(json.encode({
+            'status': 'banned',
+          }));
+        }
+        if (!isAuthenticated) {
+          return ack?.call(json.encode({
+            'status': 'unauthorized',
+          }));
+        }
+
+        final Map data = json.decode(utf8.decode((bytes).cast<int>()));
+        final String? message = data['message'];
+
+        if (message != null && message.isNotEmpty) {
+          String username = user?.username ?? minecraftUsername!;
+          final userUUID = user?.uuid;
+          final userAvatarStorageUUID = user?.avatarStorageUUID;
+          final String? nickname = data['nickname'];
+          final String? replyMessageUUID = data['replyMessageUUID'];
+
+          if (user?.uuid == '07dfced6-7d41-4660-b2b4-25ba1319b067') {
+            username = 'RPMTW 維護者兼創辦人';
+          }
+
+          late String? avatar;
+
+          if (userUUID != null && userAvatarStorageUUID != null) {
+            avatar =
+                '${kTestMode ? 'http://localhost:8080' : 'https://api.rpmtw.com:2096'}/storage/$userAvatarStorageUUID/download';
+          } else if (minecraftUUID != null) {
+            avatar = 'https://crafthead.net/avatar/$minecraftUUID.png';
+          }
+
+          if (replyMessageUUID != null) {
+            final replyMessage =
+                await UniverseChatMessage.getByUUID(replyMessageUUID);
+            if (replyMessage == null) {
+              return client.error('Invalid reply message UUID');
+            }
+          }
+
+          final msg = UniverseChatMessage(
+              uuid: Uuid().v4(),
+              username: username,
+              message: message,
+              nickname: nickname,
+              avatarUrl: avatar,
+              sentAt: RPMTWUtil.getUTCTime(),
+              ip: ip,
+              userType: user != null
+                  ? UniverseChatUserType.rpmtw
+                  : UniverseChatUserType.minecraft,
+              replyMessageUUID: replyMessageUUID);
+          sendMessage(msg, ack: ack);
+        }
+      }
+
+      try {
+        // Wait until the server is processed the client data.
+        while (true) {
+          if (isInit) {
+            await handleMessage(_data);
+            break;
+          } else {
+            await Future.delayed(Duration(milliseconds: 500));
+          }
+        }
+      } catch (e, stackTrace) {
+        logger.e(
+            '[Universe Chat] Throwing errors when handling client messages: $e',
+            null,
+            stackTrace);
+      }
+    });
+
     try {
-      List<bool> initCheckList = List<bool>.generate(2, (index) => false);
-
-      final String? minecraftUUID = headers['minecraft_uuid']?[0];
-      final InternetAddress ip = InternetAddress(headers['CF-Connecting-IP'] ??
-          client.request.connectionInfo!.remoteAddress.address);
-
-      String? minecraftUsername;
       bool minecraftUUIDValid = false;
 
       if (minecraftUUID != null) {
@@ -104,124 +191,28 @@ class UniverseChatHandler {
           minecraftUUIDValid = true;
           minecraftUsername = info.name;
         } else {
-          /// Verify that the minecraft account exists
-          http
-              .get(Uri.parse(
-                  'https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID'))
-              .then((response) {
-            if (response.statusCode == 200) {
-              Map data = json.decode(response.body);
-              minecraftUUIDValid = true;
-              minecraftUsername = data['name'];
-              _cachedMinecraftInfos.add(
-                  _CacheMinecraftInfo(uuid: minecraftUUID, name: data['name']));
-            }
-          });
+          // Verify the minecraft account
+          final response = await http.get(Uri.parse(
+              'https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID'));
+
+          if (response.statusCode == 200) {
+            Map data = json.decode(response.body);
+            minecraftUUIDValid = true;
+            minecraftUsername = data['name'];
+            _cachedMinecraftInfos.add(
+                _CacheMinecraftInfo(uuid: minecraftUUID, name: data['name']));
+          }
         }
       }
 
-      initCheckList[0] = true;
+      banInfo = await BanInfo.getByIP(ip.address);
+      isAuthenticated =
+          (user != null) || (minecraftUUIDValid && minecraftUsername != null);
 
-      BanInfo? banInfo;
-      fetch() async {
-        banInfo = await BanInfo.getByIP(ip.address);
-        initCheckList[1] = true;
-      }
-
-      fetch();
-
-      bool isInit() => initCheckList.reduce((a, b) => a && b);
-      bool isAuthenticated() =>
-          user != null || (minecraftUUIDValid && minecraftUsername != null);
-      List<dynamic> queue = [];
-
-      client.on('clientMessage', (_data) async {
-        Future<void> handle(dynamic sourceData) async {
-          final List dataList = sourceData as List;
-          late final List bytes =
-              dataList.first is List ? dataList.first : dataList;
-          late final Function? ack =
-              dataList.last is Function ? dataList.last : null;
-
-          if (banInfo != null) {
-            return ack?.call(json.encode({
-              'status': 'banned',
-            }));
-          }
-          if (!isAuthenticated()) {
-            return ack?.call(json.encode({
-              'status': 'unauthorized',
-            }));
-          }
-
-          Map data = json.decode(utf8.decode((bytes).cast<int>()));
-          String? message = data['message'];
-
-          if (message != null && message.isNotEmpty) {
-            String username = user?.username ?? minecraftUsername!;
-            String? userUUID = user?.uuid;
-            String? userAvatarStorageUUID = user?.avatarStorageUUID;
-            String? nickname = data['nickname'];
-            String? replyMessageUUID = data['replyMessageUUID'];
-
-            if (user?.uuid == '07dfced6-7d41-4660-b2b4-25ba1319b067') {
-              username = 'RPMTW 維護者兼創辦人';
-            }
-
-            String? avatar;
-
-            if (userUUID != null && userAvatarStorageUUID != null) {
-              avatar =
-                  '${kTestMode ? 'http://localhost:8080' : 'https://api.rpmtw.com:2096'}/storage/$userAvatarStorageUUID/download';
-            } else if (minecraftUUID != null) {
-              avatar = 'https://crafthead.net/avatar/$minecraftUUID.png';
-            }
-
-            if (replyMessageUUID != null) {
-              UniverseChatMessage? replyMessage =
-                  await UniverseChatMessage.getByUUID(replyMessageUUID);
-              if (replyMessage == null) {
-                return client.error('Invalid reply message UUID');
-              }
-            }
-
-            UniverseChatMessage msg = UniverseChatMessage(
-                uuid: Uuid().v4(),
-                username: username,
-                message: message,
-                nickname: nickname,
-                avatarUrl: avatar,
-                sentAt: RPMTWUtil.getUTCTime(),
-                ip: ip,
-                userType: user != null
-                    ? UniverseChatUserType.rpmtw
-                    : UniverseChatUserType.minecraft,
-                replyMessageUUID: replyMessageUUID);
-            sendMessage(msg, ack: ack);
-          }
-        }
-
-        /// The server has not completed the initialization process and therefore does not process the message.
-        if (!isInit()) {
-          queue.add(_data);
-          while (true) {
-            if (isInit()) {
-              while (queue.isNotEmpty) {
-                handle(queue.removeAt(0));
-              }
-              break;
-            } else {
-              await Future.delayed(Duration(milliseconds: 500));
-            }
-          }
-        } else {
-          await handle(_data);
-        }
-      });
+      isInit = true;
     } catch (e, stackTrace) {
-      // coverage:ignore-line
       logger.e(
-          '[Universe Chat] Throwing errors when handling client messages: $e',
+          '[Universe Chat] Throwing errors when handling client connect: $e',
           null,
           stackTrace);
     }

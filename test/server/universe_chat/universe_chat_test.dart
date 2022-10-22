@@ -107,7 +107,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 4);
+      await wait(scale: 2);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -148,7 +148,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 4);
+      await wait(scale: 2);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, true);
@@ -178,7 +178,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3.5);
+      await wait(scale: 2);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, true);
@@ -206,7 +206,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3.5);
+      await wait(scale: 2);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, true);
@@ -249,7 +249,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 4.5);
+      await wait(scale: 2);
 
       expect(errors.isEmpty, true);
       expect(messages.isEmpty, false);
@@ -282,7 +282,7 @@ void main() async {
 
       socket = socket.connect();
 
-      await wait(scale: 3.5);
+      await wait(scale: 2);
 
       expect(errors.isEmpty, false);
       expect(errors.first, contains('Invalid'));
