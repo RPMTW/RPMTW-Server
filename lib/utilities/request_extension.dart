@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/auth_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
@@ -84,6 +86,13 @@ extension RouterExtension on Router {
 
                 /// 寫入新的登入IP
                 await _newUser.update();
+              }
+
+              BanInfo? info = await BanInfo.isBanned(BanCategory.permanent,
+                  ip: clientIP, userUUID: user.uuid);
+              if (info != null) {
+                return APIResponse.banned(
+                    reason: info.reason, category: info.category);
               }
 
               request = request

@@ -43,13 +43,13 @@ class AuthHandler {
         return (request) {
           return Future.sync(() async {
             try {
-              List<BanInfo> banInfos = await BanInfo.getByIP(request.ip);
               // Check the user is banned or not
-              for (final info in banInfos) {
-                if (info.category == BanCategory.permanent) {
-                  return APIResponse.banned(
-                      reason: info.reason, category: info.category);
-                }
+              BanInfo? info =
+                  await BanInfo.isBanned(BanCategory.permanent, ip: request.ip);
+
+              if (info != null) {
+                return APIResponse.banned(
+                    reason: info.reason, category: info.category);
               }
             } catch (e) {
               return APIResponse.internalServerError();

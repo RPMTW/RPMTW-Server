@@ -199,19 +199,39 @@ void main() async {
       expect(response.statusCode, 400);
       expect(data['message'], contains('already been used'));
     });
-    test('user ip is banned', () async {
-      /// 由於目前尚未新增任何觸發 Ban 的條件，因此暫時手動新增一個測試用假資料
+    test('the ip is banned', () async {
       final BanInfo banInfo = BanInfo(
           ip: '127.0.0.1',
           reason: 'test ban',
           category: BanCategory.permanent,
+          userUUID: [],
+          createdAt: DateTime.now(),
+          uuid: Uuid().v4());
+      await banInfo.insert();
+
+      final response = await get(Uri.parse(host + '/'), headers: {});
+      Map data = json.decode(response.body);
+
+      expect(response.statusCode, 403);
+      expect(data['message'], contains('Banned'));
+      expect(data['data']['reason'], contains('test ban'));
+      expect(data['data']['category'], contains('permanent'));
+
+      await banInfo.delete();
+    });
+
+    test('the user is banned', () async {
+      final BanInfo banInfo = BanInfo(
+          reason: 'test ban',
+          category: BanCategory.permanent,
           userUUID: [testUser.uuid],
+          createdAt: DateTime.now(),
           uuid: Uuid().v4());
       await banInfo.insert();
 
       final response = await get(Uri.parse(host + '/auth/user/me'), headers: {
         'Authorization':
-            'Bearer ${AuthHandler.generateAuthToken(testUser.uuid)}'
+            'Bearer ${AuthHandler.generateAuthToken(testUser.uuid)}',
       });
       Map data = json.decode(response.body);
 
@@ -219,6 +239,8 @@ void main() async {
       expect(data['message'], contains('Banned'));
       expect(data['data']['reason'], contains('test ban'));
       expect(data['data']['category'], contains('permanent'));
+
+      await banInfo.delete();
     });
   });
 }

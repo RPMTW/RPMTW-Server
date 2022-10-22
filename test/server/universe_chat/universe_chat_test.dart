@@ -134,6 +134,7 @@ void main() async {
           reason: 'Sending fraudulent messages in universe chat',
           category: BanCategory.universeChat,
           userUUID: [],
+          createdAt: DateTime.now(),
           uuid: Uuid().v4());
       await _info.insert();
 

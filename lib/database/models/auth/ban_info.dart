@@ -11,39 +11,28 @@ class BanInfo extends DBModel {
     IndexField('ip', unique: true),
   ];
 
-  /// 被封鎖的 IP
-  final String ip;
+  /// The IP address of the banned user
+  final String? ip;
 
-  /// 封鎖原因
   final String reason;
 
   final BanCategory category;
 
-  /// 使用此 IP 登入的使用者帳號 UUID
   final List<String> userUUID;
 
+  final DateTime createdAt;
+
+  final String? operatorUUID;
+
   const BanInfo({
-    required this.ip,
+    this.ip,
     required this.reason,
     required this.category,
     required this.userUUID,
+    required this.createdAt,
+    this.operatorUUID,
     required String uuid,
   }) : super(uuid: uuid);
-
-  BanInfo copyWith({
-    String? ip,
-    String? reason,
-    BanCategory? category,
-    List<String>? userUUID,
-  }) {
-    return BanInfo(
-      ip: ip ?? this.ip,
-      reason: reason ?? this.reason,
-      category: category ?? this.category,
-      userUUID: userUUID ?? this.userUUID,
-      uuid: uuid,
-    );
-  }
 
   @override
   Map<String, dynamic> toMap() {
@@ -52,6 +41,20 @@ class BanInfo extends DBModel {
       'reason': reason,
       'category': category.name,
       'userUUID': userUUID,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'operatorUUID': operatorUUID,
+      'uuid': uuid,
+    };
+  }
+
+  @override
+  Map<String, dynamic> outputMap() {
+    return {
+      'reason': reason,
+      'category': category.name,
+      'userUUID': userUUID,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'operatorUUID': operatorUUID,
       'uuid': uuid,
     };
   }
@@ -62,10 +65,37 @@ class BanInfo extends DBModel {
       reason: map['reason'],
       category: BanCategory.values.byName(map['category']),
       userUUID: List<String>.from(map['userUUID']),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
+      operatorUUID: map['operatorUUID'],
       uuid: map['uuid']!,
     );
   }
 
+  static Future<BanInfo?> getByUUID(String uuid) async =>
+      DataBase.instance.getModelByUUID<BanInfo>(uuid);
+
+  static Future<List<BanInfo>> getByUserUUID(String userUUID) async =>
+      DataBase.instance
+          .getModelsByField<BanInfo>([ModelField('userUUID', userUUID)]);
+
   static Future<List<BanInfo>> getByIP(String ip) async =>
       DataBase.instance.getModelsByField<BanInfo>([ModelField('ip', ip)]);
+
+  static Future<BanInfo?> isBanned(BanCategory category,
+      {String? ip, String? userUUID}) async {
+    List<BanInfo> bans = [];
+    if (ip != null) {
+      bans.addAll(await getByIP(ip));
+    }
+    if (userUUID != null) {
+      bans.addAll(await getByUserUUID(userUUID));
+    }
+
+    try {
+      return bans.firstWhere((ban) =>
+          ban.category == category || ban.category == BanCategory.permanent);
+    } catch (e) {
+      return null;
+    }
+  }
 }
