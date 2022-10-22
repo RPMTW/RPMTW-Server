@@ -137,6 +137,8 @@ class UniverseChatHandler {
                 '${kTestMode ? 'http://localhost:8080' : 'https://api.rpmtw.com:2096'}/storage/$userAvatarStorageUUID/download';
           } else if (minecraftUUID != null) {
             avatar = 'https://crafthead.net/avatar/$minecraftUUID.png';
+          } else {
+            avatar = null;
           }
 
           if (replyMessageUUID != null) {
