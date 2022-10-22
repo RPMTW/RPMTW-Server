@@ -2,8 +2,11 @@ import 'package:dbcrypt/dbcrypt.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/database.dart';
 import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/auth_route.dart';
+import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/database/models/storage/storage.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
@@ -29,17 +32,13 @@ class AuthRoute extends APIRoute {
       if (!emailValidatedResult.isValid) {
         return APIResponse.badRequest(message: emailValidatedResult.message);
       }
-      DBCrypt dbCrypt = DBCrypt();
-      String salt =
-          dbCrypt.gensaltWithRounds(AuthHandler.saltRounds); // 生成鹽，加密次數為10次
-      String hash = dbCrypt.hashpw(password, salt); //使用加鹽算法將明文密碼生成為雜湊值
 
       User user = User(
           username: data.fields['username'],
           email: email,
           avatarStorageUUID: data.fields['avatarStorageUUID'],
           emailVerified: false,
-          passwordHash: hash,
+          passwordHash: AuthHandler.generatePasswordHash(password),
           uuid: Uuid().v4(),
           loginIPs: [req.ip]);
 
@@ -179,7 +178,7 @@ class AuthRoute extends APIRoute {
     {
       'uuid': 'e5634ad4-529d-42d4-9a56-045c5f5888cd',
       'password': 'test'
-    } 
+    }
     */
     router.postRoute('/get-token', (req, data) async {
       String uuid = data.fields['uuid'];
@@ -212,5 +211,45 @@ class AuthRoute extends APIRoute {
         'isValid': isValid,
       });
     }, requiredFields: ['authCode', 'email']);
+
+    // Get ban info
+    router.getRoute('/ban/<uuid>', (req, data) async {
+      final String uuid = data.fields['uuid']!;
+      BanInfo? ban = await BanInfo.getByUUID(uuid);
+      if (ban == null) {
+        return APIResponse.modelNotFound<BanInfo>();
+      }
+
+      return APIResponse.success(data: ban.outputMap());
+    }, authConfig: AuthConfig(role: UserRoleType.admin));
+    // Ban a user by ip or user uuid
+    router.postRoute('/ban', (req, data) async {
+      final operator = req.user!;
+      final banned = await User.getByUUID(data.fields['banned']!);
+
+      if (banned == null) {
+        return APIResponse.modelNotFound<User>();
+      }
+
+      final String reason = data.fields['reason']!;
+      final category = BanCategory.values.byName(data.fields['category']!);
+
+      // final info = BanInfo(
+      //     ip: ip,
+      //     reason: reason,
+      //     category: category,
+      //     userUUID: [banned.uuid],
+      //     createdAt: DateTime.now(),
+      //     operatorUUID: operator.uuid,
+      //     uuid: Uuid().v4());
+
+      // await info.insert();
+
+      // return APIResponse.success(data: info.outputMap());
+    }, authConfig: AuthConfig());
+    // Search the ban infos
+    router.getRoute('/bans', (req, data) async {
+      bool canAccess;
+    });
   }
 }

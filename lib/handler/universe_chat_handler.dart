@@ -5,6 +5,7 @@ import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/utilities/request_extension.dart';
 import 'package:socket_io/socket_io.dart';
@@ -127,7 +128,14 @@ class UniverseChatHandler {
 
       BanInfo? banInfo;
       fetch() async {
-        banInfo = await BanInfo.getByIP(ip.address);
+        List<BanInfo> banInfos = await BanInfo.getByIP(ip.address);
+        for (final info in banInfos) {
+          if (info.category == BanCategory.universeChat ||
+              info.category == BanCategory.permanent) {
+            banInfo = info;
+            break;
+          }
+        }
         initCheckList[1] = true;
       }
 
@@ -304,6 +312,7 @@ class UniverseChatHandler {
 class _CacheMinecraftInfo {
   final String uuid;
   final String name;
+
   const _CacheMinecraftInfo({
     required this.uuid,
     required this.name,

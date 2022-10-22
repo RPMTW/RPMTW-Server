@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_server/database/models/auth/auth_code_.dart';
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';
+import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/handler/auth_handler.dart';
 import 'package:test/test.dart';
 import '../../test_utility.dart';
@@ -42,8 +44,19 @@ void main() async {
     final String username = 'helloworld';
 
     late String avatarStorageUUID;
-    late String userUUID;
-    late String token;
+    late User testUser;
+
+    setUpAll(() async {
+      testUser = User(
+          uuid: Uuid().v4(),
+          email: email,
+          username: username,
+          passwordHash: AuthHandler.generatePasswordHash(password),
+          emailVerified: false,
+          loginIPs: ['127.0.0.1']);
+      await testUser.insert();
+    });
+
     test('create avatar storage', () async {
       Response rpmtwLogoResponse = await get(Uri.parse(
           'https://raw.githubusercontent.com/RPMTW/RPMTW-Data/main/logo/rpmtw-logo.png'));
@@ -60,7 +73,7 @@ void main() async {
       final response = await post(Uri.parse(host + '/auth/user/create'),
           body: json.encode({
             'password': password,
-            'email': email,
+            'email': 'helloworld2@gmail.com',
             'username': username,
             'avatarStorageUUID': avatarStorageUUID
           }),
@@ -70,21 +83,19 @@ void main() async {
 
       expect(response.statusCode, 200);
       expect(data['avatarStorageUUID'], avatarStorageUUID);
-      expect(data['email'], email);
+      expect(data['email'], 'helloworld2@gmail.com');
       expect(data['username'], username);
       expect(data['emailVerified'], isFalse);
-
-      userUUID = data['uuid'];
     });
     test('view user by uuid', () async {
       final response = await get(
-        Uri.parse(host + '/auth/user/$userUUID'),
+        Uri.parse(host + '/auth/user/${testUser.uuid}'),
       );
 
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
-      expect(data['uuid'], userUUID);
+      expect(data['uuid'], testUser.uuid);
       expect(data['email'], email);
       expect(data['username'], username);
       expect(data['emailVerified'], isFalse);
@@ -98,7 +109,7 @@ void main() async {
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
-      expect(data['uuid'], userUUID);
+      expect(data['uuid'], testUser.uuid);
       expect(data['email'], email);
       expect(data['username'], username);
       expect(data['emailVerified'], isFalse);
@@ -107,29 +118,28 @@ void main() async {
       final response = await post(
         Uri.parse(host + '/auth/get-token'),
         body: json.encode({
-          'uuid': userUUID,
+          'uuid': testUser.uuid,
           'password': password,
         }),
       );
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
-      expect(data['uuid'], userUUID);
+      expect(data['uuid'], testUser.uuid);
       expect(data['email'], email);
       expect(data['username'], username);
       expect(data['emailVerified'], isFalse);
       expect(data['token'], isNotNull);
-
-      token = data['token'];
     });
     test('view user by token', () async {
       final response = await get(Uri.parse(host + '/auth/user/me'), headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization':
+            'Bearer ${AuthHandler.generateAuthToken(testUser.uuid)}',
       });
       Map data = json.decode(response.body)['data'];
 
       expect(response.statusCode, 200);
-      expect(data['uuid'], userUUID);
+      expect(data['uuid'], testUser.uuid);
       expect(data['email'], email);
       expect(data['username'], username);
       expect(data['emailVerified'], isFalse);
@@ -142,7 +152,7 @@ void main() async {
     test('update user', () async {
       final response1 = await post(Uri.parse(host + '/auth/user/me/update'),
           body: json.encode({
-            'uuid': userUUID,
+            'uuid': testUser.uuid,
             'password': password,
             'newPassword': newPassword,
             'newEmail': newEmail,
@@ -151,24 +161,25 @@ void main() async {
           }),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token'
+            'Authorization':
+                'Bearer ${AuthHandler.generateAuthToken(testUser.uuid)}'
           });
 
       Map data1 = json.decode(response1.body)['data'];
       expect(response1.statusCode, 200);
-      expect(data1['uuid'], userUUID);
+      expect(data1['uuid'], testUser.uuid);
       expect(data1['email'], newEmail);
       expect(data1['username'], newUsername);
       expect(data1['emailVerified'], isFalse);
 
       /// Check if the user info is updated
       final response2 = await get(
-        Uri.parse(host + '/auth/user/$userUUID'),
+        Uri.parse(host + '/auth/user/${testUser.uuid}'),
       );
       Map data2 = json.decode(response2.body)['data'];
 
       expect(response2.statusCode, 200);
-      expect(data2['uuid'], userUUID);
+      expect(data2['uuid'], testUser.uuid);
       expect(data2['email'], newEmail);
       expect(data2['username'], newUsername);
       expect(data2['emailVerified'], isFalse);
@@ -188,23 +199,48 @@ void main() async {
       expect(response.statusCode, 400);
       expect(data['message'], contains('already been used'));
     });
-    test('user ip is banned', () async {
-      String ip = (await get(Uri.parse('https://api.ipify.org'))).body;
+    test('the ip is banned', () async {
+      final BanInfo banInfo = BanInfo(
+          ip: '127.0.0.1',
+          reason: 'test ban',
+          category: BanCategory.permanent,
+          userUUID: [],
+          createdAt: DateTime.now(),
+          uuid: Uuid().v4());
+      await banInfo.insert();
 
-      /// 由於目前尚未新增任何觸發 Ban 的條件，因此暫時手動新增一個測試用假資料
-      BanInfo _info = BanInfo(
-          ip: ip, reason: 'test ban', userUUID: [userUUID], uuid: Uuid().v4());
-      await _info.insert();
+      final response = await get(Uri.parse(host + '/'), headers: {});
+      Map data = json.decode(response.body);
+
+      expect(response.statusCode, 403);
+      expect(data['message'], contains('Banned'));
+      expect(data['data']['reason'], contains('test ban'));
+      expect(data['data']['category'], contains('permanent'));
+
+      await banInfo.delete();
+    });
+
+    test('the user is banned', () async {
+      final BanInfo banInfo = BanInfo(
+          reason: 'test ban',
+          category: BanCategory.permanent,
+          userUUID: [testUser.uuid],
+          createdAt: DateTime.now(),
+          uuid: Uuid().v4());
+      await banInfo.insert();
 
       final response = await get(Uri.parse(host + '/auth/user/me'), headers: {
-        'X-Forwarded-For': ip,
-        'Authorization': 'Bearer $token',
+        'Authorization':
+            'Bearer ${AuthHandler.generateAuthToken(testUser.uuid)}',
       });
       Map data = json.decode(response.body);
 
       expect(response.statusCode, 403);
-      expect(data['message'], contains('Ban'));
+      expect(data['message'], contains('Banned'));
       expect(data['data']['reason'], contains('test ban'));
+      expect(data['data']['category'], contains('permanent'));
+
+      await banInfo.delete();
     });
   });
 }

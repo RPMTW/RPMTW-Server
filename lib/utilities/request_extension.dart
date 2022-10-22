@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:http/http.dart' as http;
+import 'package:rpmtw_server/database/models/auth/ban_category.dart';
+import 'package:rpmtw_server/database/models/auth/ban_info.dart';
 import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/auth_route.dart';
 import 'package:rpmtw_server/utilities/api_response.dart';
@@ -14,15 +16,10 @@ import 'package:shelf_router/shelf_router.dart';
 
 extension RequestExtension on Request {
   String get ip {
-    String? xForwardedFor = headers['X-Forwarded-For'];
-    if (xForwardedFor != null && kTestMode) {
-      return xForwardedFor;
+    String? cfIP = headers['CF-Connecting-IP'];
+    if (cfIP != null) {
+      return cfIP;
     } else {
-      String? cfIP = headers['CF-Connecting-IP'];
-      if (cfIP != null) {
-        return cfIP;
-      }
-
       HttpConnectionInfo connectionInfo =
           context['shelf.io.connection_info'] as HttpConnectionInfo;
       InternetAddress internetAddress = connectionInfo.remoteAddress;
@@ -89,6 +86,13 @@ extension RouterExtension on Router {
 
                 /// 寫入新的登入IP
                 await _newUser.update();
+              }
+
+              BanInfo? info = await BanInfo.isBanned(BanCategory.permanent,
+                  ip: clientIP, userUUID: user.uuid);
+              if (info != null) {
+                return APIResponse.banned(
+                    reason: info.reason, category: info.category);
               }
 
               request = request
@@ -184,6 +188,7 @@ class RouteData {
   final Uint8List bytes;
 
   Stream<List<int>> get byteStream => http.ByteStream.fromBytes(bytes);
+
   String get body => utf8.decode(bytes);
 
   RouteData(this.fields, this.bytes);

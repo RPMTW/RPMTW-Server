@@ -2,6 +2,7 @@ import 'package:shelf_router/shelf_router.dart';
 
 abstract class APIRoute {
   String get routeName;
+
   void router(Router router) => throw UnimplementedError();
 
   void register(Router mainRouter) {
