@@ -103,27 +103,24 @@ class UniverseChatHandler {
         if (info != null) {
           minecraftUUIDValid = true;
           minecraftUsername = info.name;
-          initCheckList[0] = true;
+        } else {
+          /// Verify that the minecraft account exists
+          http
+              .get(Uri.parse(
+                  'https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID'))
+              .then((response) {
+            if (response.statusCode == 200) {
+              Map data = json.decode(response.body);
+              minecraftUUIDValid = true;
+              minecraftUsername = data['name'];
+              _cachedMinecraftInfos.add(
+                  _CacheMinecraftInfo(uuid: minecraftUUID, name: data['name']));
+            }
+          });
         }
-
-        /// Verify that the minecraft account exists
-        http
-            .get(Uri.parse(
-                'https://sessionserver.mojang.com/session/minecraft/profile/$minecraftUUID'))
-            .then((response) {
-          if (response.statusCode == 200) {
-            Map data = json.decode(response.body);
-            minecraftUUIDValid = true;
-            minecraftUsername = data['name'];
-            _cachedMinecraftInfos.add(
-                _CacheMinecraftInfo(uuid: minecraftUUID, name: data['name']));
-          }
-
-          initCheckList[0] = true;
-        });
-      } else {
-        initCheckList[0] = true;
       }
+
+      initCheckList[0] = true;
 
       BanInfo? banInfo;
       fetch() async {
@@ -163,6 +160,7 @@ class UniverseChatHandler {
           if (message != null && message.isNotEmpty) {
             String username = user?.username ?? minecraftUsername!;
             String? userUUID = user?.uuid;
+            String? userAvatarStorageUUID = user?.avatarStorageUUID;
             String? nickname = data['nickname'];
             String? replyMessageUUID = data['replyMessageUUID'];
 
@@ -170,11 +168,11 @@ class UniverseChatHandler {
               username = 'RPMTW 維護者兼創辦人';
             }
 
-            late String avatar;
+            String? avatar;
 
-            if (userUUID != null) {
+            if (userUUID != null && userAvatarStorageUUID != null) {
               avatar =
-                  '${kTestMode ? 'http://localhost:8080' : 'https://api.rpmtw.com:2096'}/storage/$userUUID/download';
+                  '${kTestMode ? 'http://localhost:8080' : 'https://api.rpmtw.com:2096'}/storage/$userAvatarStorageUUID/download';
             } else if (minecraftUUID != null) {
               avatar = 'https://crafthead.net/avatar/$minecraftUUID.png';
             }
