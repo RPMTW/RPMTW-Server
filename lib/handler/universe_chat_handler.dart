@@ -98,12 +98,10 @@ class UniverseChatHandler {
 
     /// Listen to the client's message.
     client.on('clientMessage', (_data) async {
-      Future<void> handleMessage(dynamic sourceData) async {
-        final dataList = sourceData as List;
-        late final List bytes =
-            dataList.first is List ? dataList.first : dataList;
-        late final Function? ack =
-            dataList.last is Function ? dataList.last : null;
+      Future<void> handleMessage() async {
+        final dataList = _data as List;
+        final List bytes = dataList.first is List ? dataList.first : dataList;
+        final Function? ack = dataList.last is Function ? dataList.last : null;
 
         if (banInfo != null) {
           return ack?.call(json.encode({
@@ -169,7 +167,7 @@ class UniverseChatHandler {
         // Wait until the server is processed the client data.
         while (true) {
           if (isInit) {
-            await handleMessage(_data);
+            await handleMessage();
             break;
           } else {
             await Future.delayed(Duration(milliseconds: 500));
@@ -241,9 +239,7 @@ class UniverseChatHandler {
         if (message == null ||
             message.isEmpty ||
             username == null ||
-            username.isEmpty ||
-            avatarUrl == null ||
-            avatarUrl.isEmpty) return client.error('Invalid discord message');
+            username.isEmpty) return client.error('Invalid discord message');
 
         if (replyMessageUUID != null) {
           UniverseChatMessage? replyMessage =
