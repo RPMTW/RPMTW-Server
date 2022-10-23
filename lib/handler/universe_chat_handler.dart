@@ -228,7 +228,10 @@ class UniverseChatHandler {
       /// Verify that the message is sent by the [RPMTW Discord Bot](https://github.com/RPMTW/RPMTW-Discord-Bot) and not a forged message from someone else.
       if (!isValid) return;
       client.on('discordMessage', (_data) async {
-        Map data = json.decode(utf8.decode(List<int>.from(_data)));
+        final dataList = _data as List;
+        final List bytes = dataList.first is List ? dataList.first : dataList;
+        final Function? ack = dataList.last is Function ? dataList.last : null;
+        Map data = json.decode(utf8.decode(bytes.cast<int>()));
 
         String? message = data['message'];
         String? username = data['username'];
@@ -260,6 +263,8 @@ class UniverseChatHandler {
             userType: UniverseChatUserType.discord,
             replyMessageUUID: replyMessageUUID);
         sendMessage(msg);
+
+        ack?.call(msg.uuid);
       });
     } catch (e, stackTrace) {
       // coverage:ignore-line
