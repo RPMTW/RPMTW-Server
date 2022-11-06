@@ -69,6 +69,7 @@ void main() async {
         UniverseChatMessage msg = UniverseChatMessage(
             uuid: Uuid().v4(),
             username: 'SiongSng',
+            userIdentifier: 'minecraft:$minecraftUUID',
             message: message,
             avatarUrl: 'https://crafthead.net/avatar/$minecraftUUID.png',
             sentAt: RPMTWUtil.getUTCTime(),
@@ -113,6 +114,8 @@ void main() async {
       expect(messages.isEmpty, false);
       expect(messages.first['message'], message);
       expect(messages.first['username'], contains('SiongSng'));
+      expect(messages.first['userIdentifier'],
+          contains('minecraft:$minecraftUUID'));
       expect(messages.first['nickname'], null);
       expect(messages.first['avatarUrl'], contains(minecraftUUID));
       expect(messages.first['userType'], 'minecraft');
@@ -255,6 +258,8 @@ void main() async {
       expect(messages.isEmpty, false);
       expect(messages.first['message'], message);
       expect(messages.first['username'], contains('SiongSng'));
+      expect(messages.first['userIdentifier'],
+          contains('minecraft:$minecraftUUID'));
       expect(messages.first['nickname'], null);
       expect(messages.first['avatarUrl'], contains(minecraftUUID));
       expect(messages.first['userType'], 'minecraft');
@@ -347,6 +352,8 @@ void main() async {
     expect(messages.isEmpty, false);
     expect(messages.first['message'], message);
     expect(messages.first['username'], contains('test'));
+    expect(
+        messages.first['userIdentifier'], contains('rpmtw:${_body['uuid']}'));
     expect(messages.first['nickname'], null);
     expect(messages.first['avatarUrl'], null);
     expect(messages.first['userType'], 'rpmtw');
@@ -466,6 +473,7 @@ void main() async {
             utf8.encode(json.encode({
               'message': message,
               'username': username,
+              'userId': '645588343228334080',
               'nickname': nickname,
               'avatarUrl': avatarUrl
             })));
@@ -481,6 +489,8 @@ void main() async {
       expect(messages.isNotEmpty, true);
       expect(messages.first['message'], message);
       expect(messages.first['username'], username);
+      expect(messages.first['userIdentifier'],
+          contains('discord:645588343228334080'));
       expect(messages.first['nickname'], nickname);
       expect(messages.first['avatarUrl'], avatarUrl);
       expect(messages.first['userType'], 'discord');
@@ -500,6 +510,7 @@ void main() async {
             utf8.encode(json.encode({
               'message': message,
               'username': username,
+              'userId': '645588343228334080',
               'nickname': nickname,
               'avatarUrl': avatarUrl,
               'replyMessageUUID': messageUUID
@@ -516,6 +527,8 @@ void main() async {
       expect(messages.isNotEmpty, true);
       expect(messages.first['message'], message);
       expect(messages.first['username'], username);
+      expect(messages.first['userIdentifier'],
+          contains('discord:645588343228334080'));
       expect(messages.first['nickname'], nickname);
       expect(messages.first['avatarUrl'], avatarUrl);
       expect(messages.first['userType'], 'discord');
@@ -534,6 +547,7 @@ void main() async {
             utf8.encode(json.encode({
               'message': message,
               'username': username,
+              'userId': '645588343228334080',
               'nickname': nickname,
               'avatarUrl': avatarUrl,
               'replyMessageUUID': 'test'
