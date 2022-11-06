@@ -125,7 +125,7 @@ class UniverseChatHandler {
           final String? nickname = data['nickname'];
           final String? replyMessageUUID = data['replyMessageUUID'];
 
-          if (user?.uuid == '07dfced6-7d41-4660-b2b4-25ba1319b067') {
+          if (user?.uuid == 'ed16717e-9bd7-4055-80f2-a0104baa3f9a') {
             username = 'RPMTW 維護者兼創辦人';
           }
 
