@@ -14,6 +14,11 @@ class UniverseChatMessage extends DBModel {
   /// Username (not a nickname, may be the username of RPMTW account, Minecraft account or Discord account)
   final String username;
 
+  /// User identifier
+  /// May be the RPMTW account Uuid, Minecraft account Uuid or Discord account Id
+  /// Format: `rpmtw:uuid`, `minecraft:uuid` or `discord:id`
+  final String userIdentifier;
+
   /// message content
   final String message;
 
@@ -35,6 +40,7 @@ class UniverseChatMessage extends DBModel {
   const UniverseChatMessage({
     required String uuid,
     required this.username,
+    required this.userIdentifier,
     required this.message,
     this.nickname,
     this.avatarUrl,
@@ -44,34 +50,12 @@ class UniverseChatMessage extends DBModel {
     this.replyMessageUUID,
   }) : super(uuid: uuid);
 
-  UniverseChatMessage copyWith({
-    String? username,
-    String? message,
-    String? nickname,
-    String? avatarUrl,
-    DateTime? sentAt,
-    InternetAddress? ip,
-    UniverseChatUserType? userType,
-    String? replyMessageUUID,
-  }) {
-    return UniverseChatMessage(
-      uuid: uuid,
-      username: username ?? this.username,
-      message: message ?? this.message,
-      nickname: nickname ?? this.nickname,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      sentAt: sentAt ?? this.sentAt,
-      ip: ip ?? this.ip,
-      userType: userType ?? this.userType,
-      replyMessageUUID: replyMessageUUID ?? this.replyMessageUUID,
-    );
-  }
-
   @override
   Map<String, dynamic> toMap() {
     return {
       'uuid': uuid,
       'username': username,
+      'userIdentifier': userIdentifier,
       'message': message,
       'nickname': nickname,
       'avatarUrl': avatarUrl,
@@ -87,6 +71,7 @@ class UniverseChatMessage extends DBModel {
     return {
       'uuid': uuid,
       'username': username,
+      'userIdentifier': userIdentifier,
       'message': message,
       'nickname': nickname,
       'avatarUrl': avatarUrl,
@@ -100,6 +85,7 @@ class UniverseChatMessage extends DBModel {
     return UniverseChatMessage(
       uuid: map['uuid'],
       username: map['username'],
+      userIdentifier: map['userIdentifier'],
       message: map['message'],
       nickname: map['nickname'],
       avatarUrl: map['avatarUrl'],

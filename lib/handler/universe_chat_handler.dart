@@ -119,6 +119,7 @@ class UniverseChatHandler {
 
         if (message != null && message.isNotEmpty) {
           String username = user?.username ?? minecraftUsername!;
+          late String userIdentifier;
           final userUUID = user?.uuid;
           final userAvatarStorageUUID = user?.avatarStorageUUID;
           final String? nickname = data['nickname'];
@@ -126,6 +127,12 @@ class UniverseChatHandler {
 
           if (user?.uuid == '07dfced6-7d41-4660-b2b4-25ba1319b067') {
             username = 'RPMTW 維護者兼創辦人';
+          }
+
+          if (userUUID != null) {
+            userIdentifier = 'rpmtw:$userUUID';
+          } else if (minecraftUUID != null) {
+            userIdentifier = 'minecraft:$minecraftUUID';
           }
 
           late String? avatar;
@@ -150,6 +157,7 @@ class UniverseChatHandler {
           final msg = UniverseChatMessage(
               uuid: Uuid().v4(),
               username: username,
+              userIdentifier: userIdentifier,
               message: message,
               nickname: nickname,
               avatarUrl: avatar,
@@ -238,11 +246,15 @@ class UniverseChatHandler {
         String? avatarUrl = data['avatarUrl'];
         String? nickname = data['nickname'];
         String? replyMessageUUID = data['replyMessageUUID'];
+        String? userId = data['userId'];
 
         if (message == null ||
             message.isEmpty ||
             username == null ||
-            username.isEmpty) return client.error('Invalid discord message');
+            username.isEmpty ||
+            userId == null) {
+          return client.error('Invalid discord message');
+        }
 
         if (replyMessageUUID != null) {
           UniverseChatMessage? replyMessage =
@@ -252,9 +264,10 @@ class UniverseChatHandler {
           }
         }
 
-        UniverseChatMessage msg = UniverseChatMessage(
+        final msg = UniverseChatMessage(
             uuid: Uuid().v4(),
             username: username,
+            userIdentifier: 'discord:$userId',
             message: message,
             nickname: nickname,
             avatarUrl: avatarUrl,
