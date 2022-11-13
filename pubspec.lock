@@ -501,7 +501,7 @@ packages:
     source: hosted
     version: "2.2.0"
   stream:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: stream
       url: "https://pub.dartlang.org"
