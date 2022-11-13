@@ -28,7 +28,7 @@ RUN chmod +x bin/main
 # Copy the executable.
 FROM scratch
 COPY --from=build /runtime/ /
-COPY --from=build /app/bin/main /app/bin/
+COPY --from=build /app/ /app/
 
 # For api server.
 EXPOSE 2096
