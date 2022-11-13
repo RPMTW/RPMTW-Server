@@ -51,10 +51,28 @@ Future<void> run({Parser? envParser}) async {
   final Handler _handler = _pipeline.addHandler(RootRoute().router);
 
   final int port = int.parse(env['API_PORT'] ?? '8080');
-  server = await serve(_handler, ip, port);
+  server =
+      await serve(_handler, ip, port, securityContext: getSecurityContext());
   server?.autoCompress = true;
   loggerNoStack
       .i('API Server listening on port http://${ip.host}:${server!.port}');
 
   await UniverseChatHandler().init();
+}
+
+SecurityContext getSecurityContext() {
+  final securityContext = SecurityContext();
+
+  final certificateChain = env['SECURITY_CERTIFICATE_CHAIN'];
+  final privateKey = env['SECURITY_PRIVATE_KEY'];
+
+  if (certificateChain != null) {
+    securityContext.useCertificateChain(certificateChain);
+  }
+
+  if (privateKey != null) {
+    securityContext.usePrivateKey(privateKey);
+  }
+
+  return securityContext;
 }
