@@ -60,7 +60,7 @@ Future<void> run({Parser? envParser}) async {
   await UniverseChatHandler().init();
 }
 
-SecurityContext getSecurityContext() {
+SecurityContext? getSecurityContext() {
   final securityContext = SecurityContext();
 
   final certificateChain = env['SECURITY_CERTIFICATE_CHAIN'];
@@ -74,5 +74,9 @@ SecurityContext getSecurityContext() {
     securityContext.usePrivateKey(privateKey);
   }
 
-  return securityContext;
+  if (certificateChain != null && privateKey != null) {
+    return securityContext;
+  } else {
+    return null;
+  }
 }
