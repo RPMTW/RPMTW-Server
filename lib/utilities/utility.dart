@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:dotenv/dotenv.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class Utility {
@@ -123,5 +126,26 @@ class Utility {
     }
 
     return _comparableVersion;
+  }
+
+  static SecurityContext? getSecurityContext() {
+    final securityContext = SecurityContext();
+
+    final certificateChain = env['SECURITY_CERTIFICATE_CHAIN'];
+    final privateKey = env['SECURITY_PRIVATE_KEY'];
+
+    if (certificateChain != null) {
+      securityContext.useCertificateChain(certificateChain);
+    }
+
+    if (privateKey != null) {
+      securityContext.usePrivateKey(privateKey);
+    }
+
+    if (certificateChain != null && privateKey != null) {
+      return securityContext;
+    } else {
+      return null;
+    }
   }
 }

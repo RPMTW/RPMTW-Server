@@ -7,6 +7,7 @@ import 'package:mongo_dart/mongo_dart.dart';
 import 'package:rpmtw_dart_common_library/rpmtw_dart_common_library.dart';
 import 'package:rpmtw_server/database/models/auth/user_role.dart';
 import 'package:rpmtw_server/utilities/request_extension.dart';
+import 'package:rpmtw_server/utilities/utility.dart';
 import 'package:socket_io/socket_io.dart';
 
 import 'package:rpmtw_server/database/models/auth/ban_info.dart';
@@ -14,6 +15,7 @@ import 'package:rpmtw_server/database/models/auth/user.dart';
 import 'package:rpmtw_server/database/models/universe_chat/universe_chat_message.dart';
 import 'package:rpmtw_server/utilities/data.dart';
 import 'package:rpmtw_server/utilities/scam_detection.dart';
+import 'package:stream/stream.dart';
 
 class UniverseChatHandler {
   static late final Server _io;
@@ -28,7 +30,20 @@ class UniverseChatHandler {
   Future<void> init() async {
     /// 2087 is cloudflare supported proxy https port
     int port = int.parse(env['universe_chat_PORT'] ?? '2087');
-    _io = Server();
+
+    StreamServer? server;
+
+    final securityContext = Utility.getSecurityContext();
+
+    if (securityContext != null) {
+      server = StreamServer();
+      await server.startSecure(
+        securityContext,
+        port: port,
+      );
+    }
+
+    _io = Server(server: server);
     final InternetAddress ip = InternetAddress.anyIPv4;
 
     try {
