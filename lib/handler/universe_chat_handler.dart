@@ -40,6 +40,7 @@ class UniverseChatHandler {
       await server.startSecure(
         securityContext,
         port: port,
+        shared: true,
       );
     }
 
