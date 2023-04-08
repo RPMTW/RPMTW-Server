@@ -16,12 +16,12 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /opt/hostedtoolcache/dart-sdk
-          key: ${{ runner.os }}-dart-2.17.6
+          key: ${{ runner.os }}-dart-2.19.6
       # https://dart.dev/get-dart/archive
       - name: Install Dart SDK
         uses: dart-lang/setup-dart@v1.3
         with:
-          sdk: 2.17.6
+          sdk: 2.19.6
       - name: Build
         run: |
           dart pub get
