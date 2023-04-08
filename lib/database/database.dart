@@ -39,19 +39,10 @@ class DataBase {
     collectionList = [];
 
     List<String?> collections = await _mongoDB.getCollectionNames();
-    Future<void> checkCollection(String name, List<IndexField> indexFields,
-        {bool needCreateIndex = false}) async {
-      if (!collections.contains(name)) {
-        await _mongoDB.createCollection(name);
+    Future<void> createIndex(String name, List<IndexField> indexFields) async {
+      for (IndexField field in indexFields) {
         await _mongoDB.createIndex(name,
-            key: 'uuid', name: 'uuid', unique: true);
-      }
-
-      if (needCreateIndex) {
-        for (IndexField field in indexFields) {
-          await _mongoDB.createIndex(name,
-              key: field.name, name: field.name, unique: field.unique);
-        }
+            key: field.name, name: field.name, unique: field.unique);
       }
     }
 
@@ -61,15 +52,23 @@ class DataBase {
     for (String name in collectionNameList) {
       DbCollection collection = _mongoDB.collection(name);
 
+      if (!collections.contains(name)) {
+        await _mongoDB.createCollection(name);
+        await _mongoDB.createIndex(name,
+            key: 'uuid', name: 'uuid', unique: true);
+      }
+
       List<Map<String, dynamic>> indexes = await collection.getIndexes();
       List<String> indexFieldsName =
           indexes.map((index) => index['name'] as String).toList();
       List<IndexField> _indexFields =
           indexFields[collectionNameList.indexOf(name)];
-      await checkCollection(name, _indexFields,
-          needCreateIndex: !collections.contains(name) ||
-              _indexFields
-                  .any((field) => !indexFieldsName.contains(field.name)));
+
+      final needCreateIndex = !collections.contains(name) ||
+          _indexFields.any((field) => !indexFieldsName.contains(field.name));
+      if (needCreateIndex) {
+        await createIndex(name, _indexFields);
+      }
       collectionList.add(collection);
     }
 
