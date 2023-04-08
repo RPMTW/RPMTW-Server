@@ -49,7 +49,9 @@ class UniverseChatHandler {
 
     try {
       eventHandler(io);
-      await io.listen(port);
+      if (server == null) {
+        await io.listen(port);
+      }
       loggerNoStack
           .i('Universe Chat Server listening on port http://${ip.host}:$port');
     } catch (e) {
