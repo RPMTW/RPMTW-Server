@@ -305,10 +305,15 @@ class UniverseChatHandler {
   }
 
   Future<void> sendMessage(UniverseChatMessage msg, {Function? ack}) async {
+    const List<String> dirtyWords = ["傻逼", "屁事"];
+
     bool phishing = await ScamDetection.detectionWithBool(msg.message);
+    bool isDirtyWord =
+        dirtyWords.firstWhereOrNull((word) => msg.message.contains(word)) !=
+            null;
 
     /// Detect phishing
-    if (phishing) {
+    if (phishing || isDirtyWord) {
       return ack?.call(json.encode({
         'status': 'phishing',
       }));
